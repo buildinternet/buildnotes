@@ -58,7 +58,8 @@ The brief's fields are what *you* need confidence in, not a form for the author 
 **Rate each field** as you draft it: *sure* (the evidence says so), *likely* (a safe inference), or *guess*. Then:
 
 - **Sure or likely: decide.** Mark it *assumed* in `plan.md` if it's an inference. Don't ask.
-- **A guess that changes the shape of the post: ask.** In practice that's the headline when two angles are close, or the audience when it could reasonably go either way. Those decide what the whole post is about; a wrong guess costs a rewrite.
+- **A guess that changes the shape of the post: ask.** In practice that's the headline when two angles are genuinely close, or the audience when it could reasonably go either way. Those decide what the whole post is about; a wrong guess costs a rewrite.
+- **The headline is usually not a question.** If one angle is clearly the strongest (it's the thing that's newly possible, or the evidence backs it far better), lead with it and name the runner-up in the frame statement ("say if you'd rather lead with X"). That gives the author the same chance to redirect without a question. Ask only when you would honestly flip a coin.
 - **A guess that only changes a sentence: don't ask.** Write around it (leave the claim out, or state only what the evidence shows) and put it on the list that goes with the draft.
 - **Motive** (why now, why this approach) is never worth blocking on. Use it if the author offers it; otherwise describe the problem the work solves, which the evidence does show.
 
