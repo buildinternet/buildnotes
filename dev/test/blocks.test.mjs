@@ -130,10 +130,12 @@ test("build re-renders a shader when only its .glsl changed", async () => {
   assert.match(build(once, dir, { check: true }).problems[0], /changed since the last render/);
 });
 
-test("matrix warns on a mark carrying a value; code takes wrap", () => {
+test("matrix warns when a row's marks tell nothing apart; code takes wrap", () => {
   takeWarnings();
-  matrix.render(mdTable("| | A | **B** |\n|---|---|---|\n| How many | ✓ 10 per account | 10 per workspace |\n| Shared | ✗ | ✓ every member |"), { id: "m" });
-  assert.deepEqual(takeWarnings(), ['matrix "m", How many / A: "✓ 10 per account" puts a mark on a value; write the value as plain text ("10 per account")']);
+  matrix.render(mdTable("| | A | **B** |\n|---|---|---|\n| How many | 10 per account | 10 per workspace |\n| Shared | ✗ | ✓ every member |"), { id: "m" });
+  assert.deepEqual(takeWarnings(), []);
+  matrix.render(mdTable("| | A | **B** |\n|---|---|---|\n| How many | ✓ 10 per account | ✓ 10 per workspace |\n| Fast | ✗ 3–5 min | ✓ |"), { id: "m" });
+  assert.deepEqual(takeWarnings(), ['matrix "m": every cell in "How many" has the same mark and a note; the notes are the values, so write them as plain text']);
   assert.match(code({ file: "a.js", source: "const a = 1;\n", wrap: true }), /^<figure class="code wrap">/);
   assert.match(code({ file: "a.js", source: "const a = 1;\n" }), /^<figure class="code">/);
 });
