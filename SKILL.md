@@ -108,7 +108,7 @@ Don't stop to ask unless an answer would change the headline or a chapter; both 
 
 ### 5. Make the visuals
 
-For each beat, decide whether a visual earns its place, and make it before writing the text around it. Most visuals are components: write a small spec in `<work-dir>/viz/` and let `scripts/viz.mjs` draw it (flows, steps, bars, before/after numbers, line charts, tables, strips, code and terminal blocks; each one with its spec in [assets/components.html](assets/components.html)). Code and terminal blocks are evidence, not visuals. Kinds, spec formats, capture recipes and motion rules: [visuals.md](references/visuals.md).
+For each beat, decide whether a visual earns its place, and make it before writing the text around it. Most visuals are components: write a small spec in `<work-dir>/viz/` and let `scripts/viz.mjs` draw it (flows, steps, bars, before/after numbers, line charts, tables, strips, code and terminal blocks, WebGL shaders; each one with its spec in [assets/components.html](assets/components.html)). Code and terminal blocks are evidence, not visuals. Kinds, spec formats, capture recipes and motion rules: [visuals.md](references/visuals.md).
 
 ### 6. Write the page
 

@@ -6,7 +6,7 @@
 //   node viz.mjs build <post.html> [--check]      render every viz marker in the post, in place
 //   node viz.mjs kinds                            list the kinds
 //
-// Kinds: flow, steps, bars, delta, line, options, matrix (Markdown tables), code, term, strip.
+// Kinds: flow, steps, bars, delta, line, options, matrix (Markdown tables), code, term, strip, shader.
 // A marker names the kind and the spec, relative to the post:
 //   <!-- viz flow viz/pipeline.json -->
 //   <!-- /viz -->
@@ -30,8 +30,9 @@ import * as code from "./viz/code.mjs";
 import * as term from "./viz/term.mjs";
 import * as strip from "./viz/strip.mjs";
 import * as steps from "./viz/steps.mjs";
+import * as shader from "./viz/shader.mjs";
 
-export const KINDS = { flow, bars, delta, line, options, matrix, code, term, strip, steps };
+export const KINDS = { flow, bars, delta, line, options, matrix, code, term, strip, steps, shader };
 export const MARKER = /<!-- viz (\w+) (\S+?)(?: #([0-9a-f]{6}))? -->([\s\S]*?)<!-- \/viz -->/g;
 
 export function renderKind(kind, specText, opts = {}) {
@@ -48,7 +49,13 @@ export function build(html, base, { check = false } = {}) {
     n++;
     let text;
     try { text = readFileSync(resolve(base, path), "utf8"); } catch { problems.push(`${kind} ${path}: spec not found`); return all; }
-    const h = hash(text);
+    const specBase = dirname(resolve(base, path));
+    let h = hash(text);
+    try {
+      const mod = KINDS[kind];
+      const deps = mod?.deps?.(mod.parse ? mod.parse(text) : JSON.parse(text), specBase) ?? [];
+      if (deps.length) h = hash(text + deps.map((d) => readFileSync(d, "utf8")).join("\n"));
+    } catch {}
     if (check) {
       if (!body.trim()) problems.push(`${kind} ${path}: not rendered yet`);
       else if (stamp !== h) problems.push(`${kind} ${path}: spec changed since the last render`);
@@ -56,7 +63,7 @@ export function build(html, base, { check = false } = {}) {
     }
     const id = path.replace(/^.*\//, "").replace(/\.\w+$/, "");
     try {
-      const frag = renderKind(kind, text, { id, base: dirname(resolve(base, path)) });
+      const frag = renderKind(kind, text, { id, base: specBase });
       for (const w of takeWarnings()) problems.push(`${kind} ${path}: ${w}`);
       return `<!-- viz ${kind} ${path} #${h} -->\n${frag}\n<!-- /viz -->`;
     } catch (err) {

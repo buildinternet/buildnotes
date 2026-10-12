@@ -88,3 +88,33 @@ test("steps: --i/--n, hot box, live highlight", async () => {
   assert.match(html, /<li style="--i:1" class="hot"><div class="box"><b>B<\/b><\/div><\/li>/);
   assert.throws(() => render({ steps: [{ label: "A" }] }), /at least two/);
 });
+
+test("shader: attributes, fallback, and the checks on its source", async () => {
+  const { render } = await import("../../scripts/viz/shader.mjs");
+  const html = render({ label: "Waves <cross>", glsl: "uniform vec2 u_a; void main() { gl_FragColor = vec4(u_paper, 1.0); }", loop: 4, rest: 1, uniforms: { u_a: [0.3, 0.5] } });
+  assert.match(html, /<div class="shader" data-loop="4" data-rest="1" data-uniforms="\{&quot;u_a&quot;:\[0\.3,0\.5\]\}" style="--aspect:16 \/ 9">/);
+  assert.match(html, /<canvas role="img" aria-label="Waves &lt;cross&gt;"><\/canvas>/);
+  assert.match(html, /<div class="fallback">Waves &lt;cross&gt;<\/div>/);
+  assert.throws(() => render({ glsl: "void main() {}" }), /needs a label/);
+  assert.throws(() => render({ label: "x", glsl: "void f() {}" }), /void main/);
+  assert.throws(() => render({ label: "x", glsl: "uniform float u_time; void main() {}" }), /declared for you/);
+  assert.throws(() => render({ label: "x", glsl: "void main() {}</script>" }), /<\/script/);
+  assert.throws(() => render({ label: "x", glsl: "void main() {}", uniforms: { u_time: 1 } }), /built-in/);
+  render({ label: "x", glsl: "void main() { float t = u_time; }", loop: 2 }, { id: "t" });
+  assert.match(takeWarnings().join(" "), /build the motion on u_phase/);
+});
+
+test("build re-renders a shader when only its .glsl changed", async () => {
+  const { build } = await import("../../scripts/viz.mjs");
+  const { mkdtempSync, writeFileSync, mkdirSync } = await import("node:fs");
+  const { tmpdir } = await import("node:os");
+  const { join } = await import("node:path");
+  const dir = mkdtempSync(join(tmpdir(), "viz-shader-"));
+  mkdirSync(join(dir, "viz"));
+  writeFileSync(join(dir, "viz/s.json"), JSON.stringify({ label: "x", frag: "s.glsl", loop: 2 }));
+  writeFileSync(join(dir, "viz/s.glsl"), "void main() { gl_FragColor = vec4(u_paper, 1.0); }");
+  const once = build("<figure>\n<!-- viz shader viz/s.json -->\n<!-- /viz -->\n</figure>", dir).html;
+  assert.equal(build(once, dir, { check: true }).problems.length, 0);
+  writeFileSync(join(dir, "viz/s.glsl"), "void main() { gl_FragColor = vec4(u_ink, 1.0); }");
+  assert.match(build(once, dir, { check: true }).problems[0], /changed since the last render/);
+});

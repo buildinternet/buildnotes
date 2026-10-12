@@ -75,3 +75,15 @@ test("--click starts the figure, and a clamped game loop still reaches its end s
   assert.ok(!before.equals(after), "clicking changes the frame");
   assert.ok(after.equals(later), "the square has finished growing by 3 s, despite the 50 ms clamp");
 });
+
+test("a shader component loops exactly on u_phase", { skip: noChrome }, () => {
+  const page = join(out, "shaders.html");
+  execFileSync("node", [join(root, "dev/gallery.mjs"), "--only", "shader", "--out", page], { stdio: "ignore" });
+  const at = (s) => {
+    const f = join(out, `ripple-${s}.png`);
+    execFileSync("node", [join(root, "scripts/export.mjs"), page, "--select", "#shader-ripple .shader", "--png", "--scale", "1", "--at", String(s), "--out", f], { stdio: "ignore" });
+    return readFileSync(f);
+  };
+  assert.ok(at(0.5).equals(at(4.5)), "one loop (4 s) apart is the same frame");
+  assert.ok(!at(0.5).equals(at(1.5)), "the ripples move");
+});

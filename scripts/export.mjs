@@ -112,6 +112,9 @@ try {
     const ok = await page.evaluate(`(() => { const el = document.querySelector(${JSON.stringify(sel)}); if (!el) return false; el.click(); return true; })()`);
     if (!ok) await done(1, `--click: nothing matches ${sel}`);
   }
+  // Two real frames, so anything that reacts to the scroll or the clicks (an IntersectionObserver
+  // resuming a canvas) has done so before the first frame.
+  await page.evaluate(`new Promise((r) => { const raf = window.__clock?.realRAF ?? requestAnimationFrame; raf(() => raf(() => r(true))); })`);
   // Show only the exported element: its neighbours (a caption, the next paragraph) keep their space
   // but don't paint into the margin. The page background still shows.
   await page.evaluate(`document.body.style.visibility = "hidden"; window.__target.style.visibility = "visible"; true`);

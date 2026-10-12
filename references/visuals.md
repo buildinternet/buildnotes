@@ -19,6 +19,7 @@ Every visual answers a question a chapter raises. Before making one, write its c
 | Sizes or counts | Bars, to scale | `bars` |
 | One measured change | The number before and after | `delta` |
 | A trend over time | Small line chart | `line` |
+| A field, a wave, light, or many things moving at once | WebGL figure | `shader` |
 
 At most one per chapter (lint warns at two). A chapter with nothing worth drawing gets a code or terminal block, or nothing. Those are evidence, not visuals: code is ≤15 shipped lines (SKILL.md rules), terminal blocks follow [evidence.md](evidence.md#terminal-blocks). Both have components too (`code`, `term`).
 
@@ -54,6 +55,7 @@ Lint lists the specs behind the page, so the fact pass can tick their numbers th
 | `matrix` | A Markdown table. Cells start with ✓, ✗ or ~ (or yes, no, partly), then an optional short note. Bold the header of the option the post is about. |
 | `code` | `file`, `lines` ("12-40"), optional `cut` (ranges shown as one `…` line each), `rev` (default `HEAD`), `repo` (relative to the spec), `lang`. Reads from git, so the excerpt is the committed code. |
 | `term` | `cmd` (one command), `out` (lines), optional `keep` ("1-3,8"; each gap becomes `…`), `dim`, `wrap`. |
+| `shader` | `label` (required), `frag` (a `.glsl` file next to the spec) or `glsl`, `loop` and `rest` (seconds), optional `aspect`, `uniforms` (extra values: a number or 2–4 numbers), `fallback`. See below. |
 | `strip` | `frames`: 2–4 of `{ label, src, alt, width, height }`, `{ label, code: {…} }` or `{ label, term: { out } }`. The last frame gets the accent label unless another says `hot`. |
 
 ## Diagrams
@@ -132,7 +134,18 @@ Open the page (or `post.published.html`) once at 1280×800 and once at 390×844,
 
 ## Canvas and WebGL
 
-Hand-written `<canvas>` figures are welcome, 2D or WebGL (a shader for light, smoke, a field, a process too fluid for boxes). Keep them in the same rules: one per chapter, explains something, works in light and dark, a resting frame for reduced motion. So that they export and behave:
+WebGL is the tool for what boxes and lines can't show: waves and interference, a field, light, smoke, many things moving at once. Keep it in the same rules as any visual: one per chapter, and it must explain something.
+
+**Start with the `shader` component.** Write only a fragment shader; the template's script does the rest. It sizes the canvas for the screen, follows light and dark, pauses off screen, holds the `rest` frame for reduced motion, and shows the fallback text when WebGL is missing or the shader fails (check the browser console for the compile error). The shader gets these uniforms, already declared:
+
+- `vec2 u_resolution` (canvas pixels), `float u_dpr`, `vec2 u_pointer` (0–1 across and up, or -1 when away)
+- `float u_time` (seconds) and **`float u_phase`** (0 → 1 once per `loop`). Build motion on `u_phase` (`sin(TAU * u_phase * n)` with whole `n`) and the loop closes exactly.
+- `vec3 u_paper, u_ink, u_muted, u_accent, u_accent_wash, u_dim, u_mark` (the page's colour tokens) and `float u_dark`. Colour only from these, so both themes work: background `u_paper`, the subject `u_accent`, the rest `u_dim` or `u_muted`.
+- `#define TAU`
+
+`assets/specs/ripple.glsl` and `fanout.glsl` are worked examples. Declare extra uniforms in the shader and set them in the spec's `uniforms`.
+
+For more than one fragment shader can do (geometry, several passes, 2D canvas drawing), write the canvas by hand. So that it exports and behaves:
 
 - **Drive motion from the animation-frame time** (`requestAnimationFrame((t) => …)` or `performance.now()`), not from a frame counter. Clamping the time between frames is fine.
 - **Declare the loop**: `data-loop="<seconds>"` on the figure or the canvas, for anything that repeats.

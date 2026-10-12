@@ -4,7 +4,7 @@
   Copy to <work-dir>/post.html, replace the example content, delete components you don't use.
   Components: masthead + stats · lede · contents · chapter · ref · heard→changed · shot · timeline ·
   module slot · notes · further reading · colophon, plus the rendered ones: options · steps · flow ·
-  code · term · strip · bars (and delta, line, matrix, not shown here).
+  code · term · strip · bars (and delta, line, matrix and shader, a WebGL figure, not shown here).
   Rendered components come from small specs: write one in <work-dir>/viz/, point a marker comment at it
   ("viz kind viz/name.json" … "/viz", as below), and run scripts/viz.mjs build post.html.
   The markers below point at the skill's example specs (specs/…); replace them. Every kind, with its
@@ -322,6 +322,14 @@ figcaption a { color: var(--muted); }
 .line .xaxis span.odd { visibility: var(--odd, visible); }
 .line-box { container-type: inline-size; }
 @container (max-width: 30rem) { .line { --plot: 9.5rem; --odd: hidden; } }
+
+/* ── component: shader (viz.mjs shader) ── a WebGL canvas drawn by a fragment shader; the script below
+   runs it. --aspect sets the shape. The fallback text shows without scripts or WebGL. */
+.shader { border: 1px solid var(--rule); border-radius: 6px; overflow: hidden; background: var(--paper); }
+.shader canvas { display: block; width: 100%; aspect-ratio: var(--aspect, 16 / 9); touch-action: pan-y; }
+.shader .fallback { display: none; padding: 1rem; font: 0.875rem/1.5 var(--font-mono); color: var(--muted); }
+:root:not(.js) .shader canvas, .shader.no-gl canvas { display: none; }
+:root:not(.js) .shader .fallback, .shader.no-gl .fallback { display: block; }
 
 /* visually hidden, still read aloud (a chart's data table) */
 .vh { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
@@ -665,6 +673,92 @@ figcaption a { color: var(--muted); }
     };
     navigator.clipboard ? navigator.clipboard.writeText(text).then(done, fallback) : fallback();
   });
+  // WebGL figures (viz.mjs shader): one canvas per .shader, drawn by its fragment shader. The shader gets
+  // the canvas size, the time, u_phase (0→1 per data-loop), the pointer and the page's colour tokens;
+  // the full list is in scripts/viz/shader.mjs. Time comes from requestAnimationFrame, so export.mjs
+  // can step it; a reader who asks for less motion gets the data-rest frame.
+  (() => {
+    const TOKENS = ["paper", "ink", "muted", "accent", "accent-wash", "dim", "mark"];
+    const PRELUDE = "precision highp float;\n#define TAU 6.28318530718\nuniform vec2 u_resolution, u_pointer;\nuniform float u_time, u_phase, u_loop, u_dpr, u_dark;\n"
+      + TOKENS.map((t) => `uniform vec3 u_${t.replace("-", "_")};`).join("\n") + "\n#line 1\n";
+    const reduce = matchMedia("(prefers-reduced-motion: reduce)");
+    const probe = document.createElement("span");
+    probe.style.display = "none";
+    document.body.append(probe);
+    const rgb = (name) => { probe.style.color = `var(--${name})`; return (getComputedStyle(probe).color.match(/[\d.]+/g) ?? [0, 0, 0]).slice(0, 3).map((v) => v / 255); };
+    for (const box of document.querySelectorAll(".shader")) {
+      const canvas = box.querySelector("canvas");
+      const src = box.querySelector('script[type="x-shader/x-fragment"]')?.textContent ?? "";
+      const extra = JSON.parse(box.dataset.uniforms || "{}");
+      const loop = parseFloat(box.dataset.loop) || 0;
+      const rest = parseFloat(box.dataset.rest) || 0;
+      const fail = (why) => { box.classList.add("no-gl"); if (why) console.error("shader:", why); };
+      const gl = canvas.getContext("webgl", { antialias: true });
+      if (!gl) { fail(); continue; }
+      const compile = (type, text) => {
+        const sh = gl.createShader(type);
+        gl.shaderSource(sh, text);
+        gl.compileShader(sh);
+        if (!gl.getShaderParameter(sh, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(sh));
+        return sh;
+      };
+      const prog = gl.createProgram();
+      try {
+        gl.attachShader(prog, compile(gl.VERTEX_SHADER, "attribute vec2 p; void main() { gl_Position = vec4(p, 0.0, 1.0); }"));
+        gl.attachShader(prog, compile(gl.FRAGMENT_SHADER, PRELUDE + src));
+        gl.linkProgram(prog);
+        if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(prog));
+      } catch (err) { fail(err.message); continue; }
+      gl.useProgram(prog);
+      gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+      const at = gl.getAttribLocation(prog, "p");
+      gl.enableVertexAttribArray(at);
+      gl.vertexAttribPointer(at, 2, gl.FLOAT, false, 0, 0);
+      const u = (name) => gl.getUniformLocation(prog, name);
+      const colors = {};
+      const theme = () => { for (const t of TOKENS) colors[t] = rgb(t); };
+      let pointer = [-1, -1];
+      canvas.addEventListener("pointermove", (e) => { const r = canvas.getBoundingClientRect(); pointer = [(e.clientX - r.left) / r.width, 1 - (e.clientY - r.top) / r.height]; });
+      canvas.addEventListener("pointerleave", () => { pointer = [-1, -1]; });
+      let last = 0;
+      const draw = (ms) => {
+        last = ms;
+        const dpr = Math.min(2, devicePixelRatio || 1);
+        const w = Math.round(canvas.clientWidth * dpr), h = Math.round(canvas.clientHeight * dpr);
+        if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; }
+        gl.viewport(0, 0, w, h);
+        const t = ms / 1000;
+        gl.uniform2f(u("u_resolution"), w, h);
+        gl.uniform1f(u("u_time"), t);
+        gl.uniform1f(u("u_loop"), loop);
+        gl.uniform1f(u("u_phase"), loop ? (t % loop) / loop : 0);
+        gl.uniform1f(u("u_dpr"), dpr);
+        gl.uniform2f(u("u_pointer"), pointer[0], pointer[1]);
+        const [r, g, b] = colors.paper;
+        gl.uniform1f(u("u_dark"), 0.2126 * r + 0.7152 * g + 0.0722 * b < 0.5 ? 1 : 0);
+        for (const t2 of TOKENS) gl.uniform3f(u(`u_${t2.replace("-", "_")}`), ...colors[t2]);
+        for (const [name, v] of Object.entries(extra)) { const a = [].concat(v); gl[`uniform${a.length}fv`](u(name), a); }
+        gl.drawArrays(gl.TRIANGLES, 0, 3);
+      };
+      // Animate only while on screen and while motion is welcome; otherwise hold one frame.
+      let visible = true, running = false;
+      const tick = (ms) => { if (!visible || reduce.matches) { running = false; return; } draw(ms); requestAnimationFrame(tick); };
+      const start = () => { if (!running && visible && !reduce.matches) { running = true; requestAnimationFrame(tick); } };
+      const still = () => draw(reduce.matches ? rest * 1000 : last);
+      const retheme = () => { theme(); still(); };
+      theme();
+      // export.mjs (which installs window.__clock) steps every shader as if it were on screen.
+      if (!window.__clock) new IntersectionObserver(([e]) => { visible = e.isIntersecting; start(); }).observe(canvas);
+      new ResizeObserver(still).observe(canvas);
+      matchMedia("(prefers-color-scheme: dark)").addEventListener("change", retheme);
+      new MutationObserver(retheme).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+      reduce.addEventListener("change", () => { still(); start(); });
+      canvas.addEventListener("webglcontextlost", (e) => { e.preventDefault(); fail("WebGL context lost"); });
+      still();
+      start();
+    }
+  })();
   // Stop SVG (SMIL) motion for readers who ask for less; the resting frame still explains the diagram.
   if (window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches) {
     document.querySelectorAll("svg").forEach((s) => s.pauseAnimations && s.pauseAnimations());
