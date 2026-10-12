@@ -1,0 +1,13 @@
+{
+  "label": "80 clients retry after an outage. Without jitter they all retry at once and the spike passes the server's capacity; with jitter the same retries spread out and stay under it",
+  "frag": "jitter.glsl",
+  "loop": 5,
+  "rest": 4.75,
+  "aspect": "2 / 1",
+  "uniforms": { "u_capacity": 0.3 },
+  "labels": [
+    { "text": "Same delay", "x": 0.02, "y": 0.08 },
+    { "text": "Random delay (jitter)", "x": 0.52, "y": 0.08 },
+    { "text": "capacity", "x": 0.52, "y": 0.75 }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "title": "Three sources of traffic share one limit",
+  "nodes": [
+    { "id": "web", "label": "Web app" },
+    { "id": "cli", "label": "CLI" },
+    { "id": "api", "label": "Public API" },
+    { "id": "bucket", "label": "Token bucket", "sub": "per account", "hot": true },
+    { "id": "handler", "label": "Handler" }
+  ],
+  "edges": [["web", "bucket"], ["cli", "bucket"], ["api", "bucket"], ["bucket", "handler", "allowed"]],
+  "motion": { "route": ["cli", "bucket", "handler"], "style": "dot" }
+}

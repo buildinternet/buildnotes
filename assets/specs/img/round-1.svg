@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" font-family="Helvetica, Arial, sans-serif">
+<rect width="800" height="450" fill="#ffffff"/>
+<rect x="0" y="0" width="800" height="52" fill="#f1f3f5"/><circle cx="28" cy="26" r="6" fill="#d0d4d9"/><circle cx="48" cy="26" r="6" fill="#d0d4d9"/><circle cx="68" cy="26" r="6" fill="#d0d4d9"/>
+<text x="40" y="100" font-size="26" font-weight="700" fill="#16191d">This week</text>
+<g fill="#5b636e" font-size="17"><text x="40" y="150">• Acme CLI 2.3.1 — fixes</text><text x="40" y="185">• Acme CLI 2.3.2 — fixes</text><text x="40" y="220">• Acme CLI 2.3.3 — fixes</text><text x="40" y="255">• Widget SDK 4.0 — new default model</text><text x="40" y="290">• Acme CLI 2.3.4 — fixes</text><text x="40" y="325">• Acme CLI 2.3.5 — fixes</text></g>
+</svg>

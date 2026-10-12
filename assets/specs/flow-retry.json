@@ -1,0 +1,11 @@
+{
+  "title": "A failed delivery retries until it lands",
+  "nodes": [
+    { "id": "queue", "label": "Queue", "sub": "outbox table" },
+    { "id": "send", "label": "Send", "sub": "webhook POST", "hot": true },
+    { "id": "done", "label": "Delivered" },
+    { "id": "wait", "label": "Back off", "sub": "1 s → 2 s → 4 s" }
+  ],
+  "edges": [["queue", "send", "next event"], ["send", "done", "2xx"], ["send", "wait", "5xx"], ["wait", "send", "retry"]],
+  "motion": { "route": ["queue", "send", "wait", "send", "done"], "style": "dot" }
+}

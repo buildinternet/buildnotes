@@ -1,0 +1,11 @@
+{
+  "title": "From push to preview link",
+  "nodes": [
+    { "id": "push", "label": "git push", "sub": "any branch" },
+    { "id": "build", "label": "Build", "sub": "shared runner", "hot": true },
+    { "id": "preview", "label": "Preview link", "sub": "per branch" },
+    { "id": "log", "label": "Build log", "sub": "kept 30 days" }
+  ],
+  "edges": [["push", "build", "webhook"], ["build", "preview", "image"], ["build", "log", "output"]],
+  "motion": { "route": ["push", "build", "preview"], "style": "dashes" }
+}

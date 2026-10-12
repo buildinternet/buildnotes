@@ -1,0 +1,9 @@
+{
+  "rows": [
+    { "label": "Cold start", "value": 1840 },
+    { "label": "Warm, no cache", "value": 620 },
+    { "label": "Warm, cached", "value": 95, "hot": true }
+  ],
+  "unit": "ms",
+  "limit": { "value": 1000, "label": "budget" }
+}

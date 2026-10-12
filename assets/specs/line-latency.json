@@ -1,0 +1,7 @@
+{
+  "title": "p95 response time by day",
+  "x": ["1 Oct", "2 Oct", "3 Oct", "4 Oct", "5 Oct", "6 Oct", "7 Oct", "8 Oct", "9 Oct", "10 Oct", "11 Oct", "12 Oct"],
+  "series": [{ "name": "p95", "values": [410, 432, 398, 445, 420, 415, 180, 172, 168, 175, 171, 166] }],
+  "y": { "unit": "ms" },
+  "mark": { "at": "7 Oct", "label": "cache on" }
+}

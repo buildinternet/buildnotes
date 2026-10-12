@@ -1,0 +1,8 @@
+{
+  "rows": [
+    { "label": "Release", "value": 1 },
+    { "label": "Build", "value": 4 },
+    { "label": "Deep dive", "value": 10 },
+    { "label": "Draft 1", "value": 27, "hot": true }
+  ]
+}

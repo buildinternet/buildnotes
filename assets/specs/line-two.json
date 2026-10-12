@@ -1,0 +1,8 @@
+{
+  "title": "Builds per day, preview vs production",
+  "x": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+  "series": [
+    { "name": "Preview", "values": [120, 180, 260, 310, 340, 90, 70], "hot": true },
+    { "name": "Production", "values": [40, 42, 38, 45, 50, 12, 10] }
+  ]
+}

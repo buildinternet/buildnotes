@@ -2,9 +2,13 @@
 <!--
   Build story page template.
   Copy to <work-dir>/post.html, replace the example content, delete components you don't use.
-  Components: masthead + stats · lede · contents · chapter · ref · code / terminal · options ·
-  heard→changed · compare · steps (flow that stacks on phones, with motion) · diagram (SVG, with motion) ·
-  shot · bars · timeline · module slot · notes · further reading · colophon.
+  Components: masthead + stats · lede · contents · chapter · ref · heard→changed · shot · timeline ·
+  module slot · notes · further reading · colophon, plus the rendered ones: options · steps · flow ·
+  code · term · strip · bars (and delta, line, matrix and shader, a WebGL figure, not shown here).
+  Rendered components come from small specs: write one in <work-dir>/viz/, point a marker comment at it
+  ("viz kind viz/name.json" … "/viz", as below), and run scripts/viz.mjs build post.html.
+  The markers below point at the skill's example specs (specs/…); replace them. Every kind, with its
+  spec, is previewed in assets/components.html. Specs: references/visuals.md#components.
   Restyle by editing the :root tokens only. Keep the light/dark structure.
 -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -20,11 +24,10 @@
   --wash: #eaedf0;
   --accent: #1d5bd0;
   --accent-wash: #dfe8fa;
-  --mark: #b0450e;
-  --term-bg: #15181c;
-  --term-fg: #e3e6ea;
-  --term-dim: #a3acb6;
-  --term-accent: #8fb2f7;
+  --mark: #df004e; /* annotation accent: chapter numbers, footnotes, partial marks; #ff3264 deepened in oklch for 4.5:1 on paper */
+  --dim: #7b838d; /* de-emphasised data marks (the series that isn't the point) */
+  --card: #ffffff; /* code and terminal blocks: a card lifted by a soft ring and shadow, no border */
+  --card-shadow: 0 0 0 1px rgb(0 0 0 / 0.05), 0 1px 2px 0 rgb(0 0 0 / 0.04), 0 2px 8px -2px rgb(0 0 0 / 0.06);
   --font-display: "Schibsted Grotesk", "Helvetica Neue", Arial, sans-serif;
   --font-body: "Source Serif 4", Georgia, "Times New Roman", serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
@@ -34,12 +37,12 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --paper: #0f1215; --ink: #e3e6ea; --muted: #9aa3ad; --rule: #2a3037; --wash: #171b20;
-    --accent: #82a8f6; --accent-wash: #1a2538; --mark: #f08c4e; --term-bg: #07090b; color-scheme: dark;
+    --accent: #82a8f6; --accent-wash: #1a2538; --mark: #ff3264; --dim: #646c76; --card: #161a1f; --card-shadow: 0 0 0 1px rgb(255 255 255 / 0.07); color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
   --paper: #0f1215; --ink: #e3e6ea; --muted: #9aa3ad; --rule: #2a3037; --wash: #171b20;
-  --accent: #82a8f6; --accent-wash: #1a2538; --mark: #f08c4e; --term-bg: #07090b; color-scheme: dark;
+  --accent: #82a8f6; --accent-wash: #1a2538; --mark: #ff3264; --dim: #646c76; --card: #161a1f; --card-shadow: 0 0 0 1px rgb(255 255 255 / 0.07); color-scheme: dark;
 }
 
 * { box-sizing: border-box; }
@@ -103,18 +106,24 @@ figcaption { line-height: 1.5; text-wrap: pretty; }
 figcaption a { color: var(--muted); }
 
 /* code + terminal */
-.code { border: 1px solid var(--rule); border-radius: 6px; overflow: hidden; gap: 0; background: var(--wash); }
-.code figcaption { display: flex; justify-content: space-between; gap: 1rem; padding: 0.45rem 0.85rem; border-bottom: 1px solid var(--rule); background: var(--paper); }
-.code pre { margin: 0; padding: 0.9rem 1rem; overflow-x: auto; font: 0.8125rem/1.6 var(--font-mono); tab-size: 2; }
+.code { gap: 0; padding: 0.75rem 1rem 0.9rem; border-radius: 12px; background: var(--card); box-shadow: var(--card-shadow); }
+.code figcaption { display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 0.4rem; font: 0.75rem/1.5 var(--font-display); letter-spacing: 0; color: var(--muted); }
+.code pre { margin: 0; overflow-x: auto; scrollbar-width: thin; font: 0.8125rem/1.6 var(--font-mono); tab-size: 2; color: var(--ink); }
 .code pre code { background: none; padding: 0; font-size: inherit; }
+/* greyscale highlighting: keywords and comments recede, strings sit between them and the code */
+.code .k { color: var(--muted); }
+.code .s { color: color-mix(in oklab, var(--ink) 72%, var(--paper)); }
 .code .c { color: var(--muted); font-style: italic; }
-.code .k { color: var(--accent); }
-.code .s { color: var(--mark); }
-.code .cut { color: var(--muted); }
-.term { border-color: var(--term-bg); }
-.term pre { background: var(--term-bg); color: var(--term-fg); }
-.term .prompt { color: var(--term-accent); user-select: none; }
-.term .dim { color: var(--term-dim); }
+.code .cut, .term .dim { color: var(--muted); }
+.term .prompt { color: var(--muted); user-select: none; }
+/* copy button (viz.mjs code/term): shown only when the page's script runs, which sets html.js */
+.copy { display: none; place-items: center; width: 26px; height: 26px; margin: -4px -6px -4px 0; padding: 0; border: 0; border-radius: 6px; background: none; color: var(--muted); cursor: pointer; transition: color 0.15s, background 0.15s; }
+.js .copy { display: grid; }
+.copy:hover { background: var(--wash); color: var(--ink); }
+.copy svg { grid-area: 1 / 1; width: 15px; height: 15px; transition: opacity 0.2s, transform 0.25s; }
+.copy .done { opacity: 0; transform: scale(0.5); }
+.copy[data-done] .idle { opacity: 0; transform: scale(0.5); }
+.copy[data-done] .done { opacity: 1; transform: none; color: var(--accent); }
 .term.wrap pre, .code.wrap pre { white-space: pre-wrap; overflow-wrap: anywhere; }
 
 /* heard → changed */
@@ -127,7 +136,7 @@ figcaption a { color: var(--muted); }
 .heard .head { font-family: var(--font-mono); font-size: 0.6875rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); padding-bottom: 0.4rem; border-bottom: 0; }
 @media (max-width: 34rem) { .heard .pair { grid-template-columns: 1fr; gap: 0.4rem; } .heard .head { display: none; } }
 
-/* options considered: the turn, as a table; .chosen marks the winner */
+/* ── component: options (viz.mjs options) ── the turn, as a table; .chosen marks the winner */
 .options { overflow-x: auto; }
 .options table { width: 100%; border-collapse: collapse; font-size: 0.9375rem; }
 .options th { text-align: left; font: 500 0.6875rem var(--font-mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); padding: 0 0.75rem 0.4rem; border-bottom: 1px solid var(--rule); }
@@ -137,6 +146,47 @@ figcaption a { color: var(--muted); }
 .options tr.chosen td { background: var(--accent-wash); }
 .options tr.chosen td:first-child { box-shadow: inset 3px 0 0 var(--accent); }
 .options tr.chosen .verdict { color: var(--accent); }
+
+/* ── component: matrix (viz.mjs matrix) ── things down the side, options across; .hot = the option built */
+.matrix table { width: 100%; border-collapse: collapse; font-size: 0.9375rem; }
+.matrix thead th { text-align: left; font: 500 0.6875rem var(--font-mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); padding: 0 0.75rem 0.4rem; border-bottom: 1px solid var(--rule); vertical-align: bottom; }
+.matrix thead th.hot { color: var(--accent); }
+.matrix tbody th { text-align: left; font-weight: 600; padding: 0.6rem 0.75rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+.matrix td { padding: 0.6rem 0.75rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+.matrix td.hot { background: var(--accent-wash); }
+.matrix .mk { font: 600 0.9375rem/1 var(--font-mono); }
+.matrix .mk.yes { color: var(--accent); }
+.matrix .mk.no { color: var(--muted); }
+.matrix .mk.part { color: var(--mark); }
+.matrix .note { color: var(--muted); font-size: 0.875rem; }
+
+/* options and matrix become one card per row in a narrow box; each cell is labelled by its column */
+.vtable { container-type: inline-size; }
+@container (max-width: 32rem) {
+  .vtable table, .vtable tbody, .vtable tr, .vtable td, .vtable tbody th { display: block; }
+  .vtable thead { display: none; }
+  .vtable tr { padding: 0.55rem 0; border-bottom: 1px solid var(--rule); }
+  .vtable td, .vtable tbody th { border: 0; padding: 0.15rem 0.75rem; min-width: 0 !important; }
+  .vtable td::before { content: attr(data-label); font: 500 0.6875rem/1.9 var(--font-mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+  .options td::before { display: block; }
+  .options td:first-child::before { content: none; }
+  .options tr.chosen { background: var(--accent-wash); box-shadow: inset 3px 0 0 var(--accent); }
+  .options tr.chosen td { background: none; box-shadow: none; }
+  .matrix td { display: grid; grid-template-columns: minmax(0, 9rem) minmax(0, 1fr); gap: 0.5rem; align-items: baseline; }
+  .matrix td.hot { background: none; }
+  .matrix td.hot::before { color: var(--accent); }
+}
+
+/* ── component: strip (viz.mjs strip) ── 2–4 frames in order with arrows; stacked in a narrow box */
+.strip-box { container-type: inline-size; }
+.strip { display: grid; grid-template-columns: repeat(var(--n), minmax(0, 1fr)); gap: 1rem 2rem; }
+.strip .frame { position: relative; display: grid; gap: 0.4rem; align-content: start; min-width: 0; }
+.strip .frame + .frame::before { content: "→"; position: absolute; left: -1.4rem; top: 50%; transform: translateY(-50%); font: 1rem var(--font-mono); color: var(--muted); }
+.strip img { display: block; width: 100%; height: auto; border: 1px solid var(--rule); border-radius: 6px; background: var(--wash); }
+@container (max-width: 34rem) {
+  .strip { grid-template-columns: minmax(0, 1fr); gap: 1.75rem; }
+  .strip .frame + .frame::before { content: "↓"; left: 0; top: -1.45rem; transform: none; }
+}
 
 /* inline reference: PR / issue / commit as a quiet superscript, never in the sentence */
 .ref { font: 500 0.68em var(--font-mono); vertical-align: super; line-height: 0; margin-left: 0.15em; }
@@ -164,17 +214,14 @@ figcaption a { color: var(--muted); }
 }
 @keyframes pulse { 0%, 30%, 100% { border-color: var(--ink); } 8%, 22% { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-wash); } }
 
-/* compare (before / after) */
-.compare .sides { display: grid; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); gap: 1rem; }
-.compare .side { display: grid; gap: 0.4rem; align-content: start; min-width: 0; }
 .tag { text-transform: uppercase; letter-spacing: 0.08em; font-size: 0.6875rem; }
 .tag.after { color: var(--accent); }
 
 /* screenshot */
-.shot img, .shot video, .compare img { display: block; width: 100%; height: auto; border: 1px solid var(--rule); border-radius: 6px; background: var(--wash); }
+.shot img, .shot video { display: block; width: 100%; height: auto; border: 1px solid var(--rule); border-radius: 6px; background: var(--wash); }
 /* a light screenshot glares on a dark page: dim it slightly, or ship a dark pair with <picture> */
-@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .shot img:not(.dark-ok), :root:not([data-theme="light"]) .compare img:not(.dark-ok) { filter: brightness(0.86) contrast(1.05); } }
-:root[data-theme="dark"] .shot img:not(.dark-ok), :root[data-theme="dark"] .compare img:not(.dark-ok) { filter: brightness(0.86) contrast(1.05); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .shot img:not(.dark-ok), :root:not([data-theme="light"]) .strip img:not(.dark-ok) { filter: brightness(0.86) contrast(1.05); } }
+:root[data-theme="dark"] .shot img:not(.dark-ok), :root[data-theme="dark"] .strip img:not(.dark-ok) { filter: brightness(0.86) contrast(1.05); }
 
 /* diagram */
 .diagram .stage { overflow-x: auto; border: 1px solid var(--rule); border-radius: 6px; padding: 1rem; background:
@@ -191,11 +238,104 @@ figcaption a { color: var(--muted); }
 .diagram .arrow { fill: var(--muted); }
 @keyframes march { to { stroke-dashoffset: -20; } }
 
-/* bars (drawn to scale: --v is value / max) */
-.bars { display: grid; gap: 0.35rem; font: 0.75rem/1.3 var(--font-mono); }
-.bars .row { display: grid; grid-template-columns: 4.5rem 1fr 4.5rem; align-items: center; gap: 0.75rem; }
-.bars .row i { display: block; height: 0.7rem; width: calc(var(--v) * 100%); min-width: 2px; background: var(--accent); border-radius: 1px; }
-.bars .row b { font-weight: 400; color: var(--muted); text-align: right; font-variant-numeric: tabular-nums; }
+/* ── component: flow (viz.mjs flow) ── one spec, two drawings: svg.h left to right, svg.v top to bottom.
+   data-fold = the width (rem) of the .flow box below which the stacked drawing shows instead. */
+.flow { container-type: inline-size; border: 1px solid var(--rule); border-radius: 6px; padding: 1rem 0.75rem; background:
+  radial-gradient(circle, var(--rule) 1px, transparent 1.2px) 0 0 / 16px 16px, var(--paper); }
+.flow svg { display: block; width: 100%; height: auto; margin-inline: auto; }
+.flow svg.v { display: none; }
+@container (max-width: 30rem) { .flow[data-fold="30"] svg.h { display: none; } .flow[data-fold="30"] svg.v { display: block; } }
+@container (max-width: 38rem) { .flow[data-fold="38"] svg.h { display: none; } .flow[data-fold="38"] svg.v { display: block; } }
+@container (max-width: 46rem) { .flow[data-fold="46"] svg.h { display: none; } .flow[data-fold="46"] svg.v { display: block; } }
+@container (max-width: 54rem) { .flow[data-fold="54"] svg.h { display: none; } .flow[data-fold="54"] svg.v { display: block; } }
+.flow .box { fill: var(--paper); stroke: var(--ink); stroke-width: 1.25; }
+.flow .box.hot { fill: var(--accent-wash); stroke: var(--accent); }
+.flow .wire { fill: none; stroke: var(--muted); stroke-width: 1.25; }
+.flow .wire.live { stroke: var(--accent); stroke-opacity: 0.35; }
+.flow .route { fill: none; stroke: var(--accent); stroke-width: 1.75; stroke-dasharray: 4 6; animation: march 1.2s linear infinite; }
+.flow .arrow { fill: var(--muted); }
+.flow .dot { fill: var(--accent); }
+.flow .lbl { font: 600 13px var(--font-display); fill: var(--ink); }
+.flow .sub { font: 400 11px var(--font-mono); fill: var(--muted); }
+.flow .edge { font: 400 10.5px var(--font-mono); fill: var(--muted); paint-order: stroke; stroke: var(--paper); stroke-width: 4px; stroke-linejoin: round; }
+
+/* ── component: bars (viz.mjs bars) ── drawn to scale: --v = value ÷ largest. --lw/--vw = label and value
+   column widths in ch. .emph greys every bar but the .hot one; .limit is a dashed rule at --l. */
+.bars { display: grid; gap: 0.4rem; font: 0.75rem/1.3 var(--font-mono); }
+.bars .row { display: grid; grid-template-columns: minmax(0, var(--lw, 8ch)) minmax(0, 1fr) var(--vw, 6ch); align-items: center; gap: 0.75rem; }
+.bars .row > span:first-child { overflow-wrap: anywhere; }
+.bars .track { position: relative; display: block; height: 0.75rem; }
+.bars .row i { display: block; height: 100%; width: calc(var(--v) * 100%); min-width: 2px; background: var(--accent); border-radius: 0 4px 4px 0; }
+.bars.emph .row:not(.hot) i { background: var(--dim); }
+.bars .row b { font-weight: 400; color: var(--muted); text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.bars .row.hot b, .bars .row.hot > span:first-child { color: var(--ink); }
+.bars .limit { position: absolute; left: calc(var(--l) * 100%); top: -0.25rem; bottom: -0.25rem; border-left: 1px dashed var(--ink); }
+.bars .note .track { height: 1rem; }
+.bars .note em { position: absolute; left: calc(var(--l) * 100%); top: 0; transform: translateX(-50%); font-style: normal; color: var(--muted); white-space: nowrap; }
+.bars .note em.at-end { transform: translateX(-100%); }
+.bars .note em.at-start { transform: none; }
+
+/* ── component: delta (viz.mjs delta) ── one number before and after, the change, and bars to scale */
+.delta { display: grid; grid-template-columns: auto auto 1fr; align-items: end; gap: 0.35rem 1.25rem; }
+.delta .side { display: grid; gap: 0.15rem; }
+.delta .num { font: 600 clamp(1.75rem, 6vw, 2.5rem)/1.1 var(--font-display); letter-spacing: -0.01em; }
+.delta .side:not(.after) .num { color: var(--muted); }
+.delta .to { font: 1.5rem/1.6 var(--font-mono); color: var(--muted); }
+.delta .change { grid-column: 1 / -1; font: 0.8125rem/1.5 var(--font-mono); color: var(--muted); }
+.delta .change b { color: var(--ink); font-weight: 500; }
+.delta .pair { grid-column: 1 / -1; display: grid; gap: 4px; max-width: 24rem; }
+.delta .pair i { display: block; height: 0.5rem; width: calc(var(--v) * 100%); min-width: 2px; border-radius: 0 4px 4px 0; background: var(--dim); }
+.delta .pair i.after { background: var(--accent); }
+
+/* ── component: line (viz.mjs line) ── SVG line stretched to the plot; text, dots and the mark are HTML
+   placed in percent (--x, --y), so nothing stretches. --yw/--ew = tick and end-label widths in ch. */
+.line { --plot: 11rem; display: grid; grid-template-columns: var(--yw) minmax(0, 1fr) var(--ew); column-gap: 0.6rem; font: 0.75rem/1.3 var(--font-mono); color: var(--muted);
+  grid-template-areas: "legend legend legend" ". top ." "y plot ends" ". x ."; }
+.line .legend { grid-area: legend; display: flex; flex-wrap: wrap; gap: 0.25rem 1.25rem; margin: 0 0 0.6rem; }
+.line .legend span { display: inline-flex; align-items: center; gap: 0.45rem; }
+.line .legend i { width: 1rem; height: 2px; border-radius: 1px; background: var(--accent); }
+.line .legend .dim i { background: var(--dim); }
+.line .top { grid-area: top; position: relative; height: 1.4rem; }
+.line .top em { position: absolute; left: calc(var(--x) * 1%); bottom: 0.3rem; transform: translateX(-50%); font-style: normal; color: var(--ink); white-space: nowrap; }
+.line .top em.at-end { transform: translateX(-100%); }
+.line .top em.at-start { transform: none; }
+.line .yaxis, .line .ends { position: relative; height: var(--plot); }
+.line .yaxis { grid-area: y; } .line .ends { grid-area: ends; }
+.line .yaxis span { position: absolute; right: 0; top: calc(var(--y) * 1%); transform: translateY(-50%); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.line .ends span { position: absolute; left: 0; top: calc(var(--y) * 1%); transform: translateY(-50%); color: var(--ink); white-space: nowrap; }
+.line .plot { grid-area: plot; position: relative; height: var(--plot); }
+.line svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.line svg line { stroke-width: 1; vector-effect: non-scaling-stroke; }
+.line svg .grid { stroke: var(--rule); }
+.line svg .base { stroke: var(--muted); }
+.line svg .mark { stroke: var(--ink); stroke-opacity: 0.5; }
+.line svg path { fill: none; stroke: var(--accent); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; vector-effect: non-scaling-stroke; }
+.line svg path.dim { stroke: var(--dim); }
+.line .pt { position: absolute; left: calc(var(--x) * 1%); top: calc(var(--y) * 1%); width: 9px; height: 9px; margin: -4.5px 0 0 -4.5px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 2px var(--paper); }
+.line .pt.dim { background: var(--dim); }
+.line .hit { position: absolute; top: 0; bottom: 0; left: calc(var(--x) * 1% - 50% / var(--n)); width: calc(100% / var(--n)); }
+.line .hit:hover { background: linear-gradient(var(--rule), var(--rule)) center / 1px 100% no-repeat; }
+.line .xaxis { grid-area: x; position: relative; height: 1.5rem; }
+.line .xaxis span { position: absolute; top: 0.45rem; left: calc(var(--x) * 1%); transform: translateX(-50%); white-space: nowrap; }
+.line .xaxis span.at-start { transform: none; }
+.line .xaxis span.at-end { transform: translateX(-100%); }
+.line .xaxis span.odd { visibility: var(--odd, visible); }
+.line-box { container-type: inline-size; }
+@container (max-width: 30rem) { .line { --plot: 9.5rem; --odd: hidden; } }
+
+/* ── component: shader (viz.mjs shader) ── a WebGL canvas drawn by a fragment shader; the script below
+   runs it. --aspect sets the shape. The fallback text shows without scripts or WebGL. */
+.shader { position: relative; border: 1px solid var(--rule); border-radius: 6px; overflow: hidden; background: var(--paper); }
+.shader .tag { position: absolute; white-space: nowrap; color: var(--muted); pointer-events: none; }
+.shader .tag.ink { color: var(--ink); }
+.shader .tag.mark { color: var(--mark); }
+.shader canvas { display: block; width: 100%; aspect-ratio: var(--aspect, 16 / 9); touch-action: pan-y; }
+.shader .fallback { display: none; padding: 1rem; font: 0.875rem/1.5 var(--font-mono); color: var(--muted); }
+:root:not(.js) .shader :is(canvas, .tag), .shader.no-gl :is(canvas, .tag) { display: none; }
+:root:not(.js) .shader .fallback, .shader.no-gl .fallback { display: block; }
+
+/* visually hidden, still read aloud (a chart's data table) */
+.vh { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 
 /* timeline */
 .timeline { list-style: none; margin-block: 0; padding: 0; display: grid; gap: 0; font-size: 0.9375rem; }
@@ -232,7 +372,7 @@ figcaption a { color: var(--muted); }
 .colophon { color: var(--muted); font-style: italic; }
 
 @media (prefers-reduced-motion: reduce) {
-  .diagram .flow, .steps .box { animation: none !important; }
+  .diagram .flow, .flow .route, .steps .box { animation: none !important; }
   html { scroll-behavior: auto; }
 }
 @media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
@@ -273,88 +413,136 @@ figcaption a { color: var(--muted); }
     <!-- REF (deep dives in public repos only): name the idea in prose, then a quiet link beside it, e.g.
          …the change that moved the parser into the shared package.<span class="ref"><a href="https://github.com/OWNER/REPO/pull/0">#0</a></span> -->
 
-    <!-- OPTIONS: the turn as a table. One row per option the record shows; mark the winner .chosen. -->
-    <figure class="options">
-      <table>
-        <thead><tr><th>Option</th><th>Verdict</th><th>Why</th></tr></thead>
-        <tbody>
-          <tr><td>Read every diff</td><td class="verdict">rejected</td><td>Hours of reading for a dozen usable facts.</td></tr>
-          <tr class="chosen"><td>Digest first, then dig</td><td class="verdict">chosen</td><td>One file with the counts done; the writer opens code only for chosen beats.</td></tr>
-          <tr><td>Summarize with a model</td><td class="verdict">rejected</td><td>Summaries lose the exact numbers and quotes the post needs.</td></tr>
-        </tbody>
-      </table>
+    <!-- OPTIONS: the turn as a table. One row per option the record shows; bold the winner's first cell.
+         Spec: a Markdown table (viz.mjs options). On a phone each row becomes a card. -->
+    <figure>
+<!-- viz options specs/options-record.md #0ba7ad -->
+<div class="options vtable">
+<table>
+  <thead><tr><th>Option</th><th>Verdict</th><th>Why</th></tr></thead>
+  <tbody>
+    <tr><td data-label="Option">Read every diff</td><td class="verdict" data-label="Verdict">rejected</td><td data-label="Why">Hours of reading for a dozen usable facts.</td></tr>
+    <tr class="chosen"><td data-label="Option">Digest first, then dig</td><td class="verdict" data-label="Verdict">chosen</td><td data-label="Why">One file with the counts done; the writer opens code only for chosen beats.</td></tr>
+    <tr><td data-label="Option">Summarize with a model</td><td class="verdict" data-label="Verdict">rejected</td><td data-label="Why">Summaries lose the exact numbers and quotes the post needs.</td></tr>
+  </tbody>
+</table>
+</div>
+<!-- /viz -->
     </figure>
 
-    <!-- STEPS: prefer this for any linear flow (it stacks on phones). --i = index, --n = count for the moving highlight. -->
+    <!-- STEPS: prefer this for any linear flow (it stacks on phones). Spec: viz.mjs steps; "live" steps a highlight through the boxes. -->
     <figure class="wide">
-      <ol class="steps live" style="--n:4" aria-label="From record to page">
-        <li style="--i:0"><div class="box"><b>Issues &amp; PRs</b><small>git + gh</small></div></li>
-        <li style="--i:1" class="hot"><div class="box"><b>Dossier</b><small>gather.mjs</small></div></li>
-        <li style="--i:2"><div class="box"><b>Story plan</b><small>plan.md</small></div></li>
-        <li style="--i:3"><div class="box"><b>Page</b><small>post.html</small></div></li>
-      </ol>
+<!-- viz steps specs/steps-pipeline.json #897483 -->
+<ol class="steps live" style="--n:4" aria-label="From record to page">
+  <li style="--i:0"><div class="box"><b>Issues &amp; PRs</b><small>git + gh</small></div></li>
+  <li style="--i:1" class="hot"><div class="box"><b>Dossier</b><small>gather.mjs</small></div></li>
+  <li style="--i:2"><div class="box"><b>Story plan</b><small>plan.md</small></div></li>
+  <li style="--i:3"><div class="box"><b>Page</b><small>post.html</small></div></li>
+</ol>
+<!-- /viz -->
       <figcaption>Fig. 1a. The same pipeline as an HTML step flow. Use this form when the flow is a straight line.</figcaption>
     </figure>
 
-    <!-- DIAGRAM (SVG) with motion: for branches, loops and anything that isn't a straight line.
-         Boxes/labels/paths are hand-placed; .hot marks the part this chapter is about. Scrolls sideways under 30rem. -->
-    <figure class="diagram wide">
-      <div class="stage">
-        <svg viewBox="0 0 720 150" role="img" aria-labelledby="d1t d1d">
-          <title id="d1t">Pipeline from repository record to published page</title>
-          <desc id="d1d">Issues and pull requests feed a gather script, which writes a dossier; a story plan is written from the dossier, and the page is written from the plan.</desc>
-          <defs><marker id="ah" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path class="arrow" d="M0,0 L8,4 L0,8 z"/></marker></defs>
-          <!-- the moving dot is drawn first, so boxes cover it: it travels the wires and disappears into each step -->
-          <!-- moving dot: one trip every 3 s, resting at the start under reduced motion.
-               Keep cx="0" cy="0": animateMotion ADDS its path to the circle's position, so any other cx/cy shifts the whole trip.
-               Build the motion path from the exact vertices of the drawn wires, or the dot drifts off the lines. lint.mjs checks both. -->
-          <circle class="dot" r="4" cx="0" cy="0">
-            <animateMotion dur="3s" repeatCount="indefinite" keyPoints="0;1;1" keyTimes="0;0.5;1" calcMode="linear" path="M140,75 L200,75 L330,75 L390,75 L520,75 L580,75"/>
-          </circle>
-          <rect class="box" x="10" y="45" width="130" height="60" rx="6"/>
-          <text class="lbl" x="75" y="72" text-anchor="middle">Issues &amp; PRs</text>
-          <text class="sub" x="75" y="90" text-anchor="middle">git + gh</text>
-          <rect class="box hot" x="200" y="45" width="130" height="60" rx="6"/>
-          <text class="lbl" x="265" y="72" text-anchor="middle">gather.mjs</text>
-          <text class="sub" x="265" y="90" text-anchor="middle">dossier.md</text>
-          <rect class="box" x="390" y="45" width="130" height="60" rx="6"/>
-          <text class="lbl" x="455" y="72" text-anchor="middle">Story plan</text>
-          <text class="sub" x="455" y="90" text-anchor="middle">plan.md</text>
-          <rect class="box" x="580" y="45" width="130" height="60" rx="6"/>
-          <text class="lbl" x="645" y="72" text-anchor="middle">Page</text>
-          <text class="sub" x="645" y="90" text-anchor="middle">post.html</text>
-          <path id="p1" class="flow" d="M140,75 L200,75"/>
-          <path class="wire" d="M330,75 L390,75" marker-end="url(#ah)"/>
-          <path class="wire" d="M520,75 L580,75" marker-end="url(#ah)"/>
-          <text class="edge" x="170" y="64" text-anchor="middle">fetch</text>
-          <text class="edge" x="360" y="64" text-anchor="middle">read</text>
-          <text class="edge" x="550" y="64" text-anchor="middle">write</text>
-        </svg>
-      </div>
+    <!-- FLOW: for branches, loops and anything that isn't a straight line. Spec: viz.mjs flow (nodes, edges,
+         an optional motion route). It draws the diagram left to right and again top to bottom for phones;
+         the moving dot or marching dashes follow the drawn lines. Hand-drawn SVG is still fine for what a
+         spec can't express: see references/visuals.md#hand-drawn-svg. -->
+    <figure class="wide">
+<!-- viz flow specs/flow-pipeline.json #7fdad1 -->
+<div class="flow" data-fold="46">
+<svg class="h" viewBox="0 0 757.6 156" width="100%" style="max-width:758px" role="img" aria-labelledby="flow-pipeline-h-t flow-pipeline-h-d">
+  <title id="flow-pipeline-h-t">Pipeline from repository record to published page</title>
+  <desc id="flow-pipeline-h-d">Issues &amp; PRs to gather.mjs (fetch); gather.mjs to Story plan (read); gather.mjs to Screenshots (download); Story plan to Page (write); Screenshots to Page (embed).</desc>
+  <defs><marker id="flow-pipeline-h-ah" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path class="arrow" d="M0,0 L8,4 L0,8 z"/></marker></defs>
+  <path class="wire" d="M132.5,78 L213.7,78" marker-end="url(#flow-pipeline-h-ah)"/>
+  <path class="wire" d="M338.2,78 L354.2,78 L354.2,120 L419.4,120" marker-end="url(#flow-pipeline-h-ah)"/>
+  <path class="wire" d="M338.2,78 L354.2,78 L354.2,36 L419.4,36" marker-end="url(#flow-pipeline-h-ah)"/>
+  <path class="wire" d="M543.9,120 L609.1,120 L609.1,78 L625.1,78" marker-end="url(#flow-pipeline-h-ah)"/>
+  <path class="wire" d="M543.9,36 L609.1,36 L609.1,78 L625.1,78" marker-end="url(#flow-pipeline-h-ah)"/>
+  <circle class="dot" r="4" cx="0" cy="0"><animateMotion dur="4.7s" repeatCount="indefinite" keyPoints="0;1;1" keyTimes="0;0.75;1" calcMode="linear" path="M132.5,78 L213.7,78 L338.2,78 L354.2,78 L354.2,120 L419.4,120 L543.9,120 L609.1,120 L609.1,78 L625.1,78"/></circle>
+  <rect class="box" x="8" y="50" width="124.5" height="56" rx="6"/>
+  <text class="lbl" x="70.3" y="75" text-anchor="middle">Issues &amp; PRs</text>
+  <text class="sub" x="70.3" y="90" text-anchor="middle">git + gh</text>
+  <rect class="box hot" x="213.7" y="50" width="124.5" height="56" rx="6"/>
+  <text class="lbl" x="276" y="75" text-anchor="middle">gather.mjs</text>
+  <text class="sub" x="276" y="90" text-anchor="middle">dossier.md</text>
+  <rect class="box" x="419.4" y="8" width="124.5" height="56" rx="6"/>
+  <text class="lbl" x="481.7" y="33" text-anchor="middle">Screenshots</text>
+  <text class="sub" x="481.7" y="48" text-anchor="middle">evidence/assets</text>
+  <rect class="box" x="419.4" y="92" width="124.5" height="56" rx="6"/>
+  <text class="lbl" x="481.7" y="117" text-anchor="middle">Story plan</text>
+  <text class="sub" x="481.7" y="132" text-anchor="middle">plan.md</text>
+  <rect class="box" x="625.1" y="50" width="124.5" height="56" rx="6"/>
+  <text class="lbl" x="687.3" y="75" text-anchor="middle">Page</text>
+  <text class="sub" x="687.3" y="90" text-anchor="middle">post.html</text>
+  <text class="edge" x="173.1" y="72" text-anchor="middle">fetch</text>
+  <text class="edge" x="386.8" y="114" text-anchor="middle">read</text>
+  <text class="edge" x="386.8" y="30" text-anchor="middle">download</text>
+  <text class="edge" x="576.5" y="114" text-anchor="middle">write</text>
+  <text class="edge" x="576.5" y="30" text-anchor="middle">embed</text>
+</svg>
+<svg class="v" viewBox="0 0 281 360" width="100%" style="max-width:281px" role="img" aria-labelledby="flow-pipeline-v-t flow-pipeline-v-d">
+  <title id="flow-pipeline-v-t">Pipeline from repository record to published page</title>
+  <desc id="flow-pipeline-v-d">Issues &amp; PRs to gather.mjs (fetch); gather.mjs to Story plan (read); gather.mjs to Screenshots (download); Story plan to Page (write); Screenshots to Page (embed).</desc>
+  <defs><marker id="flow-pipeline-v-ah" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path class="arrow" d="M0,0 L8,4 L0,8 z"/></marker></defs>
+  <path class="wire" d="M140.5,58 L140.5,106" marker-end="url(#flow-pipeline-v-ah)"/>
+  <path class="wire" d="M140.5,156 L140.5,172 L210.8,172 L210.8,204" marker-end="url(#flow-pipeline-v-ah)"/>
+  <path class="wire" d="M140.5,156 L140.5,172 L70.3,172 L70.3,204" marker-end="url(#flow-pipeline-v-ah)"/>
+  <path class="wire" d="M210.8,254 L210.8,286 L140.5,286 L140.5,302" marker-end="url(#flow-pipeline-v-ah)"/>
+  <path class="wire" d="M70.3,254 L70.3,286 L140.5,286 L140.5,302" marker-end="url(#flow-pipeline-v-ah)"/>
+  <circle class="dot" r="4" cx="0" cy="0"><animateMotion dur="3.7s" repeatCount="indefinite" keyPoints="0;1;1" keyTimes="0;0.75;1" calcMode="linear" path="M140.5,58 L140.5,106 L140.5,156 L140.5,172 L210.8,172 L210.8,204 L210.8,254 L210.8,286 L140.5,286 L140.5,302"/></circle>
+  <rect class="box" x="82.9" y="8" width="115.2" height="50" rx="6"/>
+  <text class="lbl" x="140.5" y="30" text-anchor="middle">Issues &amp; PRs</text>
+  <text class="sub" x="140.5" y="45" text-anchor="middle">git + gh</text>
+  <rect class="box hot" x="90.5" y="106" width="100" height="50" rx="6"/>
+  <text class="lbl" x="140.5" y="128" text-anchor="middle">gather.mjs</text>
+  <text class="sub" x="140.5" y="143" text-anchor="middle">dossier.md</text>
+  <rect class="box" x="8" y="204" width="124.5" height="50" rx="6"/>
+  <text class="lbl" x="70.3" y="226" text-anchor="middle">Screenshots</text>
+  <text class="sub" x="70.3" y="241" text-anchor="middle">evidence/assets</text>
+  <rect class="box" x="148.5" y="204" width="124.5" height="50" rx="6"/>
+  <text class="lbl" x="210.8" y="226" text-anchor="middle">Story plan</text>
+  <text class="sub" x="210.8" y="241" text-anchor="middle">plan.md</text>
+  <rect class="box" x="92.5" y="302" width="96" height="50" rx="6"/>
+  <text class="lbl" x="140.5" y="324" text-anchor="middle">Page</text>
+  <text class="sub" x="140.5" y="339" text-anchor="middle">post.html</text>
+  <text class="edge" x="146.5" y="86" text-anchor="start">fetch</text>
+  <text class="edge" x="216.8" y="192" text-anchor="start">read</text>
+  <text class="edge" x="76.3" y="192" text-anchor="start">download</text>
+  <text class="edge" x="216.8" y="274" text-anchor="start">write</text>
+  <text class="edge" x="76.3" y="274" text-anchor="start">embed</text>
+</svg>
+</div>
+<!-- /viz -->
       <figcaption>Fig. 1. The dossier is the only step that touches GitHub. Everything after it reads files.</figcaption>
     </figure>
 
     <p>The digest is long on purpose. Choosing what to leave out happens in the plan, where each cut is written down with its reason.</p>
 
-    <!-- CODE: ≤15 real lines from the shipped commit; caption = the file name only; mark cuts with … -->
-    <figure class="code">
-      <figcaption><span>scripts/gather.mjs</span></figcaption>
-<pre><code><span class="c">// Release-automation PRs (version bumps) carry no story.</span>
-<span class="k">const</span> isBotPr = (p) =&gt;
-  /^app\/|\[bot\]$/.test(p.author?.login ?? <span class="s">""</span>) ||
-  /^chore(\(release\))?: (version packages|release)/i.test(p.title);
+    <!-- CODE: ≤15 real lines from the shipped commit. Spec: viz.mjs code (file, lines, cut, rev) reads them
+         from git and renders the whole figure, captioned with the file path. Don't wrap it in another figure. -->
+<!-- viz code specs/code-gather.json #365e75 -->
+<figure class="code">
+  <figcaption><span>scripts/gather.mjs</span><button type="button" class="copy" aria-label="Copy code"><svg class="idle" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5.5" y="5.5" width="8" height="8" rx="2"/><path d="M10.5 5.5V4A1.5 1.5 0 0 0 9 2.5H4A1.5 1.5 0 0 0 2.5 4v5A1.5 1.5 0 0 0 4 10.5h1.5"/></svg><svg class="done" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7"/></svg></button></figcaption>
+<pre><code><span class="k">let</span> p;
 <span class="cut">…</span>
-<span class="k">if</span> (isBotPr(p) &amp;&amp; !args[<span class="s">"keep-bot-prs"</span>]) <span class="k">return</span>;</code></pre>
-    </figure>
+<span class="k">if</span> (isBotPr(p) &amp;&amp; !args[<span class="s">&quot;keep-bot-prs&quot;</span>]) <span class="k">return</span>;
+<span class="k">const</span> inline = ghJsonSafe([<span class="s">&quot;api&quot;</span>, <span class="s">`repos/${r}/pulls/${n}/comments`</span>, <span class="s">&quot;--paginate&quot;</span>]) ?? [];</code></pre>
+</figure>
+<!-- /viz -->
 
-    <!-- TERMINAL: one command you ran for this post, as a reader would type it; only the output lines
-         that make the point (mark cuts with a "…" line); bare caption, run details stay in plan.md.
-         Add .wrap when a line is long prose (an error message); leave it off for tables and JSON. -->
-    <figure class="code term">
-      <figcaption><span>Terminal</span></figcaption>
+    <!-- TERMINAL: one command you ran for this post, as a reader would type it, and only the output lines that
+         make the point. Spec: viz.mjs term (cmd, out, keep); gaps become "…" lines; the caption stays bare.
+         Run details stay in plan.md. Renders the whole figure. -->
+<!-- viz term specs/term-gather.json #8884f0 -->
+<figure class="code term">
+  <figcaption><span>Terminal</span><button type="button" class="copy" aria-label="Copy command"><svg class="idle" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5.5" y="5.5" width="8" height="8" rx="2"/><path d="M10.5 5.5V4A1.5 1.5 0 0 0 9 2.5H4A1.5 1.5 0 0 0 2.5 4v5A1.5 1.5 0 0 0 4 10.5h1.5"/></svg><svg class="done" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7"/></svg></button></figcaption>
 <pre><code><span class="prompt">$ </span>node scripts/gather.mjs --issue 412 --out evidence
+<span class="dim">issue 412: 1 issue, 9 PRs</span>
+<span class="dim">…</span>
 <span class="dim">dossier: 6 issues · 9 PRs · 0 loose commits · 4 images → evidence/dossier.md</span></code></pre>
-    </figure>
+</figure>
+<!-- /viz -->
   </section>
 
   <section class="ch" id="c2">
@@ -380,22 +568,19 @@ figcaption a { color: var(--muted); }
     <h2><span class="n">03</span>Showing the change</h2>
     <p>A before/after pair takes any content: two screenshots, two code blocks, two terminal runs. Label each side by iteration ("Before", "Round two", "As it ships"), not by commit.</p>
 
-    <!-- COMPARE: two .side blocks; put <img src="assets/…"> or a .code figure in each -->
-    <figure class="compare wide">
-      <div class="sides">
-        <div class="side">
-          <span class="tag">Before · first run</span>
-          <figure class="code term"><pre><code>Images:
+    <!-- STRIP: before/after (two frames) or a progression (up to four). Frames are images, code or terminal
+         output. Spec: viz.mjs strip. Label frames by iteration ("Before", "Round two", "As it ships"). -->
+    <figure class="wide">
+<!-- viz strip specs/strip-filter.json #28a543 -->
+<div class="strip-box"><div class="strip" style="--n:2">
+  <div class="frame"><span class="tag">Before · first run</span><figure class="code term"><pre><code>Images:
 - …/open-in-web-dark.png
-- …/open-in-cursor-dark.png</code></pre></figure>
-        </div>
-        <div class="side">
-          <span class="tag after">After · with the filter</span>
-          <figure class="code term"><pre><code>Images:
-<span class="dim">(none: this feature has no screenshots,
- so the post captures fresh ones)</span></code></pre></figure>
-        </div>
-      </div>
+- …/open-in-cursor-dark.png</code></pre></figure></div>
+  <div class="frame"><span class="tag after">After · with the filter</span><figure class="code term"><pre><code>Images:
+(none: this feature has no screenshots,
+ so the post captures fresh ones)</code></pre></figure></div>
+</div></div>
+<!-- /viz -->
       <figcaption>Fig. 2. The same dossier section before and after the image filter.</figcaption>
     </figure>
 
@@ -411,14 +596,18 @@ figcaption a { color: var(--muted); }
     <h2><span class="n">04</span>Keeping it at altitude</h2>
     <p>The first test draft was accurate and too close to the ground. It gave minute-by-minute timestamps and cited an issue in nearly every paragraph. The linter now counts that kind of detail against a budget for each flavor.</p>
 
-    <!-- BARS: --v = value ÷ largest value, so bars are to scale. Chart product or idea numbers, not the process. -->
+    <!-- BARS: drawn to scale from the values; "hot" greys the other rows; an optional limit draws a rule.
+         Spec: viz.mjs bars. Chart product or idea numbers, not the process. One number? Use delta.
+         A trend over time? Use line. Comparing options on several points? Use matrix. -->
     <figure>
-      <div class="bars" role="img" aria-label="Sentences about process: budget by flavor, and the first test draft">
-        <div class="row" style="--v:0.037"><span>Release</span><i></i><b>1</b></div>
-        <div class="row" style="--v:0.148"><span>Build</span><i></i><b>4</b></div>
-        <div class="row" style="--v:0.370"><span>Deep dive</span><i></i><b>10</b></div>
-        <div class="row" style="--v:1"><span>Draft 1</span><i></i><b>27</b></div>
-      </div>
+<!-- viz bars specs/bars-budget.json #f7c958 -->
+<div class="bars emph" role="list" style="--lw:9ch;--vw:2ch">
+  <div class="row" role="listitem" style="--v:0.037"><span>Release</span><span class="track"><i></i></span><b>1</b></div>
+  <div class="row" role="listitem" style="--v:0.148"><span>Build</span><span class="track"><i></i></span><b>4</b></div>
+  <div class="row" role="listitem" style="--v:0.37"><span>Deep dive</span><span class="track"><i></i></span><b>10</b></div>
+  <div class="row hot" role="listitem" style="--v:1"><span>Draft 1</span><span class="track"><i></i></span><b>27</b></div>
+</div>
+<!-- /viz -->
       <figcaption>Fig. 4. Sentences about reviews, merges and PRs that each flavor allows, against the first test draft (a build story). Counted by lint.mjs.</figcaption>
     </figure>
 
@@ -466,6 +655,115 @@ figcaption a { color: var(--muted); }
 </article>
 
 <script>
+  // Copy buttons on code and terminal blocks: a terminal copies its command, a code block its excerpt.
+  document.documentElement.classList.add("js");
+  document.addEventListener("click", (e) => {
+    const btn = e.target.closest?.(".copy");
+    const pre = btn?.closest("figure")?.querySelector("pre");
+    if (!pre) return;
+    const lines = pre.textContent.split("\n");
+    const cmds = lines.filter((l) => l.startsWith("$ ")).map((l) => l.slice(2));
+    const text = btn.closest(".term") && cmds.length ? cmds.join("\n") : pre.textContent;
+    const label = btn.getAttribute("aria-label");
+    const done = () => {
+      btn.dataset.done = ""; btn.setAttribute("aria-label", "Copied");
+      clearTimeout(btn.t); btn.t = setTimeout(() => { delete btn.dataset.done; btn.setAttribute("aria-label", label); }, 1500);
+    };
+    const fallback = () => {
+      const t = Object.assign(document.createElement("textarea"), { value: text });
+      t.style.cssText = "position:fixed;opacity:0"; document.body.append(t); t.select();
+      try { if (document.execCommand("copy")) done(); } finally { t.remove(); }
+    };
+    navigator.clipboard ? navigator.clipboard.writeText(text).then(done, fallback) : fallback();
+  });
+  // WebGL figures (viz.mjs shader): one canvas per .shader, drawn by its fragment shader. The shader gets
+  // the canvas size, the time, u_phase (0→1 per data-loop), the pointer and the page's colour tokens;
+  // the full list is in scripts/viz/shader.mjs. Time comes from requestAnimationFrame, so export.mjs
+  // can step it; a reader who asks for less motion gets the data-rest frame.
+  (() => {
+    const TOKENS = ["paper", "ink", "muted", "accent", "accent-wash", "dim", "mark"];
+    const PRELUDE = "precision highp float;\n#define TAU 6.28318530718\nuniform vec2 u_resolution, u_pointer;\nuniform float u_time, u_phase, u_loop, u_dpr, u_dark;\n"
+      + TOKENS.map((t) => `uniform vec3 u_${t.replace("-", "_")};`).join("\n") + "\n#line 1\n";
+    const reduce = matchMedia("(prefers-reduced-motion: reduce)");
+    const probe = document.createElement("span");
+    probe.style.display = "none";
+    document.body.append(probe);
+    const rgb = (name) => { probe.style.color = `var(--${name})`; return (getComputedStyle(probe).color.match(/[\d.]+/g) ?? [0, 0, 0]).slice(0, 3).map((v) => v / 255); };
+    for (const box of document.querySelectorAll(".shader")) {
+      const canvas = box.querySelector("canvas");
+      const src = box.querySelector('script[type="x-shader/x-fragment"]')?.textContent ?? "";
+      const extra = JSON.parse(box.dataset.uniforms || "{}");
+      const loop = parseFloat(box.dataset.loop) || 0;
+      const moves = /\bu_(time|phase)\b/.test(src); // a still shader draws only when something changes
+      const rest = parseFloat(box.dataset.rest) || 0;
+      const fail = (why) => { box.classList.add("no-gl"); if (why) console.error("shader:", why); };
+      const gl = canvas.getContext("webgl", { antialias: true });
+      if (!gl) { fail(); continue; }
+      const compile = (type, text) => {
+        const sh = gl.createShader(type);
+        gl.shaderSource(sh, text);
+        gl.compileShader(sh);
+        if (!gl.getShaderParameter(sh, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(sh));
+        return sh;
+      };
+      const prog = gl.createProgram();
+      try {
+        gl.attachShader(prog, compile(gl.VERTEX_SHADER, "attribute vec2 p; void main() { gl_Position = vec4(p, 0.0, 1.0); }"));
+        gl.attachShader(prog, compile(gl.FRAGMENT_SHADER, PRELUDE + src));
+        gl.linkProgram(prog);
+        if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(prog));
+      } catch (err) { fail(err.message); continue; }
+      gl.useProgram(prog);
+      gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+      const at = gl.getAttribLocation(prog, "p");
+      gl.enableVertexAttribArray(at);
+      gl.vertexAttribPointer(at, 2, gl.FLOAT, false, 0, 0);
+      const u = (name) => gl.getUniformLocation(prog, name);
+      const colors = {};
+      const theme = () => { for (const t of TOKENS) colors[t] = rgb(t); };
+      let pointer = [-1, -1];
+      const hover = /\bu_pointer\b/.test(src);
+      canvas.addEventListener("pointermove", (e) => { const r = canvas.getBoundingClientRect(); pointer = [(e.clientX - r.left) / r.width, 1 - (e.clientY - r.top) / r.height]; if (hover && !running) still(); });
+      canvas.addEventListener("pointerleave", () => { pointer = [-1, -1]; if (hover && !running) still(); });
+      let last = 0;
+      const draw = (ms) => {
+        last = ms;
+        const dpr = Math.min(2, devicePixelRatio || 1);
+        const w = Math.round(canvas.clientWidth * dpr), h = Math.round(canvas.clientHeight * dpr);
+        if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; }
+        gl.viewport(0, 0, w, h);
+        const t = ms / 1000;
+        gl.uniform2f(u("u_resolution"), w, h);
+        gl.uniform1f(u("u_time"), t);
+        gl.uniform1f(u("u_loop"), loop);
+        gl.uniform1f(u("u_phase"), loop ? (t % loop) / loop : 0);
+        gl.uniform1f(u("u_dpr"), dpr);
+        gl.uniform2f(u("u_pointer"), pointer[0], pointer[1]);
+        const [r, g, b] = colors.paper;
+        gl.uniform1f(u("u_dark"), 0.2126 * r + 0.7152 * g + 0.0722 * b < 0.5 ? 1 : 0);
+        for (const t2 of TOKENS) gl.uniform3f(u(`u_${t2.replace("-", "_")}`), ...colors[t2]);
+        for (const [name, v] of Object.entries(extra)) { const a = [].concat(v); gl[`uniform${a.length}fv`](u(name), a); }
+        gl.drawArrays(gl.TRIANGLES, 0, 3);
+      };
+      // Animate only while on screen and while motion is welcome; otherwise hold one frame.
+      let visible = true, running = false;
+      const tick = (ms) => { if (!visible || reduce.matches) { running = false; return; } draw(ms); requestAnimationFrame(tick); };
+      const start = () => { if (moves && !running && visible && !reduce.matches) { running = true; requestAnimationFrame(tick); } };
+      const still = () => draw(reduce.matches ? rest * 1000 : last);
+      const retheme = () => { theme(); still(); };
+      theme();
+      // export.mjs (which installs window.__clock) steps every shader as if it were on screen.
+      if (!window.__clock) new IntersectionObserver(([e]) => { visible = e.isIntersecting; start(); }).observe(canvas);
+      new ResizeObserver(still).observe(canvas);
+      matchMedia("(prefers-color-scheme: dark)").addEventListener("change", retheme);
+      new MutationObserver(retheme).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+      reduce.addEventListener("change", () => { still(); start(); });
+      canvas.addEventListener("webglcontextlost", (e) => { e.preventDefault(); fail("WebGL context lost"); });
+      still();
+      start();
+    }
+  })();
   // Stop SVG (SMIL) motion for readers who ask for less; the resting frame still explains the diagram.
   if (window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches) {
     document.querySelectorAll("svg").forEach((s) => s.pauseAnimations && s.pauseAnimations());

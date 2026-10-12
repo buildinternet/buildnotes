@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" font-family="Helvetica, Arial, sans-serif">
+<rect width="800" height="450" fill="#ffffff"/>
+<rect x="0" y="0" width="800" height="52" fill="#f1f3f5"/><circle cx="28" cy="26" r="6" fill="#d0d4d9"/><circle cx="48" cy="26" r="6" fill="#d0d4d9"/><circle cx="68" cy="26" r="6" fill="#d0d4d9"/>
+<text x="40" y="100" font-size="26" font-weight="700" fill="#16191d">This week</text>
+<rect x="40" y="125" width="420" height="260" rx="8" fill="#dfe8fa"/><text x="60" y="165" font-size="20" font-weight="700" fill="#16191d">Widget SDK</text><text x="60" y="192" font-size="15" fill="#5b636e">New default model</text><rect x="470" y="125" width="290" height="125" rx="8" fill="#eaedf0"/><text x="490" y="163" font-size="18" font-weight="700" fill="#16191d">Acme CLI</text><text x="490" y="188" font-size="14" fill="#5b636e">6 fix releases</text><rect x="470" y="260" width="290" height="125" rx="8" fill="#eaedf0"/><text x="490" y="298" font-size="18" font-weight="700" fill="#16191d">Docs</text><text x="490" y="323" font-size="14" fill="#5b636e">2 updates</text>
+</svg>
