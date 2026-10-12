@@ -21,6 +21,7 @@ Requires `git`, an authenticated `gh`, and Node 18+. The scripts have no depende
 - `scripts/gather.mjs`: collects issues, PRs, commits, review threads and prior work in the same area into a dossier.
 - `scripts/lint.mjs`: checks length, banned phrasing, process detail, plain English, scannability and safety.
 - `scripts/module.mjs`: builds the opt-in appendix modules (build log, numbers, timeline).
+- `scripts/workdir.mjs`: picks a work dir in the repo's main checkout (`.context/build-stories/`, if git ignores it) or `~/.build-stories/`, so runs survive worktrees.
 - `scripts/inline-assets.mjs`: embeds images so the page is one self-contained file.
 - `assets/template.html`: the page template and its components.
 
@@ -33,4 +34,4 @@ node dev/save-run.mjs <work-dir> --note "what this run tested" --artifact <url>
 open runs/index.html
 ```
 
-To keep a public run as a committed example, copy its folder into `examples/` by hand after checking it.
+To keep a public run as a committed example, copy its page, plan and notes into `examples/<name>/` by hand after checking it (`examples/weekly-digests/` is the first).

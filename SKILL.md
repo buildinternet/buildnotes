@@ -72,6 +72,14 @@ Settle these from the request, the repo and the defaults below. Don't ask about 
 
 ### 2. Gather the evidence
 
+Make a work dir that survives worktrees. The script puts it in the repo's main checkout under `.context/build-stories/` when git ignores that path, and otherwise under `~/.build-stories/<repo>/`, so a run never lands in files git would commit:
+
+```bash
+WORK=$(node <skill-dir>/scripts/workdir.mjs weekly-digests)   # → …/.context/build-stories/2026-10-12-weekly-digests
+```
+
+`<work-dir>` below means that path. If the author names a different place, use theirs.
+
 Run the gatherer. It needs only `git` and an authenticated `gh`:
 
 ```bash
@@ -139,6 +147,7 @@ Publish `post.published.html` as a private Artifact (title = the post's name) an
 ## Files
 
 - `scripts/gather.mjs` — evidence dossier from git + GitHub
+- `scripts/workdir.mjs` — a work dir in the main checkout (or `~/.build-stories/`) that survives worktrees
 - `scripts/lint.mjs` — word counts, banned phrasing, process-detail budget, number ledger, plain-English metrics, terminal and masthead checks, leftovers, safety scan
 - `scripts/inline-assets.mjs` — embed local images (`src`, `poster`, `srcset`) as data URIs and drop authoring comments (`--standalone` for a full document)
 - `scripts/module.mjs` — render an opt-in module (build log, numbers, timeline) from the dossier
