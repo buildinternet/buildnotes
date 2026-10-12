@@ -10,7 +10,9 @@
 //                                         start, count from the excerpt's first line, which is 1)
 //     "rev": "a1b2c3d",                  (optional; default HEAD)
 //     "repo": "../../code/app",          (optional; relative to the spec file; default the current directory)
-//     "lang": "ts" }                     (optional; default from the file extension)
+//     "lang": "ts",                      (optional; default from the file extension)
+//     "wrap": true }                     (optional; wrap long lines instead of scrolling, for prose-like
+//                                         strings such as a prompt; render.mjs fails a clipped line at desktop)
 // The fragment is a whole <figure class="code"> with the file path as its caption: don't wrap it.
 // Common indentation is removed. More than 15 shown lines gets a warning, and so do brackets that
 // close something the excerpt never opened (usually line numbers read at another commit).
@@ -130,7 +132,7 @@ export function render(spec, { id = "code", base } = {}) {
   const { html, shown, stray } = excerpt(spec, spec.source ?? read(spec, base));
   if (shown > 15) warn(`code "${id}": ${shown} lines shown; keep it to about 15 (cut the middle with "cut")`);
   if (stray) warn(`code "${id}": a bracket closes something the excerpt never opened; check the lines at this rev, or anchor with "start"`);
-  return `<figure class="code">
+  return `<figure class="code${spec.wrap ? " wrap" : ""}">
   <figcaption><span>${esc(spec.file)}</span>${copyButton("Copy code")}</figcaption>
 <pre><code>${html}</code></pre>
 </figure>`;

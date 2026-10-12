@@ -52,9 +52,9 @@ Lint lists the specs behind the page, so the fact pass can tick their numbers th
 | `delta` | `before` and `after` (`label`, `value`, `unit`, or `display`), optional `change` ("4× faster"), `measure` (what was measured), `better` (`lower` or `higher`). |
 | `line` | `x` (labels), `series` (one or two: `name`, `values`, `hot`), optional `y` (`unit`, `min`, `max`), `mark` (`at`: an x label, `label`), `title` (for the hidden data table). |
 | `options` | A Markdown table. Bold the first cell of the chosen row; a column headed "Verdict" is set small. |
-| `matrix` | A Markdown table. Cells start with ✓, ✗ or ~ (or yes, no, partly), then an optional short note. Bold the header of the option the post is about. |
+| `matrix` | A Markdown table. Cells start with ✓, ✗ or ~ (or yes, no, partly), then an optional short note. Marks answer yes/no rows; a row whose answer is a value (a count, who, a time) takes plain text, with no mark. Bold the header of the option the post is about. |
 | `code` | `file`, then `lines` ("12-40") or `start` (text on the first line; the excerpt runs until its brackets close, or to the line containing `end`), optional `cut` (ranges shown as one `…` line each; with `start`, counted from the excerpt's first line), `rev` (default `HEAD`), `repo` (relative to the spec), `lang`. Reads from git, so the excerpt is the committed code. Prefer `start` when `rev` isn't the commit you read the line numbers at: lines move, text doesn't. It warns when a bracket closes something the excerpt never opened. |
-| `term` | `cmd` (one command), `out` (lines), optional `keep` ("1-3,8"; each gap becomes `…`), `dim`, `wrap`. |
+| `term` | `cmd` (one command), `out` (lines), optional `keep` ("1-3,8"; each gap becomes `…`), `dim`, `wrap` (set it for help text and other two-column output, which clips otherwise). |
 | `shader` | `label` (required), `frag` (a `.glsl` file next to the spec) or `glsl`, `loop` and `rest` (seconds; leave out `loop` for a still), optional `aspect`, `uniforms` (extra values: a number or 2–4 numbers), `labels` (text over the canvas), `fallback`. See below. |
 | `strip` | `frames`: 2–4 of `{ label, src, alt, width, height }`, `{ label, code: {…} }` or `{ label, term: { out } }`. The last frame gets the accent label unless another says `hot`. |
 
@@ -130,7 +130,9 @@ One idea per chart, drawn to scale, labelled directly. Chart product numbers, no
 
 ## Checking the render
 
-Open the page (or `post.published.html`) once at 1280×800 and once at 390×844, in light and dark. Check: nothing scrolls the page sideways (`document.documentElement.scrollWidth === innerWidth`), the stacked flow and the table cards read on the phone, terminals don't clip long lines (`term` sets `wrap` for long prose lines; set it yourself if needed), screenshots read in dark mode. With agent-browser: `set viewport`, `set media dark`, `open file://…`, `eval` the scrollWidth check, `screenshot --full`. Don't loop: one look per width, one round of fixes.
+Run `node <skill-dir>/scripts/render.mjs <work-dir>/post.html`. It renders the page at 1280×800 and 390×844, in light and dark, saves a full-page screenshot of each to `<work-dir>/render/`, and fails on what a reader would hit: the page scrolling sideways, a code or terminal line clipped at desktop width, an image that didn't load. On a phone, code that scrolls inside its card is normal and only noted.
+
+Then look at the four screenshots, because the script checks fit, not taste: the stacked flow and the table cards read on the phone, screenshots read in dark mode, nothing looks cramped. Clipped help text or prose in a terminal takes `"wrap": true` on the `term` spec; a long string in code (a prompt, a message) takes `"wrap": true` on the `code` spec. Don't loop: one look per width, one round of fixes.
 
 ## Canvas and WebGL
 

@@ -25,11 +25,12 @@ Each of these was in a draft that got sent back:
 - **The product as the subject of every sentence.** "Releases reads…", "Releases now sends…", "Releases keeps…". Name it once where a newcomer needs it, then say "it", "we", or the feature's own name ([section 4](#4-naming-the-product)).
 - **A calculated number dressed as a measurement.** An agent's arithmetic ("30 candidate alerts take 3 calls instead of 30") drawn as a before/after `delta`, with "(example)" in small print. The component says "we measured this"; the reader believes it. Put worked examples in a sentence, and keep measurement components for numbers someone measured.
 - **The question list as the ending.** Five open questions and three notes for the author with every draft. Each was fair; together they hand the author a to-do list. Pick the few that change the post ([section 5](#5-the-hand-off)).
+- **The setup tour.** A closing chapter that walked through every way in: a menu on the org page, an agent tool's optional argument, two CLI flags and a trimmed help screen. A post is a starting point. Show one way to try it, link the docs, and stop.
 - **A motive stated as fact.** "There's no fallback model because a score from another model wouldn't mean the same thing." Plausible, and nowhere in the record. Say what the change does; a reason or a benefit goes in only when the record states it. Otherwise it's an open question, or it goes.
 
 ## 3. Titles and headings
 
-The title names the capability in the reader's words. The dek (the line under it) says why it matters or how it works, in one sentence.
+The title says plainly what shipped, in the reader's words: "Release webhooks for workspaces". The dek (the line under it) and the opening are where the angle and the play go: why it matters, the hook a reader would repeat. A clever line in the title makes the reader work out what was released.
 
 - **No product or company name in the title or a chapter heading.** The page, the site and the byline already say whose it is.
 - **The feed test.** Put the title in a list of twenty titles from other teams. If it only stands out because it names you, rewrite it. If it would read just as well with your name deleted, delete it.
@@ -43,6 +44,7 @@ From real drafts:
 | Draft | Verdict |
 |---|---|
 | Tell Releases what you care about | Sent back: the product is the second word, and it's the subject of the reader's sentence. |
+| Shared release channels that survive a teammate leaving | Sent back: a good dek, but as a title it makes you work out what shipped. "Release webhooks for workspaces" says it. |
 | Fast pages that still update when a release lands | Kept: the gain and the catch (fast, yet current), no name in it. |
 | Digests, collections and changelogs now load fast | Kept: the reader's own pages, named plainly. |
 

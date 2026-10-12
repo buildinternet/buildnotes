@@ -68,7 +68,7 @@ Don't open with the history of the codebase, a definition, a date, or a question
 
 ## The ending
 
-End on what readers can do now (try it, read the docs) or on what's next. No summary of what they just read, and no sign-off ("stay tuned", "more to come", "we can't wait"). A colophon line about how the post was made is optional; use one if the author wants it.
+End on what readers can do now (one way to try it, and the docs for the rest) or on what's next. A post is a starting point: don't tour every way to set the feature up unless the author asks for a guide. No summary of what they just read, and no sign-off ("stay tuned", "more to come", "we can't wait"). A colophon line about how the post was made is optional; use one if the author wants it.
 
 ## Voice
 

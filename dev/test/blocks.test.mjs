@@ -129,3 +129,11 @@ test("build re-renders a shader when only its .glsl changed", async () => {
   writeFileSync(join(dir, "viz/s.glsl"), "void main() { gl_FragColor = vec4(u_ink, 1.0); }");
   assert.match(build(once, dir, { check: true }).problems[0], /changed since the last render/);
 });
+
+test("matrix warns on a mark carrying a value; code takes wrap", () => {
+  takeWarnings();
+  matrix.render(mdTable("| | A | **B** |\n|---|---|---|\n| How many | ✓ 10 per account | 10 per workspace |\n| Shared | ✗ | ✓ every member |"), { id: "m" });
+  assert.deepEqual(takeWarnings(), ['matrix "m", How many / A: "✓ 10 per account" puts a mark on a value; write the value as plain text ("10 per account")']);
+  assert.match(code({ file: "a.js", source: "const a = 1;\n", wrap: true }), /^<figure class="code wrap">/);
+  assert.match(code({ file: "a.js", source: "const a = 1;\n" }), /^<figure class="code">/);
+});

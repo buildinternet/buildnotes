@@ -21,9 +21,10 @@ The cure for all three is the same. Find the few ideas and decisions that made t
 
 Each rule carries the fault that taught it, and links to the reference that holds the detail where there is one.
 
+- **A starting point, not the manual.** Go only as deep as it takes to get the idea across; the docs carry the rest. Show one way to try it and link the docs, unless the author asks for a full guide. *(Fault: a closing chapter touring every setup path, a menu, an agent tool's argument, two CLI flags and a help screen, for a feature you set up once.)*
 - **Earn every detail.** Keep a date, number, quote, tool name, review comment or code excerpt only if the reader would understand the feature less without it. Nothing in the record is owed a place. *(Fault: an adversarial-review quote that added color and no understanding.)*
 - **Lead with what people can do.** The headline is the capability users see, not the mechanism behind it. The mechanism leads only in a deep dive, when the author asks, or when it *is* what users touch. [brief.md](references/brief.md#the-six-fields) *(Fault: a post about one-click preview links whose centerpiece was how the scheduler pools build machines.)*
-- **Don't name yourself in the title.** The title and chapter headings are about what the reader gets; the product and company name stay out of them, and the prose names the product once where a newcomer needs it. In a feed where every title names its own company, the name stops meaning anything. [craft.md](references/craft.md) *(Fault: "Tell Releases what you care about".)*
+- **Don't name yourself in the title.** The title says plainly what shipped; the angle and the play go in the dek and the opening. The title and chapter headings are about what the reader gets; the product and company name stay out of them, and the prose names the product once where a newcomer needs it. In a feed where every title names its own company, the name stops meaning anything. [craft.md](references/craft.md) *(Fault: "Tell Releases what you care about".)*
 - **Ideas, not chronology.** Chapters are concepts, challenges or parts of the system, never days or PRs. Mention timing only when it is the point, and then in days. Iteration labels ("round one", "as it ships") are fine; clock times and commit-by-commit narration are not. [story.md](references/story.md#altitude) *(Fault: "At 14:56 UTC the decision went the other way; the API half merged at 15:33.")*
 - **Show the turn, briefly.** A chapter that matters names the decision, the alternative that lost, and why, in a few sentences. *(Fault: "we added per-branch databases" with no word on why not one shared database with a schema per branch.)*
 - **Process detail is optional.** Review comments, PR counts, timelines, and which tools or agents did the work are never required. Include one only when it changes the reader's picture: a review that found a flaw they would wonder about, a reversal that explains an odd-looking design. If coding agents or automated reviewers did part of the work, say nothing about it by default and don't ask; the `how-made` module is there if the author wants it. *(Fault: three review quotes in a row, each crediting a reviewer, none needed to understand the design.)*
@@ -129,7 +130,7 @@ The linter reports words per chapter, banned and writerly phrasing, process deta
 - **Craft pass.** Read the title, the dek and the headings alone, against [craft.md](references/craft.md): about the reader, no self-naming, concrete. Then cut the open questions to the three that would change the post.
 - **Fact pass.** Tick each number against the dossier, a file or your own run. Test counts come from running the tests, never from grep. Check every shipped/live claim against the code, the release and the docs; record any gap under Notes for the author.
 - **Safety pass.** Read every safety hit, reread each code and terminal block, and open every image.
-- **Render pass.** Desktop and phone width, light and dark, once each. [visuals.md](references/visuals.md#checking-the-render)
+- **Render pass.** `node <skill-dir>/scripts/render.mjs <work-dir>/post.html` renders desktop and phone width, light and dark, saves the screenshots and fails on sideways scroll, clipped code and broken images. Then look at the screenshots once. [visuals.md](references/visuals.md#checking-the-render)
 
 ### 8. Publish
 
@@ -148,6 +149,7 @@ Publish `post.published.html` as a private Artifact (title = the post's name) an
 - `scripts/lint.mjs`: the mechanical half of the Check step
 - `scripts/module.mjs`: an opt-in module (build log, numbers, timeline) from the dossier
 - `scripts/viz.mjs`: visual components rendered from small specs (`scripts/viz/`, one file per kind)
+- `scripts/render.mjs`: the render pass: both widths and themes, screenshots, and the fit faults
 - `scripts/export.mjs`: one figure as PNG, GIF, MP4/WebM or standalone SVG, for slides or another blog ([visuals.md](references/visuals.md#exporting-a-figure))
 - `scripts/inline-assets.mjs`: embed local images and video (`src`, `poster`, `srcset`) as data URIs and drop authoring comments
 - `assets/template.html`: page template and component toolbox
