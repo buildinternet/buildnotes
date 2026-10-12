@@ -35,14 +35,36 @@ const ABOUT = {
   strip: "Before/after, or a progression of up to four rounds: images, code or terminal output.",
 };
 const ORDER = Object.keys(ABOUT);
+// The examples shown, in order, each with what it demonstrates. A second example of a kind earns its
+// place only by showing something new. Specs not listed here are left out of the preview, such as
+// options-record.md, which exists for the page template.
+const EXAMPLES = {
+  "flow-preview.json": "A fan-out, with marching dashes along the route.",
+  "flow-limits.json": "A fan-in from three sources, with a moving dot.",
+  "flow-retry.json": "A retry loop, which runs around the outside.",
+  "flow-pipeline.json": "A fan-out that joins again, with a moving dot. Used by the page template.",
+  "steps-pipeline.json": "Four steps with the moving highlight. Used by the page template.",
+  "bars-budget.json": "One row marked hot; the others turn grey.",
+  "bars-limit.json": "Values with a unit, and a limit line.",
+  "delta-build.json": "A written change, and what was measured.",
+  "line-latency.json": "One series with a marked point.",
+  "line-two.json": "Two series: the second is grey and gets a legend.",
+  "options-database.md": "The bold first cell marks the chosen row.",
+  "matrix-previews.md": "The bold header marks the option built; a mark can carry a short note.",
+  "code-gather.json": "Lines read from git at a pinned commit, with the middle cut.",
+  "term-gather.json": "Two of four output lines kept; each gap becomes \"…\".",
+  "strip-rounds.json": "Three rounds of a design, as images.",
+  "strip-filter.json": "Before and after, as terminal output.",
+};
 
 const template = readFileSync(join(root, "assets/template.html"), "utf8");
 const head = template.slice(template.indexOf("<link rel=\"preconnect\""), template.indexOf("</style>") + "</style>".length);
 const script = template.slice(template.lastIndexOf("<script>"));
 
-const specs = readdirSync(specDir).filter((f) => /\.(json|md)$/.test(f))
-  .filter((f) => !only || f.startsWith(`${only}-`))
-  .sort((a, b) => (ORDER.indexOf(a.split("-")[0]) - ORDER.indexOf(b.split("-")[0])) || a.localeCompare(b));
+const onDisk = new Set(readdirSync(specDir).filter((f) => /\.(json|md)$/.test(f)));
+for (const f of Object.keys(EXAMPLES)) if (!onDisk.has(f)) throw new Error(`gallery: ${f} is listed but missing from assets/specs`);
+const specs = Object.keys(EXAMPLES).filter((f) => !only || f.startsWith(`${only}-`))
+  .sort((a, b) => ORDER.indexOf(a.split("-")[0]) - ORDER.indexOf(b.split("-")[0]));
 // Specs point at images relative to themselves; point them at the spec folder from the page instead.
 const imgBase = relative(dirname(out), specDir) || ".";
 const sections = [];
@@ -61,7 +83,7 @@ for (const f of specs) {
   const whole = /^(code|term)$/.test(kind);
   sections.push(`  <section class="ch" id="${id}">
     <h2><span class="n">${kind}</span>${esc(id.slice(kind.length + 1))}</h2>
-${first ? `    <p>${esc(ABOUT[kind] ?? "")}</p>\n` : ""}${whole ? `    ${frag}` : `    <figure class="wide">\n${frag}\n      <figcaption>Rendered from ${esc(f)}.</figcaption>\n    </figure>`}
+${first ? `    <p>${esc(ABOUT[kind] ?? "")}</p>\n` : ""}${whole ? `    ${frag}\n    <p class="label">${esc(EXAMPLES[f])}</p>` : `    <figure class="wide">\n${frag}\n      <figcaption>${esc(EXAMPLES[f])}</figcaption>\n    </figure>`}
     <details class="spec"><summary>${esc(f)}</summary><figure class="code"><pre><code>${esc(text.trim())}</code></pre></figure></details>
   </section>`);
 }
