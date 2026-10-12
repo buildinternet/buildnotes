@@ -28,7 +28,7 @@
 // Writes <out>/dossier.json (everything, full cleaned text) and <out>/dossier.md (a skimmable digest).
 
 import { execFileSync } from "node:child_process";
-import { mkdirSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join, extname } from "node:path";
 
 const args = parseArgs(process.argv.slice(2));
