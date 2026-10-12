@@ -75,7 +75,7 @@ const words = (s) => (s.match(/[A-Za-z0-9][A-Za-z0-9'’.,-]*/g) ?? []).length;
 const sentences = (s) => s.split(/(?<=[.!?][”’"')\]]*)\s+(?=[A-Z0-9#“‘"(])/).map((x) => x.trim()).filter(Boolean);
 
 // Opt-in modules (aside.module) are appendix material: excluded from word counts and the process budget.
-const modules = [...html.matchAll(/<aside class="module"[^>]*data-module="([^"]+)"/g)].map((m) => m[1]);
+const modules = [...html.replace(/<!--[\s\S]*?-->/g, "").matchAll(/<aside class="module"[^>]*data-module="([^"]+)"/g)].map((m) => m[1]);
 const body = strip(html).replace(/<aside class="module"[\s\S]*?<\/aside>/g, " ");
 const parts = [];
 const lede = body.split(/<section class="ch"/)[0];
