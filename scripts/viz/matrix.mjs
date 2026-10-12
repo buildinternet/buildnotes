@@ -10,7 +10,7 @@
 
 import { esc, inline, mdTable, unbold, warn } from "./util.mjs";
 
-export const parse = (text) => mdTable(text);
+export const parse = mdTable;
 
 const MARKS = [
   [/^(✓|✔|yes)(?=\s|$)\s*/i, "yes", "✓"],

@@ -9,7 +9,7 @@
 //     "measure": "median build, 200 runs" }   (optional; what was measured, printed small)
 // A side may carry "display" ("9.2 s") instead of being formatted from value and unit.
 
-import { esc, fmt, decimalsFor } from "./util.mjs";
+import { esc, fmt, decimalsFor, share } from "./util.mjs";
 
 export function render(spec, { id = "delta" } = {}) {
   const { before: b, after: a } = spec;
@@ -35,8 +35,7 @@ export function render(spec, { id = "delta" } = {}) {
   if (change || spec.measure) out.push(`  <div class="change">${change ? `<b>${esc(change)}</b>` : ""}${change && spec.measure ? " · " : ""}${spec.measure ? esc(spec.measure) : ""}</div>`);
   if (numeric) {
     const max = Math.max(b.value, a.value) || 1;
-    const v = (x) => Math.round((x / max) * 1000) / 1000;
-    out.push(`  <div class="pair" aria-hidden="true"><i style="--v:${v(b.value)}"></i><i class="after" style="--v:${v(a.value)}"></i></div>`);
+    out.push(`  <div class="pair" aria-hidden="true"><i style="--v:${share(b.value, max)}"></i><i class="after" style="--v:${share(a.value, max)}"></i></div>`);
   }
   out.push(`</div>`);
   return out.join("\n");

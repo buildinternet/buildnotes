@@ -20,6 +20,7 @@ const only = opt("only");
 const publish = argv.includes("--publish");
 const out = resolve(publish ? join(root, "assets/components.html") : opt("out") ?? join(root, "runs/components/gallery.html"));
 const specDir = join(root, "assets/specs");
+const num = (i) => String(i + 1).padStart(2, "0");
 
 // What each kind is for, in the order a writer would reach for them.
 const ABOUT = {
@@ -91,9 +92,9 @@ ${whole ? `      ${frag}\n      <p class="label">${esc(EXAMPLES[f])}</p>` : `   
   byKind.get(kind).push(example);
 }
 const kinds = [...byKind.keys()];
-const toc = kinds.map((k, i) => `<li><a href="#${k}"><span>${String(i + 1).padStart(2, "0")}</span>${k}</a></li>`);
+const toc = kinds.map((k, i) => `<li><a href="#${k}"><span>${num(i)}</span>${k}</a></li>`);
 const sections = kinds.map((k, i) => `  <section class="ch" id="${k}">
-    <h2><span class="n">${String(i + 1).padStart(2, "0")}</span>${k}</h2>
+    <h2><span class="n">${num(i)}</span>${k}</h2>
     <p>${esc(ABOUT[k] ?? "")}</p>
 ${byKind.get(k).join("\n")}
   </section>`);

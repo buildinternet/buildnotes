@@ -52,7 +52,7 @@ export function highlight(text, lang) {
   return out + esc(text.slice(last));
 }
 
-export function read(spec, base = process.cwd()) {
+function read(spec, base = process.cwd()) {
   if (!spec.file) throw new Error("code: the spec needs a file");
   const repo = resolve(base, spec.repo ?? ".");
   const rev = spec.rev ?? "HEAD";

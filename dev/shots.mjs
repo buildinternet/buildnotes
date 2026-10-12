@@ -22,7 +22,8 @@ execFileSync("node", [join(root, "dev/gallery.mjs"), ...(opt("only") ? ["--only"
 const page = `file://${join(dir, "gallery.html")}`;
 const ids = [...readFileSync(join(dir, "gallery.html"), "utf8").matchAll(/<div class="ex" id="([^"]+)"/g)].map((m) => m[1]);
 
-const ab = (...args) => execFileSync("agent-browser", ["--session", "viz-shots", ...args], { encoding: "utf8" }).trim();
+const agent = (session) => (...args) => execFileSync("agent-browser", ["--session", session, ...args], { encoding: "utf8" }).trim();
+const ab = agent("viz-shots");
 const modes = [[1280, 800, "light"], [1280, 800, "dark"], [390, 844, "light"], [390, 844, "dark"]];
 const rows = [];
 let bad = 0;
@@ -33,11 +34,11 @@ try {
     ab("open", page);
     ab("wait", "800");
     ab("eval", `document.querySelectorAll("svg").forEach((s) => { s.pauseAnimations?.(); s.setCurrentTime?.(${Number(opt("time") ?? 1)}); }); document.getAnimations().forEach((a) => { a.pause(); a.currentTime = 600; }); true`);
-    const sw = JSON.parse(ab("eval", "JSON.stringify([document.documentElement.scrollWidth, innerWidth])"));
-    const wide = JSON.parse(sw);
-    const ok = wide[0] <= wide[1];
+    // eval prints the result as JSON, and the result is itself a JSON string, so it parses twice.
+    const [scrollW, innerW] = JSON.parse(JSON.parse(ab("eval", "JSON.stringify([document.documentElement.scrollWidth, innerWidth])")));
+    const ok = scrollW <= innerW;
     if (!ok) bad++;
-    console.log(`${w}×${h} ${theme}: scrollWidth ${wide[0]} / innerWidth ${wide[1]} ${ok ? "ok" : "✗ sideways scroll"}`);
+    console.log(`${w}×${h} ${theme}: scrollWidth ${scrollW} / innerWidth ${innerW} ${ok ? "ok" : "✗ sideways scroll"}`);
     for (const id of ids) {
       const file = join(shots, `${id}-${w}-${theme}.png`);
       // Show one section at a time at the top of the page: agent-browser's element shots go wrong below the fold.
@@ -58,7 +59,7 @@ section{display:grid;grid-template-columns:3fr 3fr 1.3fr 1.3fr;gap:12px;align-it
 h2{grid-column:1/-1;margin:0;font-size:14px;color:#fff}
 figure{margin:0}img{width:100%;display:block;border:1px solid #555}figcaption{color:#eee;margin-top:4px}
 </style>${ids.map((id) => `<section><h2>${id}</h2>${rows.filter((r) => r.id === id).map(cell).join("")}</section>`).join("")}`);
-const ab2 = (...args) => execFileSync("agent-browser", ["--session", "viz-sheet", ...args], { encoding: "utf8" });
+const ab2 = agent("viz-sheet");
 try {
   ab2("set", "viewport", "1600", "900");
   ab2("open", `file://${join(dir, "sheet.html")}`);

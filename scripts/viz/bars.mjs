@@ -8,7 +8,7 @@
 // A row may carry "display" to print its value its own way ("2.1 s"). With a hot row, the other bars
 // turn grey, so the one the chapter is about stands out.
 
-import { esc, fmt, decimalsFor, warn } from "./util.mjs";
+import { esc, fmt, decimalsFor, share, warn } from "./util.mjs";
 
 export function render(spec, { id = "bars" } = {}) {
   const rows = spec.rows ?? [];
@@ -24,14 +24,13 @@ export function render(spec, { id = "bars" } = {}) {
   const printed = rows.map((x) => x.display ?? show(x.value));
   const lw = Math.min(16, Math.max(...rows.map((x) => String(x.label).length)));
   const vw = Math.max(...printed.map((p) => p.length));
-  const scale = (v) => Math.round((v / max) * 1000) / 1000;
   const hot = rows.some((x) => x.hot);
-  const l = limit ? scale(limit.value) : null;
+  const l = limit ? share(limit.value, max) : null;
   const rule = limit ? `<s class="limit" style="--l:${l}"></s>` : "";
 
   const out = [`<div class="bars${hot ? " emph" : ""}" role="list" style="--lw:${lw}ch;--vw:${vw}ch">`];
   rows.forEach((x, k) => {
-    out.push(`  <div class="row${x.hot ? " hot" : ""}" role="listitem" style="--v:${scale(x.value)}"><span>${esc(x.label)}</span><span class="track"><i></i>${rule}</span><b>${esc(printed[k])}</b></div>`);
+    out.push(`  <div class="row${x.hot ? " hot" : ""}" role="listitem" style="--v:${share(x.value, max)}"><span>${esc(x.label)}</span><span class="track"><i></i>${rule}</span><b>${esc(printed[k])}</b></div>`);
   });
   if (limit) {
     const text = `${limit.label ? `${limit.label} ` : ""}${limit.display ?? show(limit.value)}`;

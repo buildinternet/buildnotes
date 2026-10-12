@@ -43,8 +43,10 @@ import { openPage } from "./chrome.mjs";
 const argv = process.argv.slice(2);
 const has = (k) => argv.includes(`--${k}`);
 const opt = (k) => { const i = argv.indexOf(`--${k}`); return i >= 0 ? argv[i + 1] : undefined; };
-const file = argv.find((a, i) => !a.startsWith("--") && !(argv[i - 1]?.startsWith("--") && !["--list", "--png", "--gif", "--mp4", "--webm", "--svg", "--caption", "--transparent", "--frames"].includes(argv[i - 1])));
-const format = ["png", "gif", "mp4", "webm", "svg"].find(has);
+const FORMATS = ["png", "gif", "mp4", "webm", "svg"];
+const SWITCHES = ["list", ...FORMATS, "caption", "transparent", "frames"].map((k) => `--${k}`);
+const file = argv.find((a, i) => !a.startsWith("--") && !(argv[i - 1]?.startsWith("--") && !SWITCHES.includes(argv[i - 1])));
+const format = FORMATS.find(has);
 if (!file || (!has("list") && !format) || has("help")) {
   console.error("usage: export.mjs <post.html> --list | (--figure N | --select css) (--png | --gif | --mp4 | --webm | --svg) [options]; see the header for options");
   process.exit(has("help") ? 0 : 2);
@@ -66,7 +68,7 @@ const KIND = `(f) => { const el = f.querySelector(".flow, .steps, .bars, .delta,
 
 // Frames (PNG, GIF, video) run the page on a virtual clock, so script-driven motion (canvas, WebGL)
 // steps exactly like SVG and CSS motion.
-const frameFormat = ["png", "gif", "mp4", "webm"].includes(format);
+const frameFormat = format && format !== "svg";
 const page = await openPage(pathToFileURL(resolve(file)).href, { width, height: 900, scale, theme, init: frameFormat ? `(${virtualClock})()` : undefined });
 const done = async (code, msg) => { if (msg) console.error(msg); await page.close(); process.exit(code); };
 
@@ -96,25 +98,27 @@ try {
     await done(0, `wrote ${out}`);
   }
 
-  // Freeze all motion, and a way to move it to any moment.
-  await page.evaluate(`window.__seek = (t) => {
+  // Two real frames, so the compositor paints what the page just drew (WebGL included), and anything
+  // that reacts to a scroll or click (an IntersectionObserver resuming a canvas) has done so.
+  // Then freeze all motion, and add a way to move it to any moment.
+  await page.evaluate(`window.__settle = () => {
+    const raf = window.__clock?.realRAF ?? requestAnimationFrame;
+    return new Promise((r) => raf(() => raf(() => r(true))));
+  };
+  window.__seek = (t) => {
     document.querySelectorAll("svg").forEach((s) => { s.pauseAnimations?.(); s.setCurrentTime?.(t); });
     document.getAnimations().forEach((a) => { a.pause(); a.currentTime = t * 1000; });
     // Walk the clock there in 60 fps steps: a page that clamps the time between frames (most game
     // loops do) would barely move on one big jump.
     if (window.__clock) { while (t * 1000 - window.__clock.now > 1000 / 60) window.__clock.to(window.__clock.now + 1000 / 60); window.__clock.to(t * 1000); }
-    // Two real frames, so the compositor paints what the page just drew (WebGL included).
-    const raf = window.__clock?.realRAF ?? requestAnimationFrame;
-    return new Promise((r) => raf(() => raf(() => r(true))));
+    return window.__settle();
   }; true`);
   // Clicks happen at time 0, before any frame, so what they start plays out on the virtual clock.
   for (const sel of clicks) {
     const ok = await page.evaluate(`(() => { const el = document.querySelector(${JSON.stringify(sel)}); if (!el) return false; el.click(); return true; })()`);
     if (!ok) await done(1, `--click: nothing matches ${sel}`);
   }
-  // Two real frames, so anything that reacts to the scroll or the clicks (an IntersectionObserver
-  // resuming a canvas) has done so before the first frame.
-  await page.evaluate(`new Promise((r) => { const raf = window.__clock?.realRAF ?? requestAnimationFrame; raf(() => raf(() => r(true))); })`);
+  await page.evaluate("window.__settle()");
   // Show only the exported element: its neighbours (a caption, the next paragraph) keep their space
   // but don't paint into the margin. The page background still shows.
   await page.evaluate(`document.body.style.visibility = "hidden"; window.__target.style.visibility = "visible"; true`);

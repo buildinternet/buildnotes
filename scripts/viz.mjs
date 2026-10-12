@@ -35,11 +35,13 @@ import * as shader from "./viz/shader.mjs";
 export const KINDS = { flow, bars, delta, line, options, matrix, code, term, strip, steps, shader };
 export const MARKER = /<!-- viz (\w+) (\S+?)(?: #([0-9a-f]{6}))? -->([\s\S]*?)<!-- \/viz -->/g;
 
+const parseSpec = (mod, text) => (mod.parse ? mod.parse(text) : JSON.parse(text));
+const nameOf = (path) => path.replace(/^.*\//, "").replace(/\.\w+$/, "");
+
 export function renderKind(kind, specText, opts = {}) {
   const mod = KINDS[kind];
   if (!mod) throw new Error(`unknown kind "${kind}" (kinds: ${Object.keys(KINDS).join(", ")})`);
-  const spec = mod.parse ? mod.parse(specText) : JSON.parse(specText);
-  return mod.render(spec, opts);
+  return mod.render(parseSpec(mod, specText), opts);
 }
 
 export function build(html, base, { check = false } = {}) {
@@ -53,7 +55,7 @@ export function build(html, base, { check = false } = {}) {
     let h = hash(text);
     try {
       const mod = KINDS[kind];
-      const deps = mod?.deps?.(mod.parse ? mod.parse(text) : JSON.parse(text), specBase) ?? [];
+      const deps = mod?.deps?.(parseSpec(mod, text), specBase) ?? [];
       if (deps.length) h = hash(text + deps.map((d) => readFileSync(d, "utf8")).join("\n"));
     } catch {}
     if (check) {
@@ -61,9 +63,8 @@ export function build(html, base, { check = false } = {}) {
       else if (stamp !== h) problems.push(`${kind} ${path}: spec changed since the last render`);
       return all;
     }
-    const id = path.replace(/^.*\//, "").replace(/\.\w+$/, "");
     try {
-      const frag = renderKind(kind, text, { id, base: specBase });
+      const frag = renderKind(kind, text, { id: nameOf(path), base: specBase });
       for (const w of takeWarnings()) problems.push(`${kind} ${path}: ${w}`);
       return `<!-- viz ${kind} ${path} #${h} -->\n${frag}\n<!-- /viz -->`;
     } catch (err) {
@@ -94,7 +95,7 @@ if (isMain) {
       console.error(`${check ? "checked" : "rendered"} ${count} marker${count === 1 ? "" : "s"} in ${file}`);
       process.exit(check && problems.length ? 1 : 0);
     }
-    const id = opt("id") ?? file.replace(/^.*\//, "").replace(/\.\w+$/, "");
+    const id = opt("id") ?? nameOf(file);
     console.log(renderKind(cmd, readFileSync(file, "utf8"), { id, base: dirname(resolve(file)) }));
     for (const w of takeWarnings()) console.error(`! ${w}`);
   } catch (err) {

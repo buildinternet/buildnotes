@@ -18,6 +18,12 @@ export const width = (s, per) => Math.max(0, ...String(s ?? "").split("\n").map(
 // Round to 0.1 so paths are short and vertices compare exactly.
 export const r = (n) => Math.round(n * 10) / 10;
 
+// value ÷ max, to 3 places: the --v of a bar.
+export const share = (v, max) => Math.round((v / max) * 1000) / 1000;
+
+// A strip label that names a commit or PR instead of an iteration.
+export const NAMES_COMMIT = /#\d+|\b[0-9a-f]{7,40}\b|\bPR\b|\bcommit\b/i;
+
 const warnings = [];
 export const warn = (msg) => warnings.push(msg);
 export const takeWarnings = () => warnings.splice(0);

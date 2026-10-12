@@ -11,7 +11,7 @@
 // Frames sit in a row with arrows on wide screens and stack on phones. The last frame gets the accent
 // label unless another frame says "hot": true. Label frames by iteration, never by commit or PR.
 
-import { esc, warn } from "./util.mjs";
+import { esc, warn, NAMES_COMMIT } from "./util.mjs";
 import { render as code } from "./code.mjs";
 import { body as termBody } from "./term.mjs";
 
@@ -22,7 +22,7 @@ export function render(spec, { id = "strip", base } = {}) {
   const out = [`<div class="strip-box"><div class="strip" style="--n:${frames.length}">`];
   frames.forEach((f, k) => {
     if (!f.label) throw new Error(`strip: frame ${k + 1} needs a label ("Before", "Round two", "As it ships")`);
-    if (/#\d+|\b[0-9a-f]{7,40}\b|\bPR\b|\bcommit\b/i.test(f.label)) warn(`strip "${id}": label "${f.label}" names a commit or PR; label frames by iteration`);
+    if (NAMES_COMMIT.test(f.label)) warn(`strip "${id}": label "${f.label}" names a commit or PR; label frames by iteration`);
     let inner;
     if (f.src) {
       if (!f.alt) warn(`strip "${id}": frame "${f.label}" has no alt text`);

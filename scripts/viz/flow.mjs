@@ -130,7 +130,8 @@ function draw(g, spec, o, sid) {
   const lines = Math.max(...nodes.map((n) => n.label.split("\n").length));
   const hasSub = nodes.some((n) => n.sub);
   const boxH = Math.max(o === "h" ? 56 : 48, lines * 16 + (hasSub ? 14 : 0) + 20);
-  const want = Math.max(...nodes.map((n) => Math.max(width(n.label, W_LABEL), width(n.sub, W_SUB)))) + 24;
+  const need = (n) => Math.max(width(n.label, W_LABEL), width(n.sub, W_SUB)) + 24;
+  const want = Math.max(...nodes.map(need));
   const edgeLbl = Math.max(0, ...edges.filter((e) => e.kind !== "around").map((e) => width(e.label, W_EDGE)));
   const aroundLbl = Math.max(0, ...edges.filter((e) => e.kind === "around").map((e) => width(e.label, W_EDGE)));
 
@@ -138,7 +139,6 @@ function draw(g, spec, o, sid) {
   // the stacked one sizes each rank to its own widest label, within the phone's width budget.
   let M, C, G;
   const P = (u, v) => (o === "h" ? [u, v] : [v, u]);
-  const need = (n) => Math.max(width(n.label, W_LABEL), width(n.sub, W_SUB)) + 24;
   if (o === "h") {
     M = Math.min(190, Math.max(120, want)); C = boxH; G = Math.max(56, edgeLbl + 30);
     for (const n of nodes) { n.C = C; n.vc = n.pos * (C + 28) + C / 2; }
@@ -257,7 +257,7 @@ function draw(g, spec, o, sid) {
     const ls = n.label.split("\n");
     const block = ls.length * 16 + (n.sub ? 14 : 0);
     const cx = X(x + w / 2);
-    let ty = y + h / 2 - block / 2 + 12;
+    const ty = y + h / 2 - block / 2 + 12;
     const tsp = ls.map((l, k) => `<tspan x="${cx}" ${k ? 'dy="16"' : ""}>${esc(l)}</tspan>`).join("");
     out.push(`  <text class="lbl" x="${cx}" y="${Y(ty)}" text-anchor="middle">${ls.length > 1 ? tsp : esc(n.label)}</text>`);
     if (n.sub) out.push(`  <text class="sub" x="${cx}" y="${Y(ty + ls.length * 16 - 1)}" text-anchor="middle">${esc(n.sub)}</text>`);

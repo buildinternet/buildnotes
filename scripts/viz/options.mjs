@@ -9,7 +9,7 @@
 
 import { esc, inline, mdTable, unbold, warn } from "./util.mjs";
 
-export const parse = (text) => mdTable(text);
+export const parse = mdTable;
 
 export function render({ head, rows }, { id = "options" } = {}) {
   const chosen = rows.filter((r) => unbold(r[0]).bold).length;

@@ -11,7 +11,7 @@
 
 import { esc, ranges, warn, copyButton } from "./util.mjs";
 
-export function lines(spec, id = "term") {
+function lines(spec, id = "term") {
   let out = Array.isArray(spec.out) ? spec.out : String(spec.out ?? "").replace(/\n$/, "").split("\n");
   if (spec.out === undefined || spec.out === "") out = [];
   if (spec.keep) {

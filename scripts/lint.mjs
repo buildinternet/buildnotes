@@ -24,6 +24,7 @@
 import { readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { build as vizBuild } from "./viz.mjs";
+import { NAMES_COMMIT, numberIn } from "./viz/util.mjs";
 
 const argv = process.argv.slice(2);
 const file = argv.find((a, i) => !a.startsWith("--") && !argv[i - 1]?.startsWith("--"));
@@ -260,7 +261,7 @@ for (const m of live.matchAll(/<div class="flow"[^>]*>([\s\S]*?)<\/div>/g)) {
 // Bars to scale: every row's printed value ÷ its --v should give the same full-scale value.
 for (const [k, chunk] of live.split(/<div class="bars\b/).slice(1).entries()) {
   const rows = [...chunk.split("</figure>")[0].matchAll(/<div class="row(?! note)[^"]*"[^>]*style="--v:([\d.]+)"[^>]*>[\s\S]*?<b>([^<]*)<\/b>/g)]
-    .map((m) => [Number(m[1]), Number(m[2].replace(/,/g, "").match(/-?\d+(?:\.\d+)?/)?.[0])]).filter(([v, n]) => v > 0 && Number.isFinite(n));
+    .map((m) => [Number(m[1]), numberIn(m[2])]).filter(([v, n]) => v > 0 && Number.isFinite(n));
   const full = rows.map(([v, n]) => n / v);
   if (full.length > 1 && (Math.max(...full) - Math.min(...full)) / Math.max(...full) > 0.02) say(`! bars ${k + 1}: the bars aren't to scale with their printed values; re-render from the spec or fix --v`);
 }
@@ -271,7 +272,7 @@ for (const m of live.matchAll(/<div class="(options|matrix) vtable">([\s\S]*?)<\
 for (const m of live.matchAll(/<div class="strip"[^>]*>([\s\S]*?)<\/div><\/div>/g)) {
   const labels = [...m[1].matchAll(/<div class="frame"><span class="tag[^"]*">([^<]*)</g)].map((x) => x[1]);
   if (labels.length < 2 || labels.length > 4) say(`! strip: ${labels.length} frames; use 2 to 4`);
-  for (const l of labels) if (/#\d+|\b[0-9a-f]{7,40}\b|\bPR\b|\bcommit\b/i.test(l)) say(`! strip label "${l}" names a commit or PR; label the iteration ("Round two", "As it ships")`);
+  for (const l of labels) if (NAMES_COMMIT.test(l)) say(`! strip label "${l}" names a commit or PR; label the iteration ("Round two", "As it ships")`);
 }
 
 const leftovers = LEFTOVER.filter((t) => raw.includes(t));
