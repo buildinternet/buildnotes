@@ -54,7 +54,7 @@ Ryan's anatomy post sits between build story and deep dive: technical, with real
 
 ### 1. Scope
 
-Settle these, inferring what you can and asking only for what you can't:
+Settle these from the request, the repo and the defaults below. Don't ask about scope on its own: if something here is truly unclear, fold it into the single message in step 3.
 
 - **Subject.** Which feature, as concrete selectors: an umbrella issue, a PR list, a search phrase, a commit range or a path.
 - **Flavor.** Release story, build story or deep dive. Default: build story.
