@@ -41,7 +41,7 @@ try {
     for (const id of ids) {
       const file = join(shots, `${id}-${w}-${theme}.png`);
       // Show one section at a time at the top of the page: agent-browser's element shots go wrong below the fold.
-      ab("eval", `const t = document.getElementById(${JSON.stringify(id)}); document.querySelectorAll("section.ch, .mast, .toc, .ex").forEach((s) => { s.style.display = s === t || s.contains(t) ? "" : "none"; }); scrollTo(0, 0); true`);
+      ab("eval", `{ const t = document.getElementById(${JSON.stringify(id)}); document.querySelectorAll("section.ch, .mast, .toc, .ex").forEach((s) => { s.style.display = s === t || s.contains(t) ? "" : "none"; }); scrollTo(0, 0); } true`);
       ab("screenshot", `#${id} figure`, file);
       rows.push({ id, w, theme, file });
     }
