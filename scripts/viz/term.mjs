@@ -9,7 +9,7 @@
 // One command only, by design. The fragment is a whole <figure class="code term"> with the bare
 // "Terminal" caption: don't wrap it.
 
-import { esc, ranges, warn } from "./util.mjs";
+import { esc, ranges, warn, copyButton } from "./util.mjs";
 
 export function lines(spec, id = "term") {
   let out = Array.isArray(spec.out) ? spec.out : String(spec.out ?? "").replace(/\n$/, "").split("\n");
@@ -50,7 +50,7 @@ export function render(spec, { id = "term" } = {}) {
   if (!spec.cmd) throw new Error("term: the spec needs the command (cmd)");
   const { html, wrap } = body(spec, id);
   return `<figure class="code term${wrap ? " wrap" : ""}">
-  <figcaption><span>Terminal</span></figcaption>
+  <figcaption><span>Terminal</span>${copyButton("Copy command")}</figcaption>
 <pre><code>${html}</code></pre>
 </figure>`;
 }

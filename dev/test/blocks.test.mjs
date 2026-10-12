@@ -56,14 +56,14 @@ test("code: lines, cuts and dedent from a source", () => {
 
 test("code: reads the committed file from git and captions it with the path", () => {
   const html = code({ file: "scripts/gather.mjs", rev: "2cddb0c", lines: "159-167", cut: "160-166" }, { base: root });
-  assert.match(html, /<figcaption><span>scripts\/gather\.mjs<\/span><\/figcaption>/);
+  assert.match(html, /<figcaption><span>scripts\/gather\.mjs<\/span><button type="button" class="copy" aria-label="Copy code">/);
   assert.match(html, /<span class="k">let<\/span> p;\n<span class="cut">…<\/span>\n<span class="k">if<\/span> \(isBotPr/);
   assert.throws(() => code({ file: "nope.js" }, { base: root }), /can't read nope\.js/);
 });
 
 test("term: one command, kept lines with gaps, bare caption", () => {
   const html = term({ cmd: "ls", out: ["a", "b", "c", "d"], keep: "1,3" });
-  assert.match(html, /<figcaption><span>Terminal<\/span><\/figcaption>/);
+  assert.match(html, /<figcaption><span>Terminal<\/span><button type="button" class="copy" aria-label="Copy command">/);
   assert.match(html, /\$ <\/span>ls\na\n<span class="dim">…<\/span>\nc\n<span class="dim">…<\/span><\/code>/);
   term({ cmd: "npm test && npm run build", out: "" }, { id: "t" });
   assert.match(takeWarnings()[0], /more than one command/);

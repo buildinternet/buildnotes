@@ -12,7 +12,7 @@
 
 import { execFileSync } from "node:child_process";
 import { resolve } from "node:path";
-import { esc, ranges, warn } from "./util.mjs";
+import { esc, ranges, warn, copyButton } from "./util.mjs";
 
 const C_LIKE = { line: "//", block: true };
 const LANGS = {
@@ -91,7 +91,7 @@ export function render(spec, { id = "code", base } = {}) {
   const { html, shown } = excerpt(spec, spec.source ?? read(spec, base));
   if (shown > 15) warn(`code "${id}": ${shown} lines shown; keep it to about 15 (cut the middle with "cut")`);
   return `<figure class="code">
-  <figcaption><span>${esc(spec.file)}</span></figcaption>
+  <figcaption><span>${esc(spec.file)}</span>${copyButton("Copy code")}</figcaption>
 <pre><code>${html}</code></pre>
 </figure>`;
 }

@@ -91,3 +91,8 @@ export const ranges = (s) => String(s).split(",").flatMap((part) => {
   if (!Number.isInteger(a)) throw new Error(`bad line range "${s}"`);
   return Array.from({ length: (b || a) - a + 1 }, (_, k) => a + k);
 });
+
+// The copy button in a code or terminal caption. The template's script makes it work (and shows it).
+export const copyButton = (label) => `<button type="button" class="copy" aria-label="${label}">`
+  + `<svg class="idle" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5.5" y="5.5" width="8" height="8" rx="2"/><path d="M10.5 5.5V4A1.5 1.5 0 0 0 9 2.5H4A1.5 1.5 0 0 0 2.5 4v5A1.5 1.5 0 0 0 4 10.5h1.5"/></svg>`
+  + `<svg class="done" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7"/></svg></button>`;

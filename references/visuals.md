@@ -39,6 +39,8 @@ Each kind in the table renders from a small spec into static HTML or SVG, with n
 
 3. Render every marker in place: `node <skill-dir>/scripts/viz.mjs build <work-dir>/post.html`. Run it again after any spec change; it is safe to repeat. Warnings (labels too long for a phone, too many boxes or rows) go to stderr. To print one fragment instead, run `viz.mjs <kind> <spec>`.
 
+`code` and `term` render as a light card with a copy button: a terminal copies its command, a code block its excerpt. The button needs the template's script and stays hidden without it.
+
 Lint lists the specs behind the page, so the fact pass can tick their numbers there. It also warns when a marker is empty or its spec changed since the last render, and fails while a marker still points at the template's `specs/…` examples. The rendered markup is ordinary HTML: a hand edit is fine, but the next `build` replaces it, so edit the spec when you can.
 
 | Kind | Spec, in short |
