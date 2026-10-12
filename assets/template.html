@@ -15,7 +15,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Schibsted+Grotesk:wght@500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap">
 <style>
-/* Layout: one reading column (~40rem) with figures that may break out to ~54rem; chapter numbers hang left on wide screens. */
+/* Layout: one reading column (~40rem) with figures that may break out to ~54rem; chapter numbers hang in the left margin from 48rem. */
 :root {
   --paper: #f5f6f7;
   --ink: #16191d;
@@ -94,9 +94,11 @@ h1 {
 }
 .ch h3 { font: 600 1.0625rem/1.3 var(--font-display); margin-block: 0.5rem 0; }
 .n { font-size: 0.8125rem; color: var(--mark); font-weight: 500; }
-@media (min-width: 64rem) {
+/* Hang the number in the margin once there is room for it (column + number + gap + page padding),
+   so headings line up with the text; on phones it stays inline. */
+@media (min-width: 48rem) {
   .ch h2 { position: relative; }
-  .ch h2 .n { position: absolute; right: calc(100% + 1.25rem); top: 0.45rem; }
+  .ch h2 .n { position: absolute; right: calc(100% + 1rem); top: 0.45rem; }
 }
 .ch ul, .ch ol:not(.timeline):not(.steps) { margin-block: 0; padding-left: 1.25rem; display: grid; gap: 0.35rem; }
 
