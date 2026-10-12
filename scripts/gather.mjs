@@ -166,7 +166,9 @@ function addPr(n, r = repo) {
     ...(p.commits ?? []).map((c) => c.messageBody),
     ...inline.map((c) => c.body),
   ].filter(Boolean);
-  const agentSignals = AGENT_PATTERNS.filter(([, re]) => rawTexts.some((t) => re.test(t)) || re.test(p.author?.login ?? "")).map(([name]) => name);
+  // Agent tools also name their branches (claude/…, codex/…, cursor/…).
+  const BRANCH = { "Claude Code": /^claude\//i, Codex: /^codex\//i, Cursor: /^cursor\//i, Copilot: /^copilot\//i, Devin: /^devin\//i };
+  const agentSignals = AGENT_PATTERNS.filter(([name, re]) => rawTexts.some((t) => re.test(t)) || re.test(p.author?.login ?? "") || BRANCH[name]?.test(p.headRefName ?? "")).map(([name]) => name);
   const coAuthors = [...new Set((p.commits ?? []).flatMap((c) => coAuthorsOf(c.messageBody)))];
   const commitAuthors = [...new Set((p.commits ?? []).flatMap((c) => (c.authors ?? []).map((a) => a.login || a.name)).filter(Boolean))];
 
