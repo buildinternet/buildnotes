@@ -51,7 +51,7 @@ Pick one in Scope. It sets the reader, the altitude and the defaults below.
 
 **Size it to the subject, not the flavor.** The lengths above are ceilings for a big feature, not targets. There is no minimum. A small change gets a small post: a **note** of a paragraph or three, with no chapters, no masthead and at most one visual. And some subjects don't deserve a post at all.
 
-**Say when it isn't worth a write-up.** If what you were pointed at is thin (a typo, a one-line fix, a dependency bump, an internal refactor users never see), check the nearby work first: it may be one piece of a bigger idea, and that idea is the post. If it isn't, tell the author plainly that it's not worth a post, in a sentence or two, and offer the short note or a changelog line instead. Don't over-explain something straightforward to fill a format.
+**Say when it isn't worth a write-up.** If what you were pointed at is thin (a typo, a one-line fix, a dependency bump, an internal refactor users never see), check the nearby work first: it may be one piece of a bigger idea, and that idea is the post. If it is, that's a change of subject, and one of the few things worth stopping for: say in a sentence why the thin change isn't a post, name the bigger idea with the angle you'd lead with, and ask whether to write that instead (pull its PRs in with `--pr` to check it first). If it isn't, tell the author plainly that it's not worth a post, in a sentence or two, and offer the short note or a changelog line instead. Don't over-explain something straightforward to fill a format.
 
 Ryan's anatomy post sits between build story and deep dive: technical, with real code, yet organized entirely by idea, with no dates or process narration.
 
