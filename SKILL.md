@@ -108,11 +108,11 @@ Don't stop to ask unless an answer would change the headline or a chapter; both 
 
 ### 5. Make the visuals
 
-For each beat, decide whether a visual earns its place, and make it before writing the text around it. Code and terminal blocks are evidence, not visuals. Kinds, capture recipes and motion rules: [visuals.md](references/visuals.md).
+For each beat, decide whether a visual earns its place, and make it before writing the text around it. Most visuals are components: write a small spec in `<work-dir>/viz/` and let `scripts/viz.mjs` draw it (flows, steps, bars, before/after numbers, line charts, tables, strips, code and terminal blocks; each one with its spec in [assets/components.html](assets/components.html)). Code and terminal blocks are evidence, not visuals. Kinds, spec formats, capture recipes and motion rules: [visuals.md](references/visuals.md).
 
 ### 6. Write the page
 
-Copy [assets/template.html](assets/template.html) to `<work-dir>/post.html` and replace its example content. Its components are a toolbox: most posts use four or five and delete the rest. Opted-in modules go after the last chapter; generate the data ones with `node <skill-dir>/scripts/module.mjs <build-log|numbers|timeline> <work-dir>/evidence/dossier.json`. If the project has its own brand, restyle the `:root` tokens.
+Copy [assets/template.html](assets/template.html) to `<work-dir>/post.html` and replace its example content. Its components are a toolbox: most posts use four or five and delete the rest. Point each `<!-- viz … -->` marker at your own spec and render them all with `node <skill-dir>/scripts/viz.mjs build <work-dir>/post.html`; run it again after editing a spec. Opted-in modules go after the last chapter; generate the data ones with `node <skill-dir>/scripts/module.mjs <build-log|numbers|timeline> <work-dir>/evidence/dossier.json`. If the project has its own brand, restyle the `:root` tokens.
 
 ### 7. Check
 
@@ -120,7 +120,7 @@ Copy [assets/template.html](assets/template.html) to `<work-dir>/post.html` and 
 node <skill-dir>/scripts/lint.mjs <work-dir>/post.html --flavor build --avoid "term one,term two" [--private] [--ste]
 ```
 
-The linter reports words per chapter, banned and writerly phrasing, process detail against the flavor's budget, every sentence with a number, sentence length and passive voice, scan aids, identifiers in the text, masthead stats, terminal blocks, animated-dot faults, leftover template text and a safety scan. It exits 1 on a hard failure; with `--private`, any link to the repo's issues, PRs or commits is one. Then do the half it can't:
+The linter reports words per chapter, banned and writerly phrasing, process detail against the flavor's budget, every sentence with a number, sentence length and passive voice, scan aids, identifiers in the text, masthead stats, terminal blocks, animated-dot faults, rendered components (stale markers, bars off scale, more than one visual in a chapter), leftover template text and a safety scan. It exits 1 on a hard failure; with `--private`, any link to the repo's issues, PRs or commits is one. Then do the half it can't:
 
 - **Detail pass.** Apply *earn every detail* to each paragraph. A linter flag is a prompt to cut, not a count to hit.
 - **Fact pass.** Tick each number against the dossier, a file or your own run. Test counts come from running the tests, never from grep. Check every shipped/live claim against the code, the release and the docs; record any gap under Notes for the author.
@@ -143,8 +143,10 @@ Publish `post.published.html` as a private Artifact (title = the post's name) an
 - `scripts/workdir.mjs`: a work dir under `$BUILD_STORY_DIR` (default `~/.build-stories/<repo>/`)
 - `scripts/lint.mjs`: the mechanical half of the Check step
 - `scripts/module.mjs`: an opt-in module (build log, numbers, timeline) from the dossier
+- `scripts/viz.mjs`: visual components rendered from small specs (`scripts/viz/`, one file per kind)
 - `scripts/inline-assets.mjs`: embed local images and video (`src`, `poster`, `srcset`) as data URIs and drop authoring comments
 - `assets/template.html`: page template and component toolbox
+- `assets/components.html`: every component with its spec; the specs are in `assets/specs/`
 - `references/brief.md`: angles, the brief, and how little to ask the author
 - `references/evidence.md`: what to read, what to skip, numbers, terminal blocks, sources that disagree
 - `references/story.md`: shapes, beats, altitude, references, voice, length

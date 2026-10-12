@@ -56,4 +56,4 @@ process.stdout.write(
 const mb = (Buffer.byteLength(html) / 1048576).toFixed(2);
 console.error(`inlined ${embedded} files (${(bytes / 1048576).toFixed(2)} MB raw) → page ${mb} MB${missing ? ` · ${missing} missing` : ""}`);
 if (Number(mb) > 15) console.error("warning: page is over 15 MB; resize images before publishing");
-process.exit(missing ? 1 : 0);
+process.exitCode = missing ? 1 : 0; // not process.exit(): it cuts off stdout piped to another process

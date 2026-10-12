@@ -1,0 +1,966 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Build story components</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Schibsted+Grotesk:wght@500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap">
+<style>
+/* Layout: one reading column (~40rem) with figures that may break out to ~54rem; chapter numbers hang left on wide screens. */
+:root {
+  --paper: #f5f6f7;
+  --ink: #16191d;
+  --muted: #5b636e;
+  --rule: #d8dce1;
+  --wash: #eaedf0;
+  --accent: #1d5bd0;
+  --accent-wash: #dfe8fa;
+  --mark: #b0450e;
+  --dim: #7b838d; /* de-emphasised data marks (the series that isn't the point) */
+  --term-bg: #15181c;
+  --term-fg: #e3e6ea;
+  --term-dim: #a3acb6;
+  --term-accent: #8fb2f7;
+  --font-display: "Schibsted Grotesk", "Helvetica Neue", Arial, sans-serif;
+  --font-body: "Source Serif 4", Georgia, "Times New Roman", serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --col: 40rem;
+  --wide: 54rem;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0f1215; --ink: #e3e6ea; --muted: #9aa3ad; --rule: #2a3037; --wash: #171b20;
+    --accent: #82a8f6; --accent-wash: #1a2538; --mark: #f08c4e; --dim: #646c76; --term-bg: #07090b; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0f1215; --ink: #e3e6ea; --muted: #9aa3ad; --rule: #2a3037; --wash: #171b20;
+  --accent: #82a8f6; --accent-wash: #1a2538; --mark: #f08c4e; --dim: #646c76; --term-bg: #07090b; color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--paper); color: var(--ink);
+  font: 400 1.0625rem/1.65 var(--font-body);
+  padding-inline: 16px; padding-block: 3rem 5rem;
+  -webkit-font-smoothing: antialiased;
+}
+.post { max-width: var(--wide); margin-inline: auto; display: grid; gap: 1.5rem; }
+.post > * { width: 100%; max-width: var(--col); margin-inline: auto; min-width: 0; }
+.post > .wide, .ch > .wide { max-width: var(--wide); }
+a { color: var(--accent); text-underline-offset: 0.18em; text-decoration-thickness: 1px; }
+a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
+p { margin: 0; }
+code, pre, kbd, samp { font-variant-ligatures: none; font-feature-settings: "liga" 0, "calt" 0; }
+code { font: 0.86em/1.5 var(--font-mono); background: var(--wash); padding: 0.1em 0.3em; border-radius: 3px; }
+em { font-style: italic; }
+
+/* ── masthead ───────────────────────────────────────── */
+.mast { display: grid; gap: 0.9rem; padding-bottom: 1.25rem; border-bottom: 1px solid var(--rule); }
+.kicker, .byline, .stats dt, .label, figcaption, .toc, .n, .tag, .end h2 {
+  font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.04em; color: var(--muted);
+}
+.kicker { text-transform: uppercase; letter-spacing: 0.08em; }
+h1 {
+  font: 700 clamp(2rem, 5vw, 3rem)/1.08 var(--font-display); letter-spacing: -0.02em; margin: 0; text-wrap: balance;
+}
+.dek { font-size: 1.25rem; line-height: 1.45; color: var(--ink); font-style: italic; text-wrap: pretty; }
+.stats { display: flex; flex-wrap: wrap; gap: 0.5rem 1.75rem; margin: 0.35rem 0 0; }
+.stats div { display: grid; gap: 0.1rem; }
+.stats dt { text-transform: uppercase; letter-spacing: 0.08em; font-size: 0.6875rem; }
+.stats dd { margin: 0; font: 600 1.25rem/1.2 var(--font-display); font-variant-numeric: tabular-nums; }
+
+.lede { font-size: 1.125rem; }
+
+/* ── contents ───────────────────────────────────────── */
+.toc ol { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr)); gap: 0.25rem 1.5rem; }
+.toc a { color: var(--ink); text-decoration: none; display: flex; gap: 0.75rem; padding: 0.2rem 0; }
+.toc a span { color: var(--muted); }
+.toc a:hover { color: var(--accent); }
+
+/* ── chapters ───────────────────────────────────────── */
+.ch { display: grid; gap: 1.1rem; padding-top: 2rem; border-top: 1px solid var(--rule); max-width: var(--wide) !important; }
+.ch > * { width: 100%; max-width: var(--col); margin-inline: auto; min-width: 0; }
+.ch h2 {
+  font: 600 1.5rem/1.2 var(--font-display); letter-spacing: -0.01em; margin-block: 0; text-wrap: balance;
+  display: flex; gap: 0.9rem; align-items: baseline;
+}
+.ch h3 { font: 600 1.0625rem/1.3 var(--font-display); margin-block: 0.5rem 0; }
+.n { font-size: 0.8125rem; color: var(--mark); font-weight: 500; }
+@media (min-width: 64rem) {
+  .ch h2 { position: relative; }
+  .ch h2 .n { position: absolute; right: calc(100% + 1.25rem); top: 0.45rem; }
+}
+.ch ul, .ch ol:not(.timeline):not(.steps) { margin-block: 0; padding-left: 1.25rem; display: grid; gap: 0.35rem; }
+
+/* ── figures (shared) ───────────────────────────────── */
+figure { margin: 0; display: grid; gap: 0.5rem; min-width: 0; }
+figcaption { line-height: 1.5; text-wrap: pretty; }
+figcaption a { color: var(--muted); }
+
+/* code + terminal */
+.code { border: 1px solid var(--rule); border-radius: 6px; overflow: hidden; gap: 0; background: var(--wash); }
+.code figcaption { display: flex; justify-content: space-between; gap: 1rem; padding: 0.45rem 0.85rem; border-bottom: 1px solid var(--rule); background: var(--paper); }
+.code pre { margin: 0; padding: 0.9rem 1rem; overflow-x: auto; font: 0.8125rem/1.6 var(--font-mono); tab-size: 2; }
+.code pre code { background: none; padding: 0; font-size: inherit; }
+.code .c { color: var(--muted); font-style: italic; }
+.code .k { color: var(--accent); }
+.code .s { color: var(--mark); }
+.code .cut { color: var(--muted); }
+.term { border-color: var(--term-bg); }
+.term pre { background: var(--term-bg); color: var(--term-fg); }
+.term .prompt { color: var(--term-accent); user-select: none; }
+.term .dim { color: var(--term-dim); }
+.term.wrap pre, .code.wrap pre { white-space: pre-wrap; overflow-wrap: anywhere; }
+
+/* heard → changed */
+.heard { display: grid; gap: 0; border-top: 1px solid var(--rule); }
+.heard .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; padding: 0.9rem 0; border-bottom: 1px solid var(--rule); }
+.heard blockquote { margin: 0; font-style: italic; color: var(--muted); }
+.heard blockquote code { font-style: normal; }
+.heard cite { display: block; margin-top: 0.3rem; font: normal 0.75rem var(--font-mono); }
+.heard .pair > p { min-width: 0; }
+.heard .head { font-family: var(--font-mono); font-size: 0.6875rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); padding-bottom: 0.4rem; border-bottom: 0; }
+@media (max-width: 34rem) { .heard .pair { grid-template-columns: 1fr; gap: 0.4rem; } .heard .head { display: none; } }
+
+/* ── component: options (viz.mjs options) ── the turn, as a table; .chosen marks the winner */
+.options { overflow-x: auto; }
+.options table { width: 100%; border-collapse: collapse; font-size: 0.9375rem; }
+.options th { text-align: left; font: 500 0.6875rem var(--font-mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); padding: 0 0.75rem 0.4rem; border-bottom: 1px solid var(--rule); }
+.options td { padding: 0.6rem 0.75rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+.options td:first-child { font-weight: 600; min-width: 9rem; }
+.options .verdict { font: 0.75rem var(--font-mono); color: var(--muted); white-space: nowrap; }
+.options tr.chosen td { background: var(--accent-wash); }
+.options tr.chosen td:first-child { box-shadow: inset 3px 0 0 var(--accent); }
+.options tr.chosen .verdict { color: var(--accent); }
+
+/* ── component: matrix (viz.mjs matrix) ── things down the side, options across; .hot = the option built */
+.matrix table { width: 100%; border-collapse: collapse; font-size: 0.9375rem; }
+.matrix thead th { text-align: left; font: 500 0.6875rem var(--font-mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); padding: 0 0.75rem 0.4rem; border-bottom: 1px solid var(--rule); vertical-align: bottom; }
+.matrix thead th.hot { color: var(--accent); }
+.matrix tbody th { text-align: left; font-weight: 600; padding: 0.6rem 0.75rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+.matrix td { padding: 0.6rem 0.75rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+.matrix td.hot { background: var(--accent-wash); }
+.matrix .mk { font: 600 0.9375rem/1 var(--font-mono); }
+.matrix .mk.yes { color: var(--accent); }
+.matrix .mk.no { color: var(--muted); }
+.matrix .mk.part { color: var(--mark); }
+.matrix .note { color: var(--muted); font-size: 0.875rem; }
+
+/* options and matrix become one card per row in a narrow box; each cell is labelled by its column */
+.vtable { container-type: inline-size; }
+@container (max-width: 32rem) {
+  .vtable table, .vtable tbody, .vtable tr, .vtable td, .vtable tbody th { display: block; }
+  .vtable thead { display: none; }
+  .vtable tr { padding: 0.55rem 0; border-bottom: 1px solid var(--rule); }
+  .vtable td, .vtable tbody th { border: 0; padding: 0.15rem 0.75rem; min-width: 0 !important; }
+  .vtable td::before { content: attr(data-label); font: 500 0.6875rem/1.9 var(--font-mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+  .options td::before { display: block; }
+  .options td:first-child::before { content: none; }
+  .options tr.chosen { background: var(--accent-wash); box-shadow: inset 3px 0 0 var(--accent); }
+  .options tr.chosen td { background: none; box-shadow: none; }
+  .matrix td { display: grid; grid-template-columns: minmax(0, 9rem) minmax(0, 1fr); gap: 0.5rem; align-items: baseline; }
+  .matrix td.hot { background: none; }
+  .matrix td.hot::before { color: var(--accent); }
+}
+
+/* ── component: strip (viz.mjs strip) ── 2–4 frames in order with arrows; stacked in a narrow box */
+.strip-box { container-type: inline-size; }
+.strip { display: grid; grid-template-columns: repeat(var(--n), minmax(0, 1fr)); gap: 1rem 2rem; }
+.strip .frame { position: relative; display: grid; gap: 0.4rem; align-content: start; min-width: 0; }
+.strip .frame + .frame::before { content: "→"; position: absolute; left: -1.4rem; top: 50%; transform: translateY(-50%); font: 1rem var(--font-mono); color: var(--muted); }
+.strip img { display: block; width: 100%; height: auto; border: 1px solid var(--rule); border-radius: 6px; background: var(--wash); }
+@container (max-width: 34rem) {
+  .strip { grid-template-columns: minmax(0, 1fr); gap: 1.75rem; }
+  .strip .frame + .frame::before { content: "↓"; left: 0; top: -1.45rem; transform: none; }
+}
+
+/* inline reference: PR / issue / commit as a quiet superscript, never in the sentence */
+.ref { font: 500 0.68em var(--font-mono); vertical-align: super; line-height: 0; margin-left: 0.15em; }
+.ref a { color: var(--muted); text-decoration: none; }
+.ref a:hover { color: var(--accent); text-decoration: underline; }
+
+/* steps: a linear flow in HTML. Row on wide screens, column on phones; .hot = this chapter's part.
+   Motion: .live steps a highlight through the boxes; off under reduced motion. */
+.steps { list-style: none; margin: 0; padding: 1rem; display: flex; gap: 0; align-items: stretch;
+  border: 1px solid var(--rule); border-radius: 6px; counter-reset: step;
+  background: radial-gradient(circle, var(--rule) 1px, transparent 1.2px) 0 0 / 16px 16px, var(--paper); }
+.steps li { flex: 1 1 0; min-width: 0; display: flex; align-items: center; }
+.steps li + li::before { content: "→"; flex: 0 0 1.75rem; text-align: center; color: var(--muted); font-family: var(--font-mono); }
+.steps .box { flex: 1; min-width: 0; border: 1.25px solid var(--ink); border-radius: 6px; background: var(--paper); padding: 0.6rem 0.7rem; display: grid; gap: 0.15rem; text-align: center; transition: background 0.4s, border-color 0.4s; }
+.steps .box b { font: 600 0.875rem/1.25 var(--font-display); }
+.steps .box small { font: 0.6875rem/1.3 var(--font-mono); color: var(--muted); overflow-wrap: anywhere; }
+.steps .hot .box { background: var(--accent-wash); border-color: var(--accent); }
+@media (max-width: 40rem) {
+  .steps { flex-direction: column; }
+  .steps li { flex-direction: column; align-items: stretch; }
+  .steps li + li::before { content: "↓"; flex-basis: 1.5rem; line-height: 1.5rem; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .steps.live li .box { animation: pulse var(--cycle, 6s) infinite; animation-delay: calc(var(--i, 0) * var(--cycle, 6s) / var(--n, 4)); }
+}
+@keyframes pulse { 0%, 30%, 100% { border-color: var(--ink); } 8%, 22% { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-wash); } }
+
+.tag { text-transform: uppercase; letter-spacing: 0.08em; font-size: 0.6875rem; }
+.tag.after { color: var(--accent); }
+
+/* screenshot */
+.shot img, .shot video { display: block; width: 100%; height: auto; border: 1px solid var(--rule); border-radius: 6px; background: var(--wash); }
+/* a light screenshot glares on a dark page: dim it slightly, or ship a dark pair with <picture> */
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .shot img:not(.dark-ok), :root:not([data-theme="light"]) .strip img:not(.dark-ok) { filter: brightness(0.86) contrast(1.05); } }
+:root[data-theme="dark"] .shot img:not(.dark-ok), :root[data-theme="dark"] .strip img:not(.dark-ok) { filter: brightness(0.86) contrast(1.05); }
+
+/* diagram */
+.diagram .stage { overflow-x: auto; border: 1px solid var(--rule); border-radius: 6px; padding: 1rem; background:
+  radial-gradient(circle, var(--rule) 1px, transparent 1.2px) 0 0 / 16px 16px, var(--paper); }
+.diagram svg { display: block; min-width: 30rem; width: 100%; height: auto; }
+.diagram .box { fill: var(--paper); stroke: var(--ink); stroke-width: 1.25; }
+.diagram .box.hot { fill: var(--accent-wash); stroke: var(--accent); }
+.diagram .wire { fill: none; stroke: var(--muted); stroke-width: 1.25; }
+.diagram .flow { fill: none; stroke: var(--accent); stroke-width: 1.5; stroke-dasharray: 3 7; animation: march 1.2s linear infinite; }
+.diagram .lbl { font: 600 13px var(--font-display); fill: var(--ink); }
+.diagram .sub { font: 400 11px var(--font-mono); fill: var(--muted); }
+.diagram .edge { font: 400 10.5px var(--font-mono); fill: var(--muted); }
+.diagram .dot { fill: var(--accent); }
+.diagram .arrow { fill: var(--muted); }
+@keyframes march { to { stroke-dashoffset: -20; } }
+
+/* ── component: flow (viz.mjs flow) ── one spec, two drawings: svg.h left to right, svg.v top to bottom.
+   data-fold = the width (rem) of the .flow box below which the stacked drawing shows instead. */
+.flow { container-type: inline-size; border: 1px solid var(--rule); border-radius: 6px; padding: 1rem 0.75rem; background:
+  radial-gradient(circle, var(--rule) 1px, transparent 1.2px) 0 0 / 16px 16px, var(--paper); }
+.flow svg { display: block; width: 100%; height: auto; margin-inline: auto; }
+.flow svg.v { display: none; }
+@container (max-width: 30rem) { .flow[data-fold="30"] svg.h { display: none; } .flow[data-fold="30"] svg.v { display: block; } }
+@container (max-width: 38rem) { .flow[data-fold="38"] svg.h { display: none; } .flow[data-fold="38"] svg.v { display: block; } }
+@container (max-width: 46rem) { .flow[data-fold="46"] svg.h { display: none; } .flow[data-fold="46"] svg.v { display: block; } }
+@container (max-width: 54rem) { .flow[data-fold="54"] svg.h { display: none; } .flow[data-fold="54"] svg.v { display: block; } }
+.flow .box { fill: var(--paper); stroke: var(--ink); stroke-width: 1.25; }
+.flow .box.hot { fill: var(--accent-wash); stroke: var(--accent); }
+.flow .wire { fill: none; stroke: var(--muted); stroke-width: 1.25; }
+.flow .wire.live { stroke: var(--accent); stroke-opacity: 0.35; }
+.flow .route { fill: none; stroke: var(--accent); stroke-width: 1.75; stroke-dasharray: 4 6; animation: march 1.2s linear infinite; }
+.flow .arrow { fill: var(--muted); }
+.flow .dot { fill: var(--accent); }
+.flow .lbl { font: 600 13px var(--font-display); fill: var(--ink); }
+.flow .sub { font: 400 11px var(--font-mono); fill: var(--muted); }
+.flow .edge { font: 400 10.5px var(--font-mono); fill: var(--muted); paint-order: stroke; stroke: var(--paper); stroke-width: 4px; stroke-linejoin: round; }
+
+/* ── component: bars (viz.mjs bars) ── drawn to scale: --v = value ÷ largest. --lw/--vw = label and value
+   column widths in ch. .emph greys every bar but the .hot one; .limit is a dashed rule at --l. */
+.bars { display: grid; gap: 0.4rem; font: 0.75rem/1.3 var(--font-mono); }
+.bars .row { display: grid; grid-template-columns: minmax(0, var(--lw, 8ch)) minmax(0, 1fr) var(--vw, 6ch); align-items: center; gap: 0.75rem; }
+.bars .row > span:first-child { overflow-wrap: anywhere; }
+.bars .track { position: relative; display: block; height: 0.75rem; }
+.bars .row i { display: block; height: 100%; width: calc(var(--v) * 100%); min-width: 2px; background: var(--accent); border-radius: 0 4px 4px 0; }
+.bars.emph .row:not(.hot) i { background: var(--dim); }
+.bars .row b { font-weight: 400; color: var(--muted); text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.bars .row.hot b, .bars .row.hot > span:first-child { color: var(--ink); }
+.bars .limit { position: absolute; left: calc(var(--l) * 100%); top: -0.25rem; bottom: -0.25rem; border-left: 1px dashed var(--ink); }
+.bars .note .track { height: 1rem; }
+.bars .note em { position: absolute; left: calc(var(--l) * 100%); top: 0; transform: translateX(-50%); font-style: normal; color: var(--muted); white-space: nowrap; }
+.bars .note em.at-end { transform: translateX(-100%); }
+.bars .note em.at-start { transform: none; }
+
+/* ── component: delta (viz.mjs delta) ── one number before and after, the change, and bars to scale */
+.delta { display: grid; grid-template-columns: auto auto 1fr; align-items: end; gap: 0.35rem 1.25rem; }
+.delta .side { display: grid; gap: 0.15rem; }
+.delta .num { font: 600 clamp(1.75rem, 6vw, 2.5rem)/1.1 var(--font-display); letter-spacing: -0.01em; }
+.delta .side:not(.after) .num { color: var(--muted); }
+.delta .to { font: 1.5rem/1.6 var(--font-mono); color: var(--muted); }
+.delta .change { grid-column: 1 / -1; font: 0.8125rem/1.5 var(--font-mono); color: var(--muted); }
+.delta .change b { color: var(--ink); font-weight: 500; }
+.delta .pair { grid-column: 1 / -1; display: grid; gap: 4px; max-width: 24rem; }
+.delta .pair i { display: block; height: 0.5rem; width: calc(var(--v) * 100%); min-width: 2px; border-radius: 0 4px 4px 0; background: var(--dim); }
+.delta .pair i.after { background: var(--accent); }
+
+/* ── component: line (viz.mjs line) ── SVG line stretched to the plot; text, dots and the mark are HTML
+   placed in percent (--x, --y), so nothing stretches. --yw/--ew = tick and end-label widths in ch. */
+.line { --plot: 11rem; display: grid; grid-template-columns: var(--yw) minmax(0, 1fr) var(--ew); column-gap: 0.6rem; font: 0.75rem/1.3 var(--font-mono); color: var(--muted);
+  grid-template-areas: "legend legend legend" ". top ." "y plot ends" ". x ."; }
+.line .legend { grid-area: legend; display: flex; flex-wrap: wrap; gap: 0.25rem 1.25rem; margin: 0 0 0.6rem; }
+.line .legend span { display: inline-flex; align-items: center; gap: 0.45rem; }
+.line .legend i { width: 1rem; height: 2px; border-radius: 1px; background: var(--accent); }
+.line .legend .dim i { background: var(--dim); }
+.line .top { grid-area: top; position: relative; height: 1.4rem; }
+.line .top em { position: absolute; left: calc(var(--x) * 1%); bottom: 0.3rem; transform: translateX(-50%); font-style: normal; color: var(--ink); white-space: nowrap; }
+.line .top em.at-end { transform: translateX(-100%); }
+.line .top em.at-start { transform: none; }
+.line .yaxis, .line .ends { position: relative; height: var(--plot); }
+.line .yaxis { grid-area: y; } .line .ends { grid-area: ends; }
+.line .yaxis span { position: absolute; right: 0; top: calc(var(--y) * 1%); transform: translateY(-50%); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.line .ends span { position: absolute; left: 0; top: calc(var(--y) * 1%); transform: translateY(-50%); color: var(--ink); white-space: nowrap; }
+.line .plot { grid-area: plot; position: relative; height: var(--plot); }
+.line svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.line svg line { stroke-width: 1; vector-effect: non-scaling-stroke; }
+.line svg .grid { stroke: var(--rule); }
+.line svg .base { stroke: var(--muted); }
+.line svg .mark { stroke: var(--ink); stroke-opacity: 0.5; }
+.line svg path { fill: none; stroke: var(--accent); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; vector-effect: non-scaling-stroke; }
+.line svg path.dim { stroke: var(--dim); }
+.line .pt { position: absolute; left: calc(var(--x) * 1%); top: calc(var(--y) * 1%); width: 9px; height: 9px; margin: -4.5px 0 0 -4.5px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 2px var(--paper); }
+.line .pt.dim { background: var(--dim); }
+.line .hit { position: absolute; top: 0; bottom: 0; left: calc(var(--x) * 1% - 50% / var(--n)); width: calc(100% / var(--n)); }
+.line .hit:hover { background: linear-gradient(var(--rule), var(--rule)) center / 1px 100% no-repeat; }
+.line .xaxis { grid-area: x; position: relative; height: 1.5rem; }
+.line .xaxis span { position: absolute; top: 0.45rem; left: calc(var(--x) * 1%); transform: translateX(-50%); white-space: nowrap; }
+.line .xaxis span.at-start { transform: none; }
+.line .xaxis span.at-end { transform: translateX(-100%); }
+.line .xaxis span.odd { visibility: var(--odd, visible); }
+.line-box { container-type: inline-size; }
+@container (max-width: 30rem) { .line { --plot: 9.5rem; --odd: hidden; } }
+
+/* visually hidden, still read aloud (a chart's data table) */
+.vh { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+/* timeline */
+.timeline { list-style: none; margin-block: 0; padding: 0; display: grid; gap: 0; font-size: 0.9375rem; }
+.timeline li { display: grid; grid-template-columns: 5.5rem 1rem 1fr; gap: 0.6rem; align-items: start; position: relative; padding-bottom: 0.65rem; }
+.timeline time { font: 0.75rem/1.9 var(--font-mono); color: var(--muted); font-variant-numeric: tabular-nums; }
+.timeline li::before { content: ""; grid-column: 2; grid-row: 1; width: 9px; height: 9px; margin: 0.45rem auto 0; border-radius: 50%; border: 1.5px solid var(--muted); background: var(--paper); z-index: 1; }
+.timeline li.merged::before { background: var(--accent); border-color: var(--accent); }
+.timeline li::after { content: ""; position: absolute; left: calc(5.5rem + 0.6rem + 0.5rem - 0.5px); top: 0.9rem; bottom: -0.45rem; width: 1px; background: var(--rule); }
+.timeline li:last-child::after { display: none; }
+.timeline .ev { grid-column: 3; grid-row: 1; min-width: 0; }
+.timeline .ev small { font: 0.75rem var(--font-mono); color: var(--muted); }
+
+/* notes */
+.fn { font: 500 0.7em var(--font-mono); vertical-align: super; line-height: 0; }
+.fn a { text-decoration: none; color: var(--mark); padding-inline: 0.1em; }
+
+/* opt-in modules (references/modules.md): an appendix after the last chapter */
+.module { display: grid; gap: 0.85rem; padding: 1.25rem 1.25rem 1.4rem; border: 1px solid var(--rule); border-radius: 6px; background: var(--wash); font-size: 0.9375rem; }
+.module h2 { font: 600 1.0625rem/1.3 var(--font-display); margin: 0; }
+.module .note { font: 0.75rem/1.5 var(--font-mono); color: var(--muted); }
+.ledger { overflow-x: auto; }
+.ledger table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+.ledger th { text-align: left; font: 500 0.6875rem var(--font-mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); padding: 0 0.6rem 0.4rem 0; border-bottom: 1px solid var(--rule); }
+.ledger td { padding: 0.45rem 0.6rem 0.45rem 0; border-bottom: 1px solid var(--rule); vertical-align: top; }
+.ledger td:first-child { font: 0.75rem/1.9 var(--font-mono); color: var(--muted); white-space: nowrap; }
+.ledger .num { font: 0.75rem/1.9 var(--font-mono); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.ledger code { font-size: 0.75rem; background: var(--paper); }
+
+/* end matter */
+.end { display: grid; gap: 1.75rem; padding-top: 2rem; border-top: 1px solid var(--rule); font-size: 0.9375rem; }
+.end h2 { text-transform: uppercase; letter-spacing: 0.08em; margin: 0 0 0.5rem; font-weight: 500; }
+.end ol { margin: 0; padding-left: 1.4rem; display: grid; gap: 0.45rem; }
+.end li::marker { font: 0.75rem var(--font-mono); color: var(--muted); }
+.colophon { color: var(--muted); font-style: italic; }
+
+@media (prefers-reduced-motion: reduce) {
+  .diagram .flow, .flow .route, .steps .box { animation: none !important; }
+  html { scroll-behavior: auto; }
+}
+@media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+</style>
+<style>
+.spec summary { cursor: pointer; font: 0.75rem var(--font-mono); color: var(--muted); }
+.spec[open] summary { margin-bottom: 0.5rem; }
+.theme { justify-self: start; font: 0.75rem var(--font-mono); color: var(--ink); background: var(--wash); border: 1px solid var(--rule); border-radius: 4px; padding: 0.3rem 0.6rem; cursor: pointer; }
+</style>
+</head><body>
+<article class="post">
+  <header class="mast">
+    <p class="kicker">build-story · assets/components.html</p>
+    <h1>Components</h1>
+    <p class="dek">Every visual the skill can render from a spec, drawn by the same CSS as the page template.</p>
+    <p class="byline">Write a spec in the post's <code>viz/</code> folder, put a marker where the figure goes, and run <code>node scripts/viz.mjs build post.html</code>. Regenerate this page with <code>node dev/gallery.mjs --publish</code>.</p>
+    <button class="theme" type="button">Theme: auto</button>
+  </header>
+  <nav class="toc" aria-label="Components"><ol><li><a href="#flow-limits"><span>01</span>flow</a></li><li><a href="#steps-pipeline"><span>02</span>steps</a></li><li><a href="#bars-budget"><span>03</span>bars</a></li><li><a href="#delta-build"><span>04</span>delta</a></li><li><a href="#line-latency"><span>05</span>line</a></li><li><a href="#options-database"><span>06</span>options</a></li><li><a href="#matrix-previews"><span>07</span>matrix</a></li><li><a href="#code-gather"><span>08</span>code</a></li><li><a href="#term-gather"><span>09</span>term</a></li><li><a href="#strip-filter"><span>10</span>strip</a></li></ol></nav>
+  <section class="ch" id="flow-limits">
+    <h2><span class="n">flow</span>limits</h2>
+    <p>A flow that branches, fans in or loops. One spec gives a left-to-right drawing and a stacked one for phones; the marching dashes or the dot follow the drawn lines.</p>
+    <figure class="wide">
+<div class="flow" data-fold="30">
+<svg class="h" viewBox="0 0 525.6 240" width="100%" style="max-width:526px" role="img" aria-labelledby="flow-limits-h-t flow-limits-h-d">
+  <title id="flow-limits-h-t">Three sources of traffic share one limit</title>
+  <desc id="flow-limits-h-d">Web app to Token bucket; CLI to Token bucket; Public API to Token bucket; Token bucket to Handler (allowed).</desc>
+  <defs><marker id="flow-limits-h-ah" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path class="arrow" d="M0,0 L8,4 L0,8 z"/></marker></defs>
+  <path class="wire" d="M128,36 L186.8,36 L186.8,120 L202.8,120" marker-end="url(#flow-limits-h-ah)"/>
+  <path class="wire" d="M128,120 L202.8,120" marker-end="url(#flow-limits-h-ah)"/>
+  <path class="wire" d="M128,204 L186.8,204 L186.8,120 L202.8,120" marker-end="url(#flow-limits-h-ah)"/>
+  <path class="wire" d="M322.8,120 L397.6,120" marker-end="url(#flow-limits-h-ah)"/>
+  <circle class="dot" r="4" cx="0" cy="0"><animateMotion dur="2.6s" repeatCount="indefinite" keyPoints="0;1;1" keyTimes="0;0.75;1" calcMode="linear" path="M128,120 L202.8,120 L322.8,120 L397.6,120"/></circle>
+  <rect class="box" x="8" y="8" width="120" height="56" rx="6"/>
+  <text class="lbl" x="68" y="40" text-anchor="middle">Web app</text>
+  <rect class="box" x="8" y="92" width="120" height="56" rx="6"/>
+  <text class="lbl" x="68" y="124" text-anchor="middle">CLI</text>
+  <rect class="box" x="8" y="176" width="120" height="56" rx="6"/>
+  <text class="lbl" x="68" y="208" text-anchor="middle">Public API</text>
+  <rect class="box hot" x="202.8" y="92" width="120" height="56" rx="6"/>
+  <text class="lbl" x="262.8" y="117" text-anchor="middle">Token bucket</text>
+  <text class="sub" x="262.8" y="132" text-anchor="middle">per account</text>
+  <rect class="box" x="397.6" y="92" width="120" height="56" rx="6"/>
+  <text class="lbl" x="457.6" y="124" text-anchor="middle">Handler</text>
+  <text class="edge" x="360.2" y="114" text-anchor="middle">allowed</text>
+</svg>
+<svg class="v" viewBox="0 0 336 262" width="100%" style="max-width:336px" role="img" aria-labelledby="flow-limits-v-t flow-limits-v-d">
+  <title id="flow-limits-v-t">Three sources of traffic share one limit</title>
+  <desc id="flow-limits-v-d">Web app to Token bucket; CLI to Token bucket; Public API to Token bucket; Token bucket to Handler (allowed).</desc>
+  <defs><marker id="flow-limits-v-ah" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path class="arrow" d="M0,0 L8,4 L0,8 z"/></marker></defs>
+  <path class="wire" d="M56,58 L56,90 L168,90 L168,106" marker-end="url(#flow-limits-v-ah)"/>
+  <path class="wire" d="M168,58 L168,106" marker-end="url(#flow-limits-v-ah)"/>
+  <path class="wire" d="M280,58 L280,90 L168,90 L168,106" marker-end="url(#flow-limits-v-ah)"/>
+  <path class="wire" d="M168,156 L168,204" marker-end="url(#flow-limits-v-ah)"/>
+  <circle class="dot" r="4" cx="0" cy="0"><animateMotion dur="2s" repeatCount="indefinite" keyPoints="0;1;1" keyTimes="0;0.75;1" calcMode="linear" path="M168,58 L168,106 L168,156 L168,204"/></circle>
+  <rect class="box" x="8" y="8" width="96" height="50" rx="6"/>
+  <text class="lbl" x="56" y="37" text-anchor="middle">Web app</text>
+  <rect class="box" x="120" y="8" width="96" height="50" rx="6"/>
+  <text class="lbl" x="168" y="37" text-anchor="middle">CLI</text>
+  <rect class="box" x="232" y="8" width="96" height="50" rx="6"/>
+  <text class="lbl" x="280" y="37" text-anchor="middle">Public API</text>
+  <rect class="box hot" x="110.4" y="106" width="115.2" height="50" rx="6"/>
+  <text class="lbl" x="168" y="128" text-anchor="middle">Token bucket</text>
+  <text class="sub" x="168" y="143" text-anchor="middle">per account</text>
+  <rect class="box" x="120" y="204" width="96" height="50" rx="6"/>
+  <text class="lbl" x="168" y="233" text-anchor="middle">Handler</text>
+  <text class="edge" x="174" y="184" text-anchor="start">allowed</text>
+</svg>
+</div>
+      <figcaption>Rendered from flow-limits.json.</figcaption>
+    </figure>
+    <details class="spec"><summary>flow-limits.json</summary><figure class="code"><pre><code>{
+  &quot;title&quot;: &quot;Three sources of traffic share one limit&quot;,
+  &quot;nodes&quot;: [
+    { &quot;id&quot;: &quot;web&quot;, &quot;label&quot;: &quot;Web app&quot; },
+    { &quot;id&quot;: &quot;cli&quot;, &quot;label&quot;: &quot;CLI&quot; },
+    { &quot;id&quot;: &quot;api&quot;, &quot;label&quot;: &quot;Public API&quot; },
+    { &quot;id&quot;: &quot;bucket&quot;, &quot;label&quot;: &quot;Token bucket&quot;, &quot;sub&quot;: &quot;per account&quot;, &quot;hot&quot;: true },
+    { &quot;id&quot;: &quot;handler&quot;, &quot;label&quot;: &quot;Handler&quot; }
+  ],
+  &quot;edges&quot;: [[&quot;web&quot;, &quot;bucket&quot;], [&quot;cli&quot;, &quot;bucket&quot;], [&quot;api&quot;, &quot;bucket&quot;], [&quot;bucket&quot;, &quot;handler&quot;, &quot;allowed&quot;]],
+  &quot;motion&quot;: { &quot;route&quot;: [&quot;cli&quot;, &quot;bucket&quot;, &quot;handler&quot;], &quot;style&quot;: &quot;dot&quot; }
+}</code></pre></figure></details>
+  </section>
+  <section class="ch" id="flow-pipeline">
+    <h2><span class="n">flow</span>pipeline</h2>
+    <figure class="wide">
+<div class="flow" data-fold="46">
+<svg class="h" viewBox="0 0 757.6 156" width="100%" style="max-width:758px" role="img" aria-labelledby="flow-pipeline-h-t flow-pipeline-h-d">
+  <title id="flow-pipeline-h-t">Pipeline from repository record to published page</title>
+  <desc id="flow-pipeline-h-d">Issues &amp; PRs to gather.mjs (fetch); gather.mjs to Story plan (read); gather.mjs to Screenshots (download); Story plan to Page (write); Screenshots to Page (embed).</desc>
+  <defs><marker id="flow-pipeline-h-ah" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path class="arrow" d="M0,0 L8,4 L0,8 z"/></marker></defs>
+  <path class="wire" d="M132.5,78 L213.7,78" marker-end="url(#flow-pipeline-h-ah)"/>
+  <path class="wire" d="M338.2,78 L354.2,78 L354.2,120 L419.4,120" marker-end="url(#flow-pipeline-h-ah)"/>
+  <path class="wire" d="M338.2,78 L354.2,78 L354.2,36 L419.4,36" marker-end="url(#flow-pipeline-h-ah)"/>
+  <path class="wire" d="M543.9,120 L609.1,120 L609.1,78 L625.1,78" marker-end="url(#flow-pipeline-h-ah)"/>
+  <path class="wire" d="M543.9,36 L609.1,36 L609.1,78 L625.1,78" marker-end="url(#flow-pipeline-h-ah)"/>
+  <circle class="dot" r="4" cx="0" cy="0"><animateMotion dur="4.7s" repeatCount="indefinite" keyPoints="0;1;1" keyTimes="0;0.75;1" calcMode="linear" path="M132.5,78 L213.7,78 L338.2,78 L354.2,78 L354.2,120 L419.4,120 L543.9,120 L609.1,120 L609.1,78 L625.1,78"/></circle>
+  <rect class="box" x="8" y="50" width="124.5" height="56" rx="6"/>
+  <text class="lbl" x="70.3" y="75" text-anchor="middle">Issues &amp; PRs</text>
+  <text class="sub" x="70.3" y="90" text-anchor="middle">git + gh</text>
+  <rect class="box hot" x="213.7" y="50" width="124.5" height="56" rx="6"/>
+  <text class="lbl" x="276" y="75" text-anchor="middle">gather.mjs</text>
+  <text class="sub" x="276" y="90" text-anchor="middle">dossier.md</text>
+  <rect class="box" x="419.4" y="8" width="124.5" height="56" rx="6"/>
+  <text class="lbl" x="481.7" y="33" text-anchor="middle">Screenshots</text>
+  <text class="sub" x="481.7" y="48" text-anchor="middle">evidence/assets</text>
+  <rect class="box" x="419.4" y="92" width="124.5" height="56" rx="6"/>
+  <text class="lbl" x="481.7" y="117" text-anchor="middle">Story plan</text>
+  <text class="sub" x="481.7" y="132" text-anchor="middle">plan.md</text>
+  <rect class="box" x="625.1" y="50" width="124.5" height="56" rx="6"/>
+  <text class="lbl" x="687.3" y="75" text-anchor="middle">Page</text>
+  <text class="sub" x="687.3" y="90" text-anchor="middle">post.html</text>
+  <text class="edge" x="173.1" y="72" text-anchor="middle">fetch</text>
+  <text class="edge" x="386.8" y="114" text-anchor="middle">read</text>
+  <text class="edge" x="386.8" y="30" text-anchor="middle">download</text>
+  <text class="edge" x="576.5" y="114" text-anchor="middle">write</text>
+  <text class="edge" x="576.5" y="30" text-anchor="middle">embed</text>
+</svg>
+<svg class="v" viewBox="0 0 281 360" width="100%" style="max-width:281px" role="img" aria-labelledby="flow-pipeline-v-t flow-pipeline-v-d">
+  <title id="flow-pipeline-v-t">Pipeline from repository record to published page</title>
+  <desc id="flow-pipeline-v-d">Issues &amp; PRs to gather.mjs (fetch); gather.mjs to Story plan (read); gather.mjs to Screenshots (download); Story plan to Page (write); Screenshots to Page (embed).</desc>
+  <defs><marker id="flow-pipeline-v-ah" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path class="arrow" d="M0,0 L8,4 L0,8 z"/></marker></defs>
+  <path class="wire" d="M140.5,58 L140.5,106" marker-end="url(#flow-pipeline-v-ah)"/>
+  <path class="wire" d="M140.5,156 L140.5,172 L210.8,172 L210.8,204" marker-end="url(#flow-pipeline-v-ah)"/>
+  <path class="wire" d="M140.5,156 L140.5,172 L70.3,172 L70.3,204" marker-end="url(#flow-pipeline-v-ah)"/>
+  <path class="wire" d="M210.8,254 L210.8,286 L140.5,286 L140.5,302" marker-end="url(#flow-pipeline-v-ah)"/>
+  <path class="wire" d="M70.3,254 L70.3,286 L140.5,286 L140.5,302" marker-end="url(#flow-pipeline-v-ah)"/>
+  <circle class="dot" r="4" cx="0" cy="0"><animateMotion dur="3.7s" repeatCount="indefinite" keyPoints="0;1;1" keyTimes="0;0.75;1" calcMode="linear" path="M140.5,58 L140.5,106 L140.5,156 L140.5,172 L210.8,172 L210.8,204 L210.8,254 L210.8,286 L140.5,286 L140.5,302"/></circle>
+  <rect class="box" x="82.9" y="8" width="115.2" height="50" rx="6"/>
+  <text class="lbl" x="140.5" y="30" text-anchor="middle">Issues &amp; PRs</text>
+  <text class="sub" x="140.5" y="45" text-anchor="middle">git + gh</text>
+  <rect class="box hot" x="90.5" y="106" width="100" height="50" rx="6"/>
+  <text class="lbl" x="140.5" y="128" text-anchor="middle">gather.mjs</text>
+  <text class="sub" x="140.5" y="143" text-anchor="middle">dossier.md</text>
+  <rect class="box" x="8" y="204" width="124.5" height="50" rx="6"/>
+  <text class="lbl" x="70.3" y="226" text-anchor="middle">Screenshots</text>
+  <text class="sub" x="70.3" y="241" text-anchor="middle">evidence/assets</text>
+  <rect class="box" x="148.5" y="204" width="124.5" height="50" rx="6"/>
+  <text class="lbl" x="210.8" y="226" text-anchor="middle">Story plan</text>
+  <text class="sub" x="210.8" y="241" text-anchor="middle">plan.md</text>
+  <rect class="box" x="92.5" y="302" width="96" height="50" rx="6"/>
+  <text class="lbl" x="140.5" y="324" text-anchor="middle">Page</text>
+  <text class="sub" x="140.5" y="339" text-anchor="middle">post.html</text>
+  <text class="edge" x="146.5" y="86" text-anchor="start">fetch</text>
+  <text class="edge" x="216.8" y="192" text-anchor="start">read</text>
+  <text class="edge" x="76.3" y="192" text-anchor="start">download</text>
+  <text class="edge" x="216.8" y="274" text-anchor="start">write</text>
+  <text class="edge" x="76.3" y="274" text-anchor="start">embed</text>
+</svg>
+</div>
+      <figcaption>Rendered from flow-pipeline.json.</figcaption>
+    </figure>
+    <details class="spec"><summary>flow-pipeline.json</summary><figure class="code"><pre><code>{
+  &quot;title&quot;: &quot;Pipeline from repository record to published page&quot;,
+  &quot;nodes&quot;: [
+    { &quot;id&quot;: &quot;record&quot;, &quot;label&quot;: &quot;Issues &amp; PRs&quot;, &quot;sub&quot;: &quot;git + gh&quot; },
+    { &quot;id&quot;: &quot;gather&quot;, &quot;label&quot;: &quot;gather.mjs&quot;, &quot;sub&quot;: &quot;dossier.md&quot;, &quot;hot&quot;: true },
+    { &quot;id&quot;: &quot;images&quot;, &quot;label&quot;: &quot;Screenshots&quot;, &quot;sub&quot;: &quot;evidence/assets&quot; },
+    { &quot;id&quot;: &quot;plan&quot;, &quot;label&quot;: &quot;Story plan&quot;, &quot;sub&quot;: &quot;plan.md&quot; },
+    { &quot;id&quot;: &quot;page&quot;, &quot;label&quot;: &quot;Page&quot;, &quot;sub&quot;: &quot;post.html&quot; }
+  ],
+  &quot;edges&quot;: [[&quot;record&quot;, &quot;gather&quot;, &quot;fetch&quot;], [&quot;gather&quot;, &quot;plan&quot;, &quot;read&quot;], [&quot;gather&quot;, &quot;images&quot;, &quot;download&quot;], [&quot;plan&quot;, &quot;page&quot;, &quot;write&quot;], [&quot;images&quot;, &quot;page&quot;, &quot;embed&quot;]],
+  &quot;motion&quot;: { &quot;route&quot;: [&quot;record&quot;, &quot;gather&quot;, &quot;plan&quot;, &quot;page&quot;], &quot;style&quot;: &quot;dot&quot; }
+}</code></pre></figure></details>
+  </section>
+  <section class="ch" id="flow-preview">
+    <h2><span class="n">flow</span>preview</h2>
+    <figure class="wide">
+<div class="flow" data-fold="30">
+<svg class="h" viewBox="0 0 525.6 156" width="100%" style="max-width:526px" role="img" aria-labelledby="flow-preview-h-t flow-preview-h-d">
+  <title id="flow-preview-h-t">From push to preview link</title>
+  <desc id="flow-preview-h-d">git push to Build (webhook); Build to Preview link (image); Build to Build log (output).</desc>
+  <defs><marker id="flow-preview-h-ah" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path class="arrow" d="M0,0 L8,4 L0,8 z"/></marker></defs>
+  <path class="wire live" d="M128,78 L202.8,78" marker-end="url(#flow-preview-h-ah)"/>
+  <path class="wire live" d="M322.8,78 L338.8,78 L338.8,36 L397.6,36" marker-end="url(#flow-preview-h-ah)"/>
+  <path class="wire" d="M322.8,78 L338.8,78 L338.8,120 L397.6,120" marker-end="url(#flow-preview-h-ah)"/>
+  <path class="route" d="M128,78 L202.8,78 L322.8,78 L338.8,78 L338.8,36 L397.6,36"/>
+  <rect class="box" x="8" y="50" width="120" height="56" rx="6"/>
+  <text class="lbl" x="68" y="75" text-anchor="middle">git push</text>
+  <text class="sub" x="68" y="90" text-anchor="middle">any branch</text>
+  <rect class="box hot" x="202.8" y="50" width="120" height="56" rx="6"/>
+  <text class="lbl" x="262.8" y="75" text-anchor="middle">Build</text>
+  <text class="sub" x="262.8" y="90" text-anchor="middle">shared runner</text>
+  <rect class="box" x="397.6" y="8" width="120" height="56" rx="6"/>
+  <text class="lbl" x="457.6" y="33" text-anchor="middle">Preview link</text>
+  <text class="sub" x="457.6" y="48" text-anchor="middle">per branch</text>
+  <rect class="box" x="397.6" y="92" width="120" height="56" rx="6"/>
+  <text class="lbl" x="457.6" y="117" text-anchor="middle">Build log</text>
+  <text class="sub" x="457.6" y="132" text-anchor="middle">kept 30 days</text>
+  <text class="edge" x="165.4" y="72" text-anchor="middle">webhook</text>
+  <text class="edge" x="368.2" y="30" text-anchor="middle">image</text>
+  <text class="edge" x="368.2" y="114" text-anchor="middle">output</text>
+</svg>
+<svg class="v" viewBox="0 0 262.4 262" width="100%" style="max-width:263px" role="img" aria-labelledby="flow-preview-v-t flow-preview-v-d">
+  <title id="flow-preview-v-t">From push to preview link</title>
+  <desc id="flow-preview-v-d">git push to Build (webhook); Build to Preview link (image); Build to Build log (output).</desc>
+  <defs><marker id="flow-preview-v-ah" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path class="arrow" d="M0,0 L8,4 L0,8 z"/></marker></defs>
+  <path class="wire live" d="M131.2,58 L131.2,106" marker-end="url(#flow-preview-v-ah)"/>
+  <path class="wire live" d="M131.2,156 L131.2,172 L65.6,172 L65.6,204" marker-end="url(#flow-preview-v-ah)"/>
+  <path class="wire" d="M131.2,156 L131.2,172 L196.8,172 L196.8,204" marker-end="url(#flow-preview-v-ah)"/>
+  <path class="route" d="M131.2,58 L131.2,106 L131.2,156 L131.2,172 L65.6,172 L65.6,204"/>
+  <rect class="box" x="83.2" y="8" width="96" height="50" rx="6"/>
+  <text class="lbl" x="131.2" y="30" text-anchor="middle">git push</text>
+  <text class="sub" x="131.2" y="45" text-anchor="middle">any branch</text>
+  <rect class="box hot" x="75.6" y="106" width="111.1" height="50" rx="6"/>
+  <text class="lbl" x="131.2" y="128" text-anchor="middle">Build</text>
+  <text class="sub" x="131.2" y="143" text-anchor="middle">shared runner</text>
+  <rect class="box" x="8" y="204" width="115.2" height="50" rx="6"/>
+  <text class="lbl" x="65.6" y="226" text-anchor="middle">Preview link</text>
+  <text class="sub" x="65.6" y="241" text-anchor="middle">per branch</text>
+  <rect class="box" x="139.2" y="204" width="115.2" height="50" rx="6"/>
+  <text class="lbl" x="196.8" y="226" text-anchor="middle">Build log</text>
+  <text class="sub" x="196.8" y="241" text-anchor="middle">kept 30 days</text>
+  <text class="edge" x="137.2" y="86" text-anchor="start">webhook</text>
+  <text class="edge" x="71.6" y="192" text-anchor="start">image</text>
+  <text class="edge" x="202.8" y="192" text-anchor="start">output</text>
+</svg>
+</div>
+      <figcaption>Rendered from flow-preview.json.</figcaption>
+    </figure>
+    <details class="spec"><summary>flow-preview.json</summary><figure class="code"><pre><code>{
+  &quot;title&quot;: &quot;From push to preview link&quot;,
+  &quot;nodes&quot;: [
+    { &quot;id&quot;: &quot;push&quot;, &quot;label&quot;: &quot;git push&quot;, &quot;sub&quot;: &quot;any branch&quot; },
+    { &quot;id&quot;: &quot;build&quot;, &quot;label&quot;: &quot;Build&quot;, &quot;sub&quot;: &quot;shared runner&quot;, &quot;hot&quot;: true },
+    { &quot;id&quot;: &quot;preview&quot;, &quot;label&quot;: &quot;Preview link&quot;, &quot;sub&quot;: &quot;per branch&quot; },
+    { &quot;id&quot;: &quot;log&quot;, &quot;label&quot;: &quot;Build log&quot;, &quot;sub&quot;: &quot;kept 30 days&quot; }
+  ],
+  &quot;edges&quot;: [[&quot;push&quot;, &quot;build&quot;, &quot;webhook&quot;], [&quot;build&quot;, &quot;preview&quot;, &quot;image&quot;], [&quot;build&quot;, &quot;log&quot;, &quot;output&quot;]],
+  &quot;motion&quot;: { &quot;route&quot;: [&quot;push&quot;, &quot;build&quot;, &quot;preview&quot;], &quot;style&quot;: &quot;dashes&quot; }
+}</code></pre></figure></details>
+  </section>
+  <section class="ch" id="flow-retry">
+    <h2><span class="n">flow</span>retry</h2>
+    <figure class="wide">
+<div class="flow" data-fold="38">
+<svg class="h" viewBox="0 0 577.5 192" width="100%" style="max-width:578px" role="img" aria-labelledby="flow-retry-h-t flow-retry-h-d">
+  <title id="flow-retry-h-t">A failed delivery retries until it lands</title>
+  <desc id="flow-retry-h-d">Queue to Send (next event); Send to Delivered (2xx); Send to Back off (5xx); Back off to Send (retry).</desc>
+  <defs><marker id="flow-retry-h-ah" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path class="arrow" d="M0,0 L8,4 L0,8 z"/></marker></defs>
+  <path class="wire" d="M132.5,78 L226.5,78" marker-end="url(#flow-retry-h-ah)"/>
+  <path class="wire" d="M351,78 L367,78 L367,36 L445,36" marker-end="url(#flow-retry-h-ah)"/>
+  <path class="wire" d="M351,78 L367,78 L367,120 L445,120" marker-end="url(#flow-retry-h-ah)"/>
+  <path class="wire" d="M507.3,148 L507.3,168 L288.8,168 L288.8,106" marker-end="url(#flow-retry-h-ah)"/>
+  <circle class="dot" r="4" cx="0" cy="0"><animateMotion dur="4.7s" repeatCount="indefinite" keyPoints="0;1;1" keyTimes="0;0.75;1" calcMode="linear" path="M132.5,78 L226.5,78 L351,78 L367,78 L367,120 L445,120 L507.3,148 L507.3,168 L288.8,168 L288.8,106 L351,78 L367,78 L367,36 L445,36"/></circle>
+  <rect class="box" x="8" y="50" width="124.5" height="56" rx="6"/>
+  <text class="lbl" x="70.3" y="75" text-anchor="middle">Queue</text>
+  <text class="sub" x="70.3" y="90" text-anchor="middle">outbox table</text>
+  <rect class="box hot" x="226.5" y="50" width="124.5" height="56" rx="6"/>
+  <text class="lbl" x="288.8" y="75" text-anchor="middle">Send</text>
+  <text class="sub" x="288.8" y="90" text-anchor="middle">webhook POST</text>
+  <rect class="box" x="445" y="8" width="124.5" height="56" rx="6"/>
+  <text class="lbl" x="507.3" y="40" text-anchor="middle">Delivered</text>
+  <rect class="box" x="445" y="92" width="124.5" height="56" rx="6"/>
+  <text class="lbl" x="507.3" y="117" text-anchor="middle">Back off</text>
+  <text class="sub" x="507.3" y="132" text-anchor="middle">1 s → 2 s → 4 s</text>
+  <text class="edge" x="179.5" y="72" text-anchor="middle">next event</text>
+  <text class="edge" x="406" y="30" text-anchor="middle">2xx</text>
+  <text class="edge" x="406" y="114" text-anchor="middle">5xx</text>
+  <text class="edge" x="398" y="181" text-anchor="middle">retry</text>
+</svg>
+<svg class="v" viewBox="0 0 336 262" width="100%" style="max-width:336px" role="img" aria-labelledby="flow-retry-v-t flow-retry-v-d">
+  <title id="flow-retry-v-t">A failed delivery retries until it lands</title>
+  <desc id="flow-retry-v-d">Queue to Send (next event); Send to Delivered (2xx); Send to Back off (5xx); Back off to Send (retry).</desc>
+  <defs><marker id="flow-retry-v-ah" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path class="arrow" d="M0,0 L8,4 L0,8 z"/></marker></defs>
+  <path class="wire" d="M139,58 L139,106" marker-end="url(#flow-retry-v-ah)"/>
+  <path class="wire" d="M139,156 L139,172 L69.5,172 L69.5,204" marker-end="url(#flow-retry-v-ah)"/>
+  <path class="wire" d="M139,156 L139,172 L208.5,172 L208.5,204" marker-end="url(#flow-retry-v-ah)"/>
+  <path class="wire" d="M270,229 L290,229 L290,131 L191.2,131" marker-end="url(#flow-retry-v-ah)"/>
+  <circle class="dot" r="4" cx="0" cy="0"><animateMotion dur="4.7s" repeatCount="indefinite" keyPoints="0;1;1" keyTimes="0;0.75;1" calcMode="linear" path="M139,58 L139,106 L139,156 L139,172 L208.5,172 L208.5,204 L270,229 L290,229 L290,131 L191.2,131 L139,156 L139,172 L69.5,172 L69.5,204"/></circle>
+  <rect class="box" x="86.8" y="8" width="104.4" height="50" rx="6"/>
+  <text class="lbl" x="139" y="30" text-anchor="middle">Queue</text>
+  <text class="sub" x="139" y="45" text-anchor="middle">outbox table</text>
+  <rect class="box hot" x="86.8" y="106" width="104.4" height="50" rx="6"/>
+  <text class="lbl" x="139" y="128" text-anchor="middle">Send</text>
+  <text class="sub" x="139" y="143" text-anchor="middle">webhook POST</text>
+  <rect class="box" x="8" y="204" width="123" height="50" rx="6"/>
+  <text class="lbl" x="69.5" y="233" text-anchor="middle">Delivered</text>
+  <rect class="box" x="147" y="204" width="123" height="50" rx="6"/>
+  <text class="lbl" x="208.5" y="226" text-anchor="middle">Back off</text>
+  <text class="sub" x="208.5" y="241" text-anchor="middle">1 s → 2 s → 4 s</text>
+  <text class="edge" x="145" y="86" text-anchor="start">next event</text>
+  <text class="edge" x="75.5" y="192" text-anchor="start">2xx</text>
+  <text class="edge" x="214.5" y="192" text-anchor="start">5xx</text>
+  <text class="edge" x="296" y="184" text-anchor="start">retry</text>
+</svg>
+</div>
+      <figcaption>Rendered from flow-retry.json.</figcaption>
+    </figure>
+    <details class="spec"><summary>flow-retry.json</summary><figure class="code"><pre><code>{
+  &quot;title&quot;: &quot;A failed delivery retries until it lands&quot;,
+  &quot;nodes&quot;: [
+    { &quot;id&quot;: &quot;queue&quot;, &quot;label&quot;: &quot;Queue&quot;, &quot;sub&quot;: &quot;outbox table&quot; },
+    { &quot;id&quot;: &quot;send&quot;, &quot;label&quot;: &quot;Send&quot;, &quot;sub&quot;: &quot;webhook POST&quot;, &quot;hot&quot;: true },
+    { &quot;id&quot;: &quot;done&quot;, &quot;label&quot;: &quot;Delivered&quot; },
+    { &quot;id&quot;: &quot;wait&quot;, &quot;label&quot;: &quot;Back off&quot;, &quot;sub&quot;: &quot;1 s → 2 s → 4 s&quot; }
+  ],
+  &quot;edges&quot;: [[&quot;queue&quot;, &quot;send&quot;, &quot;next event&quot;], [&quot;send&quot;, &quot;done&quot;, &quot;2xx&quot;], [&quot;send&quot;, &quot;wait&quot;, &quot;5xx&quot;], [&quot;wait&quot;, &quot;send&quot;, &quot;retry&quot;]],
+  &quot;motion&quot;: { &quot;route&quot;: [&quot;queue&quot;, &quot;send&quot;, &quot;wait&quot;, &quot;send&quot;, &quot;done&quot;], &quot;style&quot;: &quot;dot&quot; }
+}</code></pre></figure></details>
+  </section>
+  <section class="ch" id="steps-pipeline">
+    <h2><span class="n">steps</span>pipeline</h2>
+    <p>A straight line of steps. A row on wide screens, a column on phones; the highlight steps through the boxes.</p>
+    <figure class="wide">
+<ol class="steps live" style="--n:4" aria-label="From record to page">
+  <li style="--i:0"><div class="box"><b>Issues &amp; PRs</b><small>git + gh</small></div></li>
+  <li style="--i:1" class="hot"><div class="box"><b>Dossier</b><small>gather.mjs</small></div></li>
+  <li style="--i:2"><div class="box"><b>Story plan</b><small>plan.md</small></div></li>
+  <li style="--i:3"><div class="box"><b>Page</b><small>post.html</small></div></li>
+</ol>
+      <figcaption>Rendered from steps-pipeline.json.</figcaption>
+    </figure>
+    <details class="spec"><summary>steps-pipeline.json</summary><figure class="code"><pre><code>{
+  &quot;label&quot;: &quot;From record to page&quot;,
+  &quot;steps&quot;: [
+    { &quot;label&quot;: &quot;Issues &amp; PRs&quot;, &quot;sub&quot;: &quot;git + gh&quot; },
+    { &quot;label&quot;: &quot;Dossier&quot;, &quot;sub&quot;: &quot;gather.mjs&quot;, &quot;hot&quot;: true },
+    { &quot;label&quot;: &quot;Story plan&quot;, &quot;sub&quot;: &quot;plan.md&quot; },
+    { &quot;label&quot;: &quot;Page&quot;, &quot;sub&quot;: &quot;post.html&quot; }
+  ],
+  &quot;live&quot;: true
+}</code></pre></figure></details>
+  </section>
+  <section class="ch" id="bars-budget">
+    <h2><span class="n">bars</span>budget</h2>
+    <p>Sizes or counts, drawn to scale and labelled directly. Mark one row hot to grey the rest; add a limit for a budget.</p>
+    <figure class="wide">
+<div class="bars emph" role="list" style="--lw:9ch;--vw:2ch">
+  <div class="row" role="listitem" style="--v:0.037"><span>Release</span><span class="track"><i></i></span><b>1</b></div>
+  <div class="row" role="listitem" style="--v:0.148"><span>Build</span><span class="track"><i></i></span><b>4</b></div>
+  <div class="row" role="listitem" style="--v:0.37"><span>Deep dive</span><span class="track"><i></i></span><b>10</b></div>
+  <div class="row hot" role="listitem" style="--v:1"><span>Draft 1</span><span class="track"><i></i></span><b>27</b></div>
+</div>
+      <figcaption>Rendered from bars-budget.json.</figcaption>
+    </figure>
+    <details class="spec"><summary>bars-budget.json</summary><figure class="code"><pre><code>{
+  &quot;rows&quot;: [
+    { &quot;label&quot;: &quot;Release&quot;, &quot;value&quot;: 1 },
+    { &quot;label&quot;: &quot;Build&quot;, &quot;value&quot;: 4 },
+    { &quot;label&quot;: &quot;Deep dive&quot;, &quot;value&quot;: 10 },
+    { &quot;label&quot;: &quot;Draft 1&quot;, &quot;value&quot;: 27, &quot;hot&quot;: true }
+  ]
+}</code></pre></figure></details>
+  </section>
+  <section class="ch" id="bars-limit">
+    <h2><span class="n">bars</span>limit</h2>
+    <figure class="wide">
+<div class="bars emph" role="list" style="--lw:14ch;--vw:8ch">
+  <div class="row" role="listitem" style="--v:1"><span>Cold start</span><span class="track"><i></i><s class="limit" style="--l:0.543"></s></span><b>1,840 ms</b></div>
+  <div class="row" role="listitem" style="--v:0.337"><span>Warm, no cache</span><span class="track"><i></i><s class="limit" style="--l:0.543"></s></span><b>620 ms</b></div>
+  <div class="row hot" role="listitem" style="--v:0.052"><span>Warm, cached</span><span class="track"><i></i><s class="limit" style="--l:0.543"></s></span><b>95 ms</b></div>
+  <div class="row note" aria-hidden="true"><span></span><span class="track"><em class="" style="--l:0.543">budget 1,000 ms</em></span><b></b></div>
+</div>
+      <figcaption>Rendered from bars-limit.json.</figcaption>
+    </figure>
+    <details class="spec"><summary>bars-limit.json</summary><figure class="code"><pre><code>{
+  &quot;rows&quot;: [
+    { &quot;label&quot;: &quot;Cold start&quot;, &quot;value&quot;: 1840 },
+    { &quot;label&quot;: &quot;Warm, no cache&quot;, &quot;value&quot;: 620 },
+    { &quot;label&quot;: &quot;Warm, cached&quot;, &quot;value&quot;: 95, &quot;hot&quot;: true }
+  ],
+  &quot;unit&quot;: &quot;ms&quot;,
+  &quot;limit&quot;: { &quot;value&quot;: 1000, &quot;label&quot;: &quot;budget&quot; }
+}</code></pre></figure></details>
+  </section>
+  <section class="ch" id="delta-build">
+    <h2><span class="n">delta</span>build</h2>
+    <p>One measured change: the number before and after, the change, and two bars to scale.</p>
+    <figure class="wide">
+<div class="delta">
+  <div class="side"><span class="tag">Before</span><span class="num">38 s</span></div>
+  <span class="to" aria-hidden="true">→</span>
+  <div class="side after"><span class="tag after">As it ships</span><span class="num">9 s</span></div>
+  <div class="change"><b>4× faster</b> · median time from push to preview link, 200 builds</div>
+  <div class="pair" aria-hidden="true"><i style="--v:1"></i><i class="after" style="--v:0.237"></i></div>
+</div>
+      <figcaption>Rendered from delta-build.json.</figcaption>
+    </figure>
+    <details class="spec"><summary>delta-build.json</summary><figure class="code"><pre><code>{
+  &quot;before&quot;: { &quot;label&quot;: &quot;Before&quot;, &quot;value&quot;: 38, &quot;unit&quot;: &quot;s&quot; },
+  &quot;after&quot;: { &quot;label&quot;: &quot;As it ships&quot;, &quot;value&quot;: 9, &quot;unit&quot;: &quot;s&quot; },
+  &quot;change&quot;: &quot;4× faster&quot;,
+  &quot;measure&quot;: &quot;median time from push to preview link, 200 builds&quot;
+}</code></pre></figure></details>
+  </section>
+  <section class="ch" id="line-latency">
+    <h2><span class="n">line</span>latency</h2>
+    <p>A trend over time: one series (two at most), the last value at the line's end, an optional marked point.</p>
+    <figure class="wide">
+<div class="line-box"><div class="line marked" style="--yw:3ch;--ew:6ch">
+  <div class="top"><em style="--x:54.5" class="">cache on</em></div>
+  <div class="yaxis" aria-hidden="true"><span style="--y:100">0</span><span style="--y:80">100</span><span style="--y:60">200</span><span style="--y:40">300</span><span style="--y:20">400</span><span style="--y:0">500</span></div>
+  <div class="plot">
+    <svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+      <line class="base" x1="0" x2="100" y1="100" y2="100"/>
+      <line class="grid" x1="0" x2="100" y1="80" y2="80"/>
+      <line class="grid" x1="0" x2="100" y1="60" y2="60"/>
+      <line class="grid" x1="0" x2="100" y1="40" y2="40"/>
+      <line class="grid" x1="0" x2="100" y1="20" y2="20"/>
+      <line class="grid" x1="0" x2="100" y1="0" y2="0"/>
+      <line class="mark" x1="54.5" x2="54.5" y1="0" y2="100"/>
+      <path class="s" d="M0,18 L9.1,13.6 L18.2,20.4 L27.3,11 L36.4,16 L45.5,17 L54.5,64 L63.6,65.6 L72.7,66.4 L81.8,65 L90.9,65.8 L100,66.8"/>
+    </svg>
+    <span class="pt s" style="--x:100;--y:66.8"></span>
+    <span class="pt s ring" style="--x:54.5;--y:64"></span>
+    <span class="hit" style="--x:0;--n:12" title="1 Oct: 410 ms"></span><span class="hit" style="--x:9.1;--n:12" title="2 Oct: 432 ms"></span><span class="hit" style="--x:18.2;--n:12" title="3 Oct: 398 ms"></span><span class="hit" style="--x:27.3;--n:12" title="4 Oct: 445 ms"></span><span class="hit" style="--x:36.4;--n:12" title="5 Oct: 420 ms"></span><span class="hit" style="--x:45.5;--n:12" title="6 Oct: 415 ms"></span><span class="hit" style="--x:54.5;--n:12" title="7 Oct: 180 ms"></span><span class="hit" style="--x:63.6;--n:12" title="8 Oct: 172 ms"></span><span class="hit" style="--x:72.7;--n:12" title="9 Oct: 168 ms"></span><span class="hit" style="--x:81.8;--n:12" title="10 Oct: 175 ms"></span><span class="hit" style="--x:90.9;--n:12" title="11 Oct: 171 ms"></span><span class="hit" style="--x:100;--n:12" title="12 Oct: 166 ms"></span>
+  </div>
+  <div class="ends" aria-hidden="true"><span style="--y:66.8">166 ms</span></div>
+  <div class="xaxis" aria-hidden="true"><span style="--x:0" class="at-start">1 Oct</span><span style="--x:27.3" class="odd">4 Oct</span><span style="--x:54.5" class="">7 Oct</span><span style="--x:100" class="at-end">12 Oct</span></div>
+  <table class="vh"><caption>p95 response time by day</caption><thead><tr><th></th><th>p95</th></tr></thead><tbody><tr><th>1 Oct</th><td>410 ms</td></tr><tr><th>2 Oct</th><td>432 ms</td></tr><tr><th>3 Oct</th><td>398 ms</td></tr><tr><th>4 Oct</th><td>445 ms</td></tr><tr><th>5 Oct</th><td>420 ms</td></tr><tr><th>6 Oct</th><td>415 ms</td></tr><tr><th>7 Oct</th><td>180 ms</td></tr><tr><th>8 Oct</th><td>172 ms</td></tr><tr><th>9 Oct</th><td>168 ms</td></tr><tr><th>10 Oct</th><td>175 ms</td></tr><tr><th>11 Oct</th><td>171 ms</td></tr><tr><th>12 Oct</th><td>166 ms</td></tr></tbody></table>
+</div></div>
+      <figcaption>Rendered from line-latency.json.</figcaption>
+    </figure>
+    <details class="spec"><summary>line-latency.json</summary><figure class="code"><pre><code>{
+  &quot;title&quot;: &quot;p95 response time by day&quot;,
+  &quot;x&quot;: [&quot;1 Oct&quot;, &quot;2 Oct&quot;, &quot;3 Oct&quot;, &quot;4 Oct&quot;, &quot;5 Oct&quot;, &quot;6 Oct&quot;, &quot;7 Oct&quot;, &quot;8 Oct&quot;, &quot;9 Oct&quot;, &quot;10 Oct&quot;, &quot;11 Oct&quot;, &quot;12 Oct&quot;],
+  &quot;series&quot;: [{ &quot;name&quot;: &quot;p95&quot;, &quot;values&quot;: [410, 432, 398, 445, 420, 415, 180, 172, 168, 175, 171, 166] }],
+  &quot;y&quot;: { &quot;unit&quot;: &quot;ms&quot; },
+  &quot;mark&quot;: { &quot;at&quot;: &quot;7 Oct&quot;, &quot;label&quot;: &quot;cache on&quot; }
+}</code></pre></figure></details>
+  </section>
+  <section class="ch" id="line-two">
+    <h2><span class="n">line</span>two</h2>
+    <figure class="wide">
+<div class="line-box"><div class="line" style="--yw:3ch;--ew:2ch">
+  <div class="legend"><span class="s"><i></i>Preview</span><span class="s dim"><i></i>Production</span></div>
+  <div class="yaxis" aria-hidden="true"><span style="--y:100">0</span><span style="--y:75">100</span><span style="--y:50">200</span><span style="--y:25">300</span><span style="--y:0">400</span></div>
+  <div class="plot">
+    <svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+      <line class="base" x1="0" x2="100" y1="100" y2="100"/>
+      <line class="grid" x1="0" x2="100" y1="75" y2="75"/>
+      <line class="grid" x1="0" x2="100" y1="50" y2="50"/>
+      <line class="grid" x1="0" x2="100" y1="25" y2="25"/>
+      <line class="grid" x1="0" x2="100" y1="0" y2="0"/>
+      <path class="s dim" d="M0,90 L16.7,89.5 L33.3,90.5 L50,88.8 L66.7,87.5 L83.3,97 L100,97.5"/>
+      <path class="s" d="M0,70 L16.7,55 L33.3,35 L50,22.5 L66.7,15 L83.3,77.5 L100,82.5"/>
+    </svg>
+    <span class="pt s dim" style="--x:100;--y:97.5"></span>
+    <span class="pt s" style="--x:100;--y:82.5"></span>
+    <span class="hit" style="--x:0;--n:7" title="Mon: Preview 120, Production 40"></span><span class="hit" style="--x:16.7;--n:7" title="Tue: Preview 180, Production 42"></span><span class="hit" style="--x:33.3;--n:7" title="Wed: Preview 260, Production 38"></span><span class="hit" style="--x:50;--n:7" title="Thu: Preview 310, Production 45"></span><span class="hit" style="--x:66.7;--n:7" title="Fri: Preview 340, Production 50"></span><span class="hit" style="--x:83.3;--n:7" title="Sat: Preview 90, Production 12"></span><span class="hit" style="--x:100;--n:7" title="Sun: Preview 70, Production 10"></span>
+  </div>
+  <div class="ends" aria-hidden="true"><span style="--y:82.5">70</span><span style="--y:97.5">10</span></div>
+  <div class="xaxis" aria-hidden="true"><span style="--x:0" class="at-start">Mon</span><span style="--x:33.3" class="odd">Wed</span><span style="--x:66.7" class="">Fri</span><span style="--x:100" class="at-end">Sun</span></div>
+  <table class="vh"><caption>Builds per day, preview vs production</caption><thead><tr><th></th><th>Preview</th><th>Production</th></tr></thead><tbody><tr><th>Mon</th><td>120</td><td>40</td></tr><tr><th>Tue</th><td>180</td><td>42</td></tr><tr><th>Wed</th><td>260</td><td>38</td></tr><tr><th>Thu</th><td>310</td><td>45</td></tr><tr><th>Fri</th><td>340</td><td>50</td></tr><tr><th>Sat</th><td>90</td><td>12</td></tr><tr><th>Sun</th><td>70</td><td>10</td></tr></tbody></table>
+</div></div>
+      <figcaption>Rendered from line-two.json.</figcaption>
+    </figure>
+    <details class="spec"><summary>line-two.json</summary><figure class="code"><pre><code>{
+  &quot;title&quot;: &quot;Builds per day, preview vs production&quot;,
+  &quot;x&quot;: [&quot;Mon&quot;, &quot;Tue&quot;, &quot;Wed&quot;, &quot;Thu&quot;, &quot;Fri&quot;, &quot;Sat&quot;, &quot;Sun&quot;],
+  &quot;series&quot;: [
+    { &quot;name&quot;: &quot;Preview&quot;, &quot;values&quot;: [120, 180, 260, 310, 340, 90, 70], &quot;hot&quot;: true },
+    { &quot;name&quot;: &quot;Production&quot;, &quot;values&quot;: [40, 42, 38, 45, 50, 12, 10] }
+  ]
+}</code></pre></figure></details>
+  </section>
+  <section class="ch" id="options-database">
+    <h2><span class="n">options</span>database</h2>
+    <p>The turn: the options the record shows were weighed, the winner marked. Becomes cards on phones.</p>
+    <figure class="wide">
+<div class="options vtable">
+<table>
+  <thead><tr><th>Option</th><th>Verdict</th><th>Why</th></tr></thead>
+  <tbody>
+    <tr><td data-label="Option">One shared database</td><td class="verdict" data-label="Verdict">rejected</td><td data-label="Why">Migrations on one branch break every other preview.</td></tr>
+    <tr class="chosen"><td data-label="Option">Database per branch</td><td class="verdict" data-label="Verdict">chosen</td><td data-label="Why">Full isolation, for the cost of a copy that takes about 20 seconds.</td></tr>
+    <tr><td data-label="Option">Schema per branch</td><td class="verdict" data-label="Verdict">rejected</td><td data-label="Why">Isolated tables, but extensions and roles are still shared.</td></tr>
+  </tbody>
+</table>
+</div>
+      <figcaption>Rendered from options-database.md.</figcaption>
+    </figure>
+    <details class="spec"><summary>options-database.md</summary><figure class="code"><pre><code>| Option | Verdict | Why |
+|---|---|---|
+| One shared database | rejected | Migrations on one branch break every other preview. |
+| **Database per branch** | chosen | Full isolation, for the cost of a copy that takes about 20 seconds. |
+| Schema per branch | rejected | Isolated tables, but extensions and roles are still shared. |</code></pre></figure></details>
+  </section>
+  <section class="ch" id="options-record">
+    <h2><span class="n">options</span>record</h2>
+    <figure class="wide">
+<div class="options vtable">
+<table>
+  <thead><tr><th>Option</th><th>Verdict</th><th>Why</th></tr></thead>
+  <tbody>
+    <tr><td data-label="Option">Read every diff</td><td class="verdict" data-label="Verdict">rejected</td><td data-label="Why">Hours of reading for a dozen usable facts.</td></tr>
+    <tr class="chosen"><td data-label="Option">Digest first, then dig</td><td class="verdict" data-label="Verdict">chosen</td><td data-label="Why">One file with the counts done; the writer opens code only for chosen beats.</td></tr>
+    <tr><td data-label="Option">Summarize with a model</td><td class="verdict" data-label="Verdict">rejected</td><td data-label="Why">Summaries lose the exact numbers and quotes the post needs.</td></tr>
+  </tbody>
+</table>
+</div>
+      <figcaption>Rendered from options-record.md.</figcaption>
+    </figure>
+    <details class="spec"><summary>options-record.md</summary><figure class="code"><pre><code>| Option | Verdict | Why |
+|---|---|---|
+| Read every diff | rejected | Hours of reading for a dozen usable facts. |
+| **Digest first, then dig** | chosen | One file with the counts done; the writer opens code only for chosen beats. |
+| Summarize with a model | rejected | Summaries lose the exact numbers and quotes the post needs. |</code></pre></figure></details>
+  </section>
+  <section class="ch" id="matrix-previews">
+    <h2><span class="n">matrix</span>previews</h2>
+    <p>Options compared on several points, with ✓ ✗ ~ marks and short notes. Becomes cards on phones.</p>
+    <figure class="wide">
+<div class="matrix vtable">
+<table>
+  <thead><tr><th></th><th>Shared DB</th><th class="hot">Per branch</th><th>Snapshots</th></tr></thead>
+  <tbody>
+    <tr><th scope="row">Isolated migrations</th><td data-label="Shared DB"><span class="val"><span class="mk no" aria-hidden="true">✗</span><span class="vh">no</span></span></td><td class="hot" data-label="Per branch"><span class="val"><span class="mk yes" aria-hidden="true">✓</span><span class="vh">yes</span></span></td><td data-label="Snapshots"><span class="val"><span class="mk yes" aria-hidden="true">✓</span><span class="vh">yes</span></span></td></tr>
+    <tr><th scope="row">Ready in under a minute</th><td data-label="Shared DB"><span class="val"><span class="mk yes" aria-hidden="true">✓</span><span class="vh">yes</span></span></td><td class="hot" data-label="Per branch"><span class="val"><span class="mk part" aria-hidden="true">~</span><span class="vh">partly</span> <span class="note">about 20 s</span></span></td><td data-label="Snapshots"><span class="val"><span class="mk no" aria-hidden="true">✗</span><span class="vh">no</span> <span class="note">3–5 min</span></span></td></tr>
+    <tr><th scope="row">Real data shape</th><td data-label="Shared DB"><span class="val"><span class="mk yes" aria-hidden="true">✓</span><span class="vh">yes</span></span></td><td class="hot" data-label="Per branch"><span class="val"><span class="mk yes" aria-hidden="true">✓</span><span class="vh">yes</span></span></td><td data-label="Snapshots"><span class="val"><span class="mk yes" aria-hidden="true">✓</span><span class="vh">yes</span></span></td></tr>
+    <tr><th scope="row">Cleans itself up</th><td data-label="Shared DB"><span class="val"><span class="mk yes" aria-hidden="true">✓</span><span class="vh">yes</span></span></td><td class="hot" data-label="Per branch"><span class="val"><span class="mk yes" aria-hidden="true">✓</span><span class="vh">yes</span> <span class="note">on branch delete</span></span></td><td data-label="Snapshots"><span class="val"><span class="mk no" aria-hidden="true">✗</span><span class="vh">no</span></span></td></tr>
+  </tbody>
+</table>
+</div>
+      <figcaption>Rendered from matrix-previews.md.</figcaption>
+    </figure>
+    <details class="spec"><summary>matrix-previews.md</summary><figure class="code"><pre><code>| | Shared DB | **Per branch** | Snapshots |
+|---|---|---|---|
+| Isolated migrations | ✗ | ✓ | ✓ |
+| Ready in under a minute | ✓ | ~ about 20 s | ✗ 3–5 min |
+| Real data shape | ✓ | ✓ | ✓ |
+| Cleans itself up | ✓ | ✓ on branch delete | ✗ |</code></pre></figure></details>
+  </section>
+  <section class="ch" id="code-gather">
+    <h2><span class="n">code</span>gather</h2>
+    <p>Real code from git at a given commit, cut to the lines that make the point. Renders the whole figure.</p>
+    <figure class="code">
+  <figcaption><span>scripts/gather.mjs</span></figcaption>
+<pre><code><span class="k">let</span> p;
+<span class="cut">…</span>
+<span class="k">if</span> (isBotPr(p) &amp;&amp; !args[<span class="s">&quot;keep-bot-prs&quot;</span>]) <span class="k">return</span>;
+<span class="k">const</span> inline = ghJsonSafe([<span class="s">&quot;api&quot;</span>, <span class="s">`repos/${r}/pulls/${n}/comments`</span>, <span class="s">&quot;--paginate&quot;</span>]) ?? [];</code></pre>
+</figure>
+    <details class="spec"><summary>code-gather.json</summary><figure class="code"><pre><code>{
+  &quot;file&quot;: &quot;scripts/gather.mjs&quot;,
+  &quot;repo&quot;: &quot;../..&quot;,
+  &quot;rev&quot;: &quot;2cddb0c&quot;,
+  &quot;lines&quot;: &quot;159-168&quot;,
+  &quot;cut&quot;: &quot;160-166&quot;
+}</code></pre></figure></details>
+  </section>
+  <section class="ch" id="term-gather">
+    <h2><span class="n">term</span>gather</h2>
+    <p>One command and the output lines that matter. Renders the whole figure.</p>
+    <figure class="code term">
+  <figcaption><span>Terminal</span></figcaption>
+<pre><code><span class="prompt">$ </span>node scripts/gather.mjs --issue 412 --out evidence
+<span class="dim">issue 412: 1 issue, 9 PRs</span>
+<span class="dim">…</span>
+<span class="dim">dossier: 6 issues · 9 PRs · 0 loose commits · 4 images → evidence/dossier.md</span></code></pre>
+</figure>
+    <details class="spec"><summary>term-gather.json</summary><figure class="code"><pre><code>{
+  &quot;cmd&quot;: &quot;node scripts/gather.mjs --issue 412 --out evidence&quot;,
+  &quot;out&quot;: [&quot;issue 412: 1 issue, 9 PRs&quot;, &quot;pr 120 … pr 140&quot;, &quot;images: 4 downloaded&quot;, &quot;dossier: 6 issues · 9 PRs · 0 loose commits · 4 images → evidence/dossier.md&quot;],
+  &quot;keep&quot;: &quot;1,4&quot;,
+  &quot;dim&quot;: true
+}</code></pre></figure></details>
+  </section>
+  <section class="ch" id="strip-filter">
+    <h2><span class="n">strip</span>filter</h2>
+    <p>Before/after, or a progression of up to four rounds: images, code or terminal output.</p>
+    <figure class="wide">
+<div class="strip-box"><div class="strip" style="--n:2">
+  <div class="frame"><span class="tag">Before · first run</span><figure class="code term"><pre><code>Images:
+- …/open-in-web-dark.png
+- …/open-in-cursor-dark.png</code></pre></figure></div>
+  <div class="frame"><span class="tag after">After · with the filter</span><figure class="code term"><pre><code>Images:
+(none: this feature has no screenshots,
+ so the post captures fresh ones)</code></pre></figure></div>
+</div></div>
+      <figcaption>Rendered from strip-filter.json.</figcaption>
+    </figure>
+    <details class="spec"><summary>strip-filter.json</summary><figure class="code"><pre><code>{
+  &quot;frames&quot;: [
+    { &quot;label&quot;: &quot;Before · first run&quot;, &quot;term&quot;: { &quot;out&quot;: [&quot;Images:&quot;, &quot;- …/open-in-web-dark.png&quot;, &quot;- …/open-in-cursor-dark.png&quot;] } },
+    { &quot;label&quot;: &quot;After · with the filter&quot;, &quot;term&quot;: { &quot;out&quot;: [&quot;Images:&quot;, &quot;(none: this feature has no screenshots,&quot;, &quot; so the post captures fresh ones)&quot;] } }
+  ]
+}</code></pre></figure></details>
+  </section>
+  <section class="ch" id="strip-rounds">
+    <h2><span class="n">strip</span>rounds</h2>
+    <figure class="wide">
+<div class="strip-box"><div class="strip" style="--n:3">
+  <div class="frame"><span class="tag">Round one</span><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA4MDAgNDUwIiBmb250LWZhbWlseT0iSGVsdmV0aWNhLCBBcmlhbCwgc2Fucy1zZXJpZiI+CjxyZWN0IHdpZHRoPSI4MDAiIGhlaWdodD0iNDUwIiBmaWxsPSIjZmZmZmZmIi8+CjxyZWN0IHg9IjAiIHk9IjAiIHdpZHRoPSI4MDAiIGhlaWdodD0iNTIiIGZpbGw9IiNmMWYzZjUiLz48Y2lyY2xlIGN4PSIyOCIgY3k9IjI2IiByPSI2IiBmaWxsPSIjZDBkNGQ5Ii8+PGNpcmNsZSBjeD0iNDgiIGN5PSIyNiIgcj0iNiIgZmlsbD0iI2QwZDRkOSIvPjxjaXJjbGUgY3g9IjY4IiBjeT0iMjYiIHI9IjYiIGZpbGw9IiNkMGQ0ZDkiLz4KPHRleHQgeD0iNDAiIHk9IjEwMCIgZm9udC1zaXplPSIyNiIgZm9udC13ZWlnaHQ9IjcwMCIgZmlsbD0iIzE2MTkxZCI+VGhpcyB3ZWVrPC90ZXh0Pgo8ZyBmaWxsPSIjNWI2MzZlIiBmb250LXNpemU9IjE3Ij48dGV4dCB4PSI0MCIgeT0iMTUwIj7igKIgQWNtZSBDTEkgMi4zLjEg4oCUIGZpeGVzPC90ZXh0Pjx0ZXh0IHg9IjQwIiB5PSIxODUiPuKAoiBBY21lIENMSSAyLjMuMiDigJQgZml4ZXM8L3RleHQ+PHRleHQgeD0iNDAiIHk9IjIyMCI+4oCiIEFjbWUgQ0xJIDIuMy4zIOKAlCBmaXhlczwvdGV4dD48dGV4dCB4PSI0MCIgeT0iMjU1Ij7igKIgV2lkZ2V0IFNESyA0LjAg4oCUIG5ldyBkZWZhdWx0IG1vZGVsPC90ZXh0Pjx0ZXh0IHg9IjQwIiB5PSIyOTAiPuKAoiBBY21lIENMSSAyLjMuNCDigJQgZml4ZXM8L3RleHQ+PHRleHQgeD0iNDAiIHk9IjMyNSI+4oCiIEFjbWUgQ0xJIDIuMy41IOKAlCBmaXhlczwvdGV4dD48L2c+Cjwvc3ZnPgo=" alt="A plain list of releases, mostly small fixes, with one big launch buried in the middle." width="800" height="450"></div>
+  <div class="frame"><span class="tag">Round two</span><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA4MDAgNDUwIiBmb250LWZhbWlseT0iSGVsdmV0aWNhLCBBcmlhbCwgc2Fucy1zZXJpZiI+CjxyZWN0IHdpZHRoPSI4MDAiIGhlaWdodD0iNDUwIiBmaWxsPSIjZmZmZmZmIi8+CjxyZWN0IHg9IjAiIHk9IjAiIHdpZHRoPSI4MDAiIGhlaWdodD0iNTIiIGZpbGw9IiNmMWYzZjUiLz48Y2lyY2xlIGN4PSIyOCIgY3k9IjI2IiByPSI2IiBmaWxsPSIjZDBkNGQ5Ii8+PGNpcmNsZSBjeD0iNDgiIGN5PSIyNiIgcj0iNiIgZmlsbD0iI2QwZDRkOSIvPjxjaXJjbGUgY3g9IjY4IiBjeT0iMjYiIHI9IjYiIGZpbGw9IiNkMGQ0ZDkiLz4KPHRleHQgeD0iNDAiIHk9IjEwMCIgZm9udC1zaXplPSIyNiIgZm9udC13ZWlnaHQ9IjcwMCIgZmlsbD0iIzE2MTkxZCI+VGhpcyB3ZWVrPC90ZXh0Pgo8cmVjdCB4PSI0MCIgeT0iMTI1IiB3aWR0aD0iNDYwIiBoZWlnaHQ9IjI2MCIgcng9IjgiIGZpbGw9IiNkZmU4ZmEiLz48dGV4dCB4PSI2MCIgeT0iMTY1IiBmb250LXNpemU9IjIwIiBmb250LXdlaWdodD0iNzAwIiBmaWxsPSIjMTYxOTFkIj5BY21lIENMSTwvdGV4dD48dGV4dCB4PSI2MCIgeT0iMTkyIiBmb250LXNpemU9IjE1IiBmaWxsPSIjNWI2MzZlIj42IHJlbGVhc2VzPC90ZXh0PjxyZWN0IHg9IjUxMCIgeT0iMTI1IiB3aWR0aD0iMjUwIiBoZWlnaHQ9IjI2MCIgcng9IjgiIGZpbGw9IiNlYWVkZjAiLz48dGV4dCB4PSI1MzAiIHk9IjE2NSIgZm9udC1zaXplPSIyMCIgZm9udC13ZWlnaHQ9IjcwMCIgZmlsbD0iIzE2MTkxZCI+V2lkZ2V0IFNESzwvdGV4dD48dGV4dCB4PSI1MzAiIHk9IjE5MiIgZm9udC1zaXplPSIxNSIgZmlsbD0iIzViNjM2ZSI+MSByZWxlYXNlPC90ZXh0Pgo8L3N2Zz4K" alt="Tiles sized by release count: the product with six fix releases gets the biggest tile." width="800" height="450"></div>
+  <div class="frame"><span class="tag after">As it ships</span><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA4MDAgNDUwIiBmb250LWZhbWlseT0iSGVsdmV0aWNhLCBBcmlhbCwgc2Fucy1zZXJpZiI+CjxyZWN0IHdpZHRoPSI4MDAiIGhlaWdodD0iNDUwIiBmaWxsPSIjZmZmZmZmIi8+CjxyZWN0IHg9IjAiIHk9IjAiIHdpZHRoPSI4MDAiIGhlaWdodD0iNTIiIGZpbGw9IiNmMWYzZjUiLz48Y2lyY2xlIGN4PSIyOCIgY3k9IjI2IiByPSI2IiBmaWxsPSIjZDBkNGQ5Ii8+PGNpcmNsZSBjeD0iNDgiIGN5PSIyNiIgcj0iNiIgZmlsbD0iI2QwZDRkOSIvPjxjaXJjbGUgY3g9IjY4IiBjeT0iMjYiIHI9IjYiIGZpbGw9IiNkMGQ0ZDkiLz4KPHRleHQgeD0iNDAiIHk9IjEwMCIgZm9udC1zaXplPSIyNiIgZm9udC13ZWlnaHQ9IjcwMCIgZmlsbD0iIzE2MTkxZCI+VGhpcyB3ZWVrPC90ZXh0Pgo8cmVjdCB4PSI0MCIgeT0iMTI1IiB3aWR0aD0iNDIwIiBoZWlnaHQ9IjI2MCIgcng9IjgiIGZpbGw9IiNkZmU4ZmEiLz48dGV4dCB4PSI2MCIgeT0iMTY1IiBmb250LXNpemU9IjIwIiBmb250LXdlaWdodD0iNzAwIiBmaWxsPSIjMTYxOTFkIj5XaWRnZXQgU0RLPC90ZXh0Pjx0ZXh0IHg9IjYwIiB5PSIxOTIiIGZvbnQtc2l6ZT0iMTUiIGZpbGw9IiM1YjYzNmUiPk5ldyBkZWZhdWx0IG1vZGVsPC90ZXh0PjxyZWN0IHg9IjQ3MCIgeT0iMTI1IiB3aWR0aD0iMjkwIiBoZWlnaHQ9IjEyNSIgcng9IjgiIGZpbGw9IiNlYWVkZjAiLz48dGV4dCB4PSI0OTAiIHk9IjE2MyIgZm9udC1zaXplPSIxOCIgZm9udC13ZWlnaHQ9IjcwMCIgZmlsbD0iIzE2MTkxZCI+QWNtZSBDTEk8L3RleHQ+PHRleHQgeD0iNDkwIiB5PSIxODgiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IiM1YjYzNmUiPjYgZml4IHJlbGVhc2VzPC90ZXh0PjxyZWN0IHg9IjQ3MCIgeT0iMjYwIiB3aWR0aD0iMjkwIiBoZWlnaHQ9IjEyNSIgcng9IjgiIGZpbGw9IiNlYWVkZjAiLz48dGV4dCB4PSI0OTAiIHk9IjI5OCIgZm9udC1zaXplPSIxOCIgZm9udC13ZWlnaHQ9IjcwMCIgZmlsbD0iIzE2MTkxZCI+RG9jczwvdGV4dD48dGV4dCB4PSI0OTAiIHk9IjMyMyIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzViNjM2ZSI+MiB1cGRhdGVzPC90ZXh0Pgo8L3N2Zz4K" alt="Tiles sized by impact: the product with the new default model gets the biggest tile." width="800" height="450"></div>
+</div></div>
+      <figcaption>Rendered from strip-rounds.json.</figcaption>
+    </figure>
+    <details class="spec"><summary>strip-rounds.json</summary><figure class="code"><pre><code>{
+  &quot;frames&quot;: [
+    { &quot;label&quot;: &quot;Round one&quot;, &quot;src&quot;: &quot;img/round-1.svg&quot;, &quot;alt&quot;: &quot;A plain list of releases, mostly small fixes, with one big launch buried in the middle.&quot;, &quot;width&quot;: 800, &quot;height&quot;: 450 },
+    { &quot;label&quot;: &quot;Round two&quot;, &quot;src&quot;: &quot;img/round-2.svg&quot;, &quot;alt&quot;: &quot;Tiles sized by release count: the product with six fix releases gets the biggest tile.&quot;, &quot;width&quot;: 800, &quot;height&quot;: 450 },
+    { &quot;label&quot;: &quot;As it ships&quot;, &quot;src&quot;: &quot;img/round-3.svg&quot;, &quot;alt&quot;: &quot;Tiles sized by impact: the product with the new default model gets the biggest tile.&quot;, &quot;width&quot;: 800, &quot;height&quot;: 450 }
+  ]
+}</code></pre></figure></details>
+  </section>
+</article>
+<script>
+  // Stop SVG (SMIL) motion for readers who ask for less; the resting frame still explains the diagram.
+  if (window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    document.querySelectorAll("svg").forEach((s) => s.pauseAnimations && s.pauseAnimations());
+  }
+  // Theme switch for the preview: auto → light → dark.
+  const btn = document.querySelector(".theme");
+  const modes = ["auto", "light", "dark"];
+  btn?.addEventListener("click", () => {
+    const next = modes[(modes.indexOf(btn.textContent.replace("Theme: ", "")) + 1) % 3];
+    if (next === "auto") delete document.documentElement.dataset.theme; else document.documentElement.dataset.theme = next;
+    btn.textContent = "Theme: " + next;
+  });
+</script>
+
+</body></html>

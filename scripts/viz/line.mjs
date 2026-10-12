@@ -52,7 +52,7 @@ export function render(spec, { id = "line" } = {}) {
   const cls = (k) => (series.length === 1 || k === hotIdx ? "s" : "s dim");
   const out = [`<div class="line-box"><div class="line${spec.mark ? " marked" : ""}" style="--yw:${yw}ch;--ew:${endsApart ? ew : 0}ch">`];
   if (series.length > 1) {
-    out.push(`  <p class="legend">${series.map((s, k) => `<span class="${cls(k)}"><i></i>${esc(s.name)}</span>`).join("")}</p>`);
+    out.push(`  <div class="legend">${series.map((s, k) => `<span class="${cls(k)}"><i></i>${esc(s.name)}</span>`).join("")}</div>`);
   }
   if (spec.mark) out.push(`  <div class="top"><em style="--x:${r(X(markAt))}" class="${X(markAt) > 75 ? "at-end" : X(markAt) < 25 ? "at-start" : ""}">${esc(spec.mark.label ?? "")}</em></div>`);
   out.push(`  <div class="yaxis" aria-hidden="true">${ticks.filter((t) => t >= y0 && t <= y1).map((t) => `<span style="--y:${r(Y(t))}">${esc(tickText(t))}</span>`).join("")}</div>`);

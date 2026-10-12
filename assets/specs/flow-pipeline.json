@@ -1,0 +1,12 @@
+{
+  "title": "Pipeline from repository record to published page",
+  "nodes": [
+    { "id": "record", "label": "Issues & PRs", "sub": "git + gh" },
+    { "id": "gather", "label": "gather.mjs", "sub": "dossier.md", "hot": true },
+    { "id": "images", "label": "Screenshots", "sub": "evidence/assets" },
+    { "id": "plan", "label": "Story plan", "sub": "plan.md" },
+    { "id": "page", "label": "Page", "sub": "post.html" }
+  ],
+  "edges": [["record", "gather", "fetch"], ["gather", "plan", "read"], ["gather", "images", "download"], ["plan", "page", "write"], ["images", "page", "embed"]],
+  "motion": { "route": ["record", "gather", "plan", "page"], "style": "dot" }
+}

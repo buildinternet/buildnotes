@@ -80,3 +80,11 @@ test("strip: 2–4 frames, last one accented, commit labels warned", () => {
   strip({ frames: [{ label: "a1b2c3d", src: "a", alt: "a" }, { label: "PR #12", src: "b", alt: "b" }] }, { id: "t" });
   assert.equal(takeWarnings().length, 2);
 });
+
+test("steps: --i/--n, hot box, live highlight", async () => {
+  const { render } = await import("../../scripts/viz/steps.mjs");
+  const html = render({ label: "Flow", live: true, steps: [{ label: "A", sub: "a" }, { label: "B", hot: true }] });
+  assert.match(html, /<ol class="steps live" style="--n:2" aria-label="Flow">/);
+  assert.match(html, /<li style="--i:1" class="hot"><div class="box"><b>B<\/b><\/div><\/li>/);
+  assert.throws(() => render({ steps: [{ label: "A" }] }), /at least two/);
+});

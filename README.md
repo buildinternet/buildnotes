@@ -22,8 +22,19 @@ Requires `git`, an authenticated `gh`, and Node 18+. The scripts have no depende
 - `scripts/lint.mjs`: checks length, banned phrasing, process detail, plain English, scannability and safety.
 - `scripts/module.mjs`: builds the opt-in appendix modules (build log, numbers, timeline).
 - `scripts/workdir.mjs`: makes a work dir under `$BUILD_STORY_DIR` (default `~/.build-stories/<repo>/`), outside any repo so runs survive worktrees.
+- `scripts/viz.mjs`: renders the visual components (flows, steps, charts, tables, strips, code and terminal blocks) from small specs.
 - `scripts/inline-assets.mjs`: embeds images so the page is one self-contained file.
 - `assets/template.html`: the page template and its components.
+- `assets/components.html`: a preview of every component with its spec (open it in a browser). The example specs are in `assets/specs/`.
+
+## Developing the components
+
+```bash
+node --test dev/test/*.test.mjs   # renderer tests
+node dev/shots.mjs                # screenshots at 1280 and 390 px, light and dark → runs/components/
+node dev/gallery.mjs --publish    # rebuild assets/components.html after changing a renderer or spec
+node scripts/viz.mjs build assets/template.html   # re-render the template's examples
+```
 
 ## Run history
 

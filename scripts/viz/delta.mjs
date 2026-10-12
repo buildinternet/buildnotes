@@ -32,7 +32,7 @@ export function render(spec, { id = "delta" } = {}) {
   out.push(`  <div class="side"><span class="tag">${esc(b.label ?? "Before")}</span><span class="num">${esc(show(b))}</span></div>`);
   out.push(`  <span class="to" aria-hidden="true">→</span>`);
   out.push(`  <div class="side after"><span class="tag after">${esc(a.label ?? "After")}</span><span class="num">${esc(show(a))}</span></div>`);
-  if (change || spec.measure) out.push(`  <p class="change">${change ? `<b>${esc(change)}</b>` : ""}${change && spec.measure ? " · " : ""}${spec.measure ? esc(spec.measure) : ""}</p>`);
+  if (change || spec.measure) out.push(`  <div class="change">${change ? `<b>${esc(change)}</b>` : ""}${change && spec.measure ? " · " : ""}${spec.measure ? esc(spec.measure) : ""}</div>`);
   if (numeric) {
     const max = Math.max(b.value, a.value) || 1;
     const v = (x) => Math.round((x / max) * 1000) / 1000;

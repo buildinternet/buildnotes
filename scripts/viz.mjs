@@ -6,7 +6,7 @@
 //   node viz.mjs build <post.html> [--check]      render every viz marker in the post, in place
 //   node viz.mjs kinds                            list the kinds
 //
-// Kinds: flow, bars, delta, line, options, matrix (Markdown tables), code, term, strip.
+// Kinds: flow, steps, bars, delta, line, options, matrix (Markdown tables), code, term, strip.
 // A marker names the kind and the spec, relative to the post:
 //   <!-- viz flow viz/pipeline.json -->
 //   <!-- /viz -->
@@ -29,8 +29,9 @@ import * as matrix from "./viz/matrix.mjs";
 import * as code from "./viz/code.mjs";
 import * as term from "./viz/term.mjs";
 import * as strip from "./viz/strip.mjs";
+import * as steps from "./viz/steps.mjs";
 
-export const KINDS = { flow, bars, delta, line, options, matrix, code, term, strip };
+export const KINDS = { flow, bars, delta, line, options, matrix, code, term, strip, steps };
 export const MARKER = /<!-- viz (\w+) (\S+?)(?: #([0-9a-f]{6}))? -->([\s\S]*?)<!-- \/viz -->/g;
 
 export function renderKind(kind, specText, opts = {}) {

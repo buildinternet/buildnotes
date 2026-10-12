@@ -11,13 +11,19 @@
 // Then, for the page: process detail against the flavor's budget, plain-English metrics
 // (sentence length, passive voice), scan aids, masthead stats to justify, code captions with side
 // notes, terminal blocks that run long or stack commands, animated SVG dots that drift or sit
-// off-origin, leftover template text, a safety scan (data: URIs stripped), and the total length.
+// off-origin, rendered components (viz markers that are empty or stale, flows missing a drawing,
+// bars not to scale, table cells without labels, strips with too many frames or commit labels),
+// chapters with more than one visual, leftover template text, a safety scan (data: URIs stripped),
+// and the total length. Text inside viz markers is left out of the word counts and the fact ledger;
+// its numbers come from the specs, which are listed for the fact pass.
 // --ste: full Simplified Technical English limits (20-word sentences) instead of STE-lite (25).
 // --private: any link to GitHub issues, pull requests or commits is a hard failure.
 // Exit 1 on a hard failure (banned word, avoided term, leftover template text, private link,
-// moving dot with non-zero cx/cy).
+// moving dot with non-zero cx/cy, a viz marker still pointing at the template's example specs).
 
 import { readFileSync } from "node:fs";
+import { dirname, resolve } from "node:path";
+import { build as vizBuild } from "./viz.mjs";
 
 const argv = process.argv.slice(2);
 const file = argv.find((a, i) => !a.startsWith("--") && !argv[i - 1]?.startsWith("--"));
@@ -76,7 +82,8 @@ const sentences = (s) => s.split(/(?<=[.!?][”’"')\]]*)\s+(?=[A-Z0-9#“‘"(
 
 // Opt-in modules (aside.module) are appendix material: excluded from word counts and the process budget.
 const modules = [...html.replace(/<!--[\s\S]*?-->/g, "").matchAll(/<aside class="module"[^>]*data-module="([^"]+)"/g)].map((m) => m[1]);
-const body = strip(html).replace(/<aside class="module"[\s\S]*?<\/aside>/g, " ");
+const VIZ_REGION = /<!-- viz \w+ \S+?(?: #[0-9a-f]{6})? -->[\s\S]*?<!-- \/viz -->/g;
+const body = strip(html.replace(VIZ_REGION, " ")).replace(/<aside class="module"[\s\S]*?<\/aside>/g, " ");
 const parts = [];
 const lede = body.split(/<section class="ch"/)[0];
 parts.push({ id: "opening", html: lede.replace(/<nav[\s\S]*?<\/nav>/i, "") });
@@ -94,6 +101,9 @@ for (const p of parts) {
   const n = prose.reduce((a, b) => a + words(b.t), 0);
   total += n;
   say(`── ${p.id} · ${title} · ${n} words`);
+  // Visuals: figures that aren't code or terminal blocks (those are evidence). Viz markers count too.
+  const vis = [...p.html.matchAll(/<figure\b([^>]*)>/g)].filter((m) => !/class="[^"]*\bcode\b/.test(m[1])).length;
+  if (p.id !== "opening" && vis > 1) say(`  ! ${vis} visuals in one chapter; keep the one that explains the most`);
   const all = blocks.map((b) => b.t).join(" ");
   const lower = ` ${all.toLowerCase()} `;
 
@@ -233,6 +243,35 @@ for (const svg of raw.match(/<svg\b[\s\S]*?<\/svg>/g) ?? []) {
     const off = pts(m[2].match(/\bpath="([^"]+)"/)?.[1] ?? "").filter((p) => !wire.has(p) && !inBox(p));
     if (off.length) say(`! "${title}": motion path points not on any drawn wire: ${off.join(" ")} (dot may drift off the lines)`);
   }
+}
+
+// Rendered components (viz.mjs). Markers first: empty, stale, or still pointing at the template's specs.
+const viz = vizBuild(raw, dirname(resolve(file)), { check: true });
+const vizSpecs = [...raw.matchAll(/<!-- viz (\w+) (\S+?)(?: #[0-9a-f]{6})? -->/g)].map((m) => `${m[1]} ${m[2]}`);
+if (vizSpecs.length) {
+  say(`Components: ${vizSpecs.length} rendered from specs (tick their numbers in the specs): ${vizSpecs.join(" · ")}`);
+  for (const p of viz.problems) say(`  ! ${p}${/changed|not rendered/.test(p) ? " (run viz.mjs build)" : ""}`);
+}
+if (/<!-- viz \w+ specs\//.test(raw)) { hard++; say("✗ viz markers still point at the template's example specs (specs/…); write your own in viz/"); }
+const live = raw.replace(/<!--[\s\S]*?-->/g, "");
+for (const m of live.matchAll(/<div class="flow"[^>]*>([\s\S]*?)<\/div>/g)) {
+  if (!/<svg class="h"/.test(m[1]) || !/<svg class="v"/.test(m[1])) say(`! flow "${m[1].match(/<title[^>]*>([^<]*)/)?.[1] ?? "?"}": needs both drawings (svg.h and svg.v); re-render it`);
+}
+// Bars to scale: every row's printed value ÷ its --v should give the same full-scale value.
+for (const [k, chunk] of live.split(/<div class="bars\b/).slice(1).entries()) {
+  const rows = [...chunk.split("</figure>")[0].matchAll(/<div class="row(?! note)[^"]*"[^>]*style="--v:([\d.]+)"[^>]*>[\s\S]*?<b>([^<]*)<\/b>/g)]
+    .map((m) => [Number(m[1]), Number(m[2].replace(/,/g, "").match(/-?\d+(?:\.\d+)?/)?.[0])]).filter(([v, n]) => v > 0 && Number.isFinite(n));
+  const full = rows.map(([v, n]) => n / v);
+  if (full.length > 1 && (Math.max(...full) - Math.min(...full)) / Math.max(...full) > 0.02) say(`! bars ${k + 1}: the bars aren't to scale with their printed values; re-render from the spec or fix --v`);
+}
+for (const m of live.matchAll(/<div class="(options|matrix) vtable">([\s\S]*?)<\/table>/g)) {
+  const bare = (m[2].match(/<td(?![^>]*data-label=)[^>]*>/g) ?? []).length;
+  if (bare) say(`! ${m[1]} table: ${bare} cells without data-label; on a phone they lose their column name (re-render it)`);
+}
+for (const m of live.matchAll(/<div class="strip"[^>]*>([\s\S]*?)<\/div><\/div>/g)) {
+  const labels = [...m[1].matchAll(/<div class="frame"><span class="tag[^"]*">([^<]*)</g)].map((x) => x[1]);
+  if (labels.length < 2 || labels.length > 4) say(`! strip: ${labels.length} frames; use 2 to 4`);
+  for (const l of labels) if (/#\d+|\b[0-9a-f]{7,40}\b|\bPR\b|\bcommit\b/i.test(l)) say(`! strip label "${l}" names a commit or PR; label the iteration ("Round two", "As it ships")`);
 }
 
 const leftovers = LEFTOVER.filter((t) => raw.includes(t));

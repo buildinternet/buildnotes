@@ -1,48 +1,84 @@
-# Visuals: diagrams, motion, screenshots and charts
+# Visuals: components, diagrams, motion, screenshots and charts
 
 Every visual answers a question a chapter raises. Before making one, write its caption: if the caption only restates the heading, skip the visual.
 
 ## Picking the kind
 
-| The chapter needs to show | Use | Source |
+| The chapter needs to show | Use | Component |
 |---|---|---|
-| A straight-line flow (A → B → C) | Step flow, optionally with a moving highlight | HTML `ol.steps` in the template; stacks on phones |
-| A flow that branches, loops or fans in | Flow diagram, optionally with a moving dot | Inline SVG, `figure.diagram` in the template |
-| A decision between options | Options table, chosen row marked | `figure.options` in the template |
-| What a thing looked like before and after | Before/after pair | Screenshots from PRs, or captures at two commits |
-| How a design converged over several iterations | Progression strip (2–4 frames), captioned "Round one" … "As it ships" | PR screenshots in order, or captures at milestone commits |
-| What the user actually sees | Screenshot of the real UI | Browser capture of the running app or the live site |
-| An interaction or a sequence over time | Short loop (GIF/MP4/WebM) or a frame strip | Browser recording, or a contact sheet of stills |
-| A state machine, a lifecycle, a set of rules | Small state diagram or a table | Inline SVG or HTML |
-| Pace, when the pace is the point | Timeline, by day | `dossier.json` → `timeline` |
-| Size, speed, counts | One simple chart | Numbers from the dossier or your own run |
+| A straight-line flow (A → B → C) | Step flow, optionally with a moving highlight | `steps` |
+| A flow that branches, loops or fans in | Flow diagram, optionally with motion | `flow` |
+| A decision between options | Options table, chosen row marked | `options` |
+| Options compared on several points | Comparison table with ✓ ✗ ~ marks | `matrix` |
+| What a thing looked like before and after | Before/after pair | `strip` (two frames) |
+| How a design converged over several iterations | Progression strip (2–4 frames), "Round one" … "As it ships" | `strip` |
+| What the user actually sees | Screenshot of the real UI | `figure.shot` in the template |
+| An interaction or a sequence over time | Short loop (GIF/MP4/WebM) or a frame strip | `figure.shot`, or `strip` |
+| A state machine, a lifecycle, a set of rules | Small state diagram or a table | `flow` (with a back edge), or `options` |
+| Pace, when the pace is the point | Timeline, by day | template partial, from `dossier.json` → `timeline` |
+| Sizes or counts | Bars, to scale | `bars` |
+| One measured change | The number before and after | `delta` |
+| A trend over time | Small line chart | `line` |
 
-At most one per chapter. A chapter with nothing worth drawing gets a code or terminal block, or nothing. Those are evidence, not visuals: code is ≤15 shipped lines (SKILL.md rules), terminal blocks follow [evidence.md](evidence.md#terminal-blocks).
+At most one per chapter (lint warns at two). A chapter with nothing worth drawing gets a code or terminal block, or nothing. Those are evidence, not visuals: code is ≤15 shipped lines (SKILL.md rules), terminal blocks follow [evidence.md](evidence.md#terminal-blocks). Both have components too (`code`, `term`).
+
+## Components
+
+Each kind in the table renders from a small spec into static HTML or SVG, with no script. It uses the template's CSS and works in light and dark and at phone width. **`assets/components.html` shows every kind with its spec**; the specs themselves are in `assets/specs/`, and are the best starting point to copy.
+
+1. Write the spec in `<work-dir>/viz/`, one file per figure (JSON, or Markdown for the two tables).
+2. Put a marker where the figure goes. Wrap it in a `<figure>` and write the caption yourself, except for `code` and `term`, which render the whole figure with its caption:
+
+   ```html
+   <figure class="wide">
+   <!-- viz flow viz/preview-flow.json -->
+   <!-- /viz -->
+     <figcaption>Fig. 1. A push builds once, and both the preview and the log come from that build.</figcaption>
+   </figure>
+   ```
+
+3. Render every marker in place: `node <skill-dir>/scripts/viz.mjs build <work-dir>/post.html`. Run it again after any spec change; it is safe to repeat. Warnings (labels too long for a phone, too many boxes or rows) go to stderr. To print one fragment instead, run `viz.mjs <kind> <spec>`.
+
+Lint lists the specs behind the page, so the fact pass can tick their numbers there. It also warns when a marker is empty or its spec changed since the last render, and fails while a marker still points at the template's `specs/…` examples. The rendered markup is ordinary HTML: a hand edit is fine, but the next `build` replaces it, so edit the spec when you can.
+
+| Kind | Spec, in short |
+|---|---|
+| `flow` | `nodes` (`id`, `label`, `sub`, `hot`), `edges` (`[from, to, label]`), optional `motion` (`route`: node ids in order, `style`: `dashes` (default), `dot` or `none`). Optional `rank`/`lane` on a node to override the layout; `\n` breaks a label. |
+| `steps` | `steps` (`label`, `sub`, `hot`), optional `live` (a highlight steps through the boxes) and `label` (for screen readers). |
+| `bars` | `rows` (`label`, `value`, `hot`, optional `display`), optional `unit`, `prefix`, `decimals`, `max`, `limit` (`value`, `label`). |
+| `delta` | `before` and `after` (`label`, `value`, `unit`, or `display`), optional `change` ("4× faster"), `measure` (what was measured), `better` (`lower` or `higher`). |
+| `line` | `x` (labels), `series` (one or two: `name`, `values`, `hot`), optional `y` (`unit`, `min`, `max`), `mark` (`at`: an x label, `label`), `title` (for the hidden data table). |
+| `options` | A Markdown table. Bold the first cell of the chosen row; a column headed "Verdict" is set small. |
+| `matrix` | A Markdown table. Cells start with ✓, ✗ or ~ (or yes, no, partly), then an optional short note. Bold the header of the option the post is about. |
+| `code` | `file`, `lines` ("12-40"), optional `cut` (ranges shown as one `…` line each), `rev` (default `HEAD`), `repo` (relative to the spec), `lang`. Reads from git, so the excerpt is the committed code. |
+| `term` | `cmd` (one command), `out` (lines), optional `keep` ("1-3,8"; each gap becomes `…`), `dim`, `wrap`. |
+| `strip` | `frames`: 2–4 of `{ label, src, alt, width, height }`, `{ label, code: {…} }` or `{ label, term: { out } }`. The last frame gets the accent label unless another says `hot`. |
 
 ## Diagrams
 
-For a straight line of steps, use the template's HTML `ol.steps`: it wraps to a column on phones, so nothing is cut off. Use SVG for everything with branches.
+Use `steps` for a straight line and `flow` for everything with branches. Both stack on phones with nothing cut off.
 
-Prefer **inline SVG** written by hand: it is small, sharp at any size, themes with CSS tokens, and ports to any blog. The template's `figure.diagram` is the pattern.
+- Draw the real components with the names the post uses. Five to nine boxes is the useful range; the renderer warns past nine.
+- Label edges with the thing that travels ("webhook", "build log"), not with verbs alone.
+- Mark the one part the chapter is about `hot`; everything else stays neutral.
+- `flow` lays the boxes out by itself: a box's column is its longest path from a start, and boxes in a column are ordered to cut crossings. An edge that points back (a retry, a loop) runs around the outside. `flow` draws the diagram twice, left to right for wide screens and top to bottom for phones, and the page shows whichever fits. Keep labels short enough for the phone drawing; the renderer names any that don't fit.
 
-- Draw the real components with the names the post uses. Five to nine boxes is the useful range; more means split the diagram or the chapter.
-- Colour comes from tokens (`var(--ink)`, `var(--accent)`, `var(--rule)`) via `fill`/`stroke` on classes, so it works in light and dark. Give every shape an explicit fill.
-- Lines end on a box edge. Label edges with the thing that travels ("webhook", "build log"), not with verbs alone.
-- Highlight the one part the chapter is about in the accent colour; everything else stays neutral.
-- Set `viewBox`, `width="100%"`, a `role="img"` and a `<title>` and `<desc>`. Wrap wide diagrams in a scroll container rather than shrinking text below 11px.
-- Design for 390px too. The template's SVG keeps a 30rem minimum and scrolls inside its frame below that, so put the part the chapter is about on the left, where a phone reader sees it first. If the key part would be off-screen, draw the diagram top-to-bottom instead: boxes stacked in one column at about 320 units wide, with the outcome at the bottom, fits a phone with no scrolling. A flow whose conclusion sits on the right is the usual case for this.
+Mermaid (`<pre class="mermaid">`) renders inside Claude artifacts with no library and is fine for a quick sequence diagram. It doesn't render on most external blogs, so convert it to a component or SVG before the post leaves the artifact.
 
-Mermaid (`<pre class="mermaid">`) renders inside Claude artifacts with no library and is fine for a quick sequence or state diagram. It doesn't render on most external blogs, so convert to SVG before the post leaves the artifact.
+### Hand-drawn SVG
+
+For a figure no spec can express, hand-write inline SVG in a `figure.diagram` (the template keeps its CSS). Set `viewBox`, `role="img"`, a `<title>` and `<desc>`; colour every shape from the tokens (`var(--ink)`, `var(--accent)`, `var(--rule)`); end lines on box edges. The SVG doesn't reflow, so for a phone draw it top to bottom, about 320 units wide, with the outcome at the bottom.
+
+A moving dot in hand-drawn SVG goes wrong in two ways, both caught by `lint.mjs`: the circle must have `cx="0" cy="0"`, because `animateMotion` adds its path to the circle's own position; and the motion path must reuse the exact vertices of the wires it travels, or the dot drifts off the lines (turning a corner inside a box is fine). Draw the dot after the wires and before the boxes, so it disappears into each box instead of sliding across a label.
 
 ## Motion
 
 Motion is for things that move in the real system: a request travelling, a queue draining, a state changing, a cache filling. Use it once or twice per post.
 
-- **Moving dot along a path**: SVG `<animateMotion>` on a small circle with `<mpath href="#path-id">`. The template's flow diagram has one. Keep durations 2–4 s, `repeatCount="indefinite"`, and a pause built into `keyTimes` so it reads as discrete trips.
-  - Two ways this goes wrong, both caught by `lint.mjs`: the circle must have `cx="0" cy="0"`, because `animateMotion` adds its path to the circle's own position; and the motion path must reuse the exact vertices of the wires it travels along, or the dot drifts off the lines. Turning a corner inside a box is fine, since the box hides it. Draw the dot *before* the boxes (right after `<defs>`), so boxes cover it: it should travel the wires and disappear into each step, never slide across a label. Check one paused frame (`svg.pauseAnimations(); svg.setCurrentTime(1)`) before publishing.
-- **Marching dashes** for a stream: `stroke-dasharray` plus a CSS `@keyframes` on `stroke-dashoffset`.
-- **Step-through**: a small row of buttons that sets a `data-step` attribute on the figure, with CSS showing each step's highlight. Better than autoplay for anything with more than three stages.
-- **Reduced motion**: the template's script calls `svg.pauseAnimations()` and the CSS stops keyframes under `prefers-reduced-motion: reduce`. The resting frame must still explain the idea, so place the dot at a meaningful start position.
+- **Marching dashes** (`"style": "dashes"`, the default) for a stream or a steady path: an accent dashed line marches along the route. It is CSS only and calm.
+- **Moving dot** (`"style": "dot"`) when one item's trip is the point ("a request travels from the CLI to the handler"). It makes one trip every few seconds with a pause, and it follows the drawn edges by construction.
+- **Step highlight** (`steps` with `"live": true`) for a straight line of stages.
+- **Reduced motion**: the CSS stops the dashes and the step highlight, and the template's script pauses SVG motion. The resting frame must still explain the idea: the route stays drawn and the `hot` box stays marked.
 - Nothing pops: fade or ease every change. No motion that starts on scroll and is invisible until then.
 
 For a longer explainer clip (20 s+, narrated or captioned), a video tool such as Remotion is the next step up. Offer it; don't default to it.
@@ -53,7 +89,7 @@ For a longer explainer clip (20 s+, narrated or captioned), a video tool such as
 - **From the record**: `gather.mjs --download` saves images embedded in PR and issue bodies to `evidence/assets/` and notes which PR each came from. These are often the best before/after material, because they were taken at the time.
 - **No access**: if the screen you'd want sits behind a sign-in you shouldn't use, or the feature has no UI, use the PR's own screenshots, a diagram, or a terminal run of the same behaviour. Don't sign in to anything to get a shot.
 - **Fresh captures**: run the app (or open the live site) with whatever browser tool the session has, and capture the element, not the whole window. After each capture, open the image and check it shows what the caption will say; the first capture is often the wrong scroll position. Use a fixed viewport (1280×800 desktop, 390×844 phone), the light theme unless dark is the point, and real-looking data. Crop tight; add a 1px border in the page via `figure.shot`.
-- **Before/after at two commits**: check out the parent of the first PR in a scratch worktree, run it, capture; repeat at the last merge. Label each by iteration ("Before", "Round two", "As it ships"), not by commit; add a date only when the time between them matters.
+- **Before/after at two commits**: check out the parent of the first PR in a scratch worktree, run it, capture; repeat at the last merge. Put both in a `strip`, labelled by iteration ("Before", "Round two", "As it ships"), not by commit; add a date only when the time between them matters.
 - **Recordings**: keep loops under 8 s, no cursor flailing, MP4/WebM over GIF when the destination allows it. For an artifact page, a frame strip (4–6 stills side by side) is often clearer than a video and costs less.
 - **Redact** anything personal or secret before the image enters the work dir: emails, tokens, account names, internal URLs. Blur or replace with example data; never rely on cropping alone.
 
@@ -66,11 +102,11 @@ agent-browser eval "document.querySelector('main h1').scrollIntoView()"
 agent-browser screenshot "$PWD/assets/feature-docs.png"   # absolute path: the daemon has its own cwd; add --full for the whole page
 ```
 
-Other tools (Playwright, a browser MCP, a built-in browser pane) work the same way: fixed viewport, scroll the target into view, capture, then look at the file.
+Other tools (Playwright, a browser MCP, a built-in browser pane) work the same way: fixed viewport, scroll the target into view, capture, then look at the file. agent-browser's element screenshots (`screenshot <selector> <path>`) can come out wrong for elements below the first screen; hide what is above the element, or capture the full page and crop.
 
 ### Dark mode
 
-A light screenshot glares on a dark page. The template dims `.shot` and `.compare` images slightly in dark mode; add `class="dark-ok"` to opt out. For a hero image, capture both themes and ship a pair:
+A light screenshot glares on a dark page. The template dims `.shot` and `.strip` images slightly in dark mode; add `class="dark-ok"` to opt out. For a hero image, capture both themes and ship a pair:
 
 ```html
 <picture>
@@ -81,14 +117,19 @@ A light screenshot glares on a dark page. The template dims `.shot` and `.compar
 
 ## Charts
 
-One number per chart, drawn to scale, labelled directly (no legend if you can avoid it). Draw small charts as inline SVG or with the template's bars. Chart product numbers, not the process: a before/after bar, a limit against real traffic, a distribution from a run you made. If a chart needs more than a sentence to explain, it's the wrong chart.
+One idea per chart, drawn to scale, labelled directly. Chart product numbers, not the process: a before/after, a limit against real traffic, a trend from a run you made. If a chart needs more than a sentence to explain, it's the wrong chart.
+
+- **One number** is not a chart: use `delta`, or say it in a sentence.
+- **A few sizes or counts**: `bars`. Mark the row the chapter is about `hot`, and the rest turn grey. Add a `limit` when a budget or threshold is the point.
+- **A trend**: `line`, one series. Add a second only when the comparison is the point; it gets the grey and a legend. Never two y-axes: two measures of different scale are two charts.
+- The colours come from the tokens: the accent for the series that matters and `--dim` for the rest. Both themes are checked for contrast and for colour-blind readers, so don't add hues.
 
 ## Checking the render
 
-Open the page (or `post.published.html`) once at 1280×800 and once at 390×844, in light and dark. Check: nothing scrolls the page sideways (`document.documentElement.scrollWidth === innerWidth`), diagram key parts are visible on the phone, terminals don't clip long lines (add `.wrap`), screenshots read in dark mode. With agent-browser: `set viewport`, `open file://…`, `eval` the scrollWidth check, `scroll down <px>`, `screenshot`. Don't loop: one look per width, one round of fixes.
+Open the page (or `post.published.html`) once at 1280×800 and once at 390×844, in light and dark. Check: nothing scrolls the page sideways (`document.documentElement.scrollWidth === innerWidth`), the stacked flow and the table cards read on the phone, terminals don't clip long lines (`term` sets `wrap` for long prose lines; set it yourself if needed), screenshots read in dark mode. With agent-browser: `set viewport`, `set media dark`, `open file://…`, `eval` the scrollWidth check, `screenshot --full`. Don't loop: one look per width, one round of fixes.
 
 ## Getting assets into the page
 
-An artifact page can only show images that ship with it: other hosts are blocked. Reference local files as `src="assets/name.png"` while drafting, then run `scripts/inline-assets.mjs` to embed them as data URIs before publishing. Keep the total under a few MB: resize screenshots to 2× their display width and prefer WebP or optimized PNG (`sips -Z 1600 file.png` on macOS, or `magick` elsewhere).
+An artifact page can only show images that ship with it: other hosts are blocked. Reference local files as `src="assets/name.png"` while drafting (in a `strip` spec, paths are relative to the post, like everything else in it), then run `scripts/inline-assets.mjs` to embed them as data URIs before publishing. Keep the total under a few MB: resize screenshots to 2× their display width and prefer WebP or optimized PNG (`sips -Z 1600 file.png` on macOS, or `magick` elsewhere).
 
 For an external blog, keep the `assets/` folder and the un-inlined `post.html` instead; most blog tools want the files.

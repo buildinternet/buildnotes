@@ -1,0 +1,10 @@
+{
+  "label": "From record to page",
+  "steps": [
+    { "label": "Issues & PRs", "sub": "git + gh" },
+    { "label": "Dossier", "sub": "gather.mjs", "hot": true },
+    { "label": "Story plan", "sub": "plan.md" },
+    { "label": "Page", "sub": "post.html" }
+  ],
+  "live": true
+}
