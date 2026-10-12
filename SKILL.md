@@ -5,155 +5,148 @@ description: Turn the real history of a feature (its issues, PRs, commits, revie
 
 # Build story
 
-A build story explains a feature to someone who knows what the product does but wasn't in the room: what problem it solves, how it works, and the two or three challenges that shaped it. It is written for people outside the team. The repo supplies the evidence; the story comes from understanding what the work means for the people who use the product.
+A build story explains a feature to someone who knows what the product does but wasn't in the room: what problem it solves, how it works, and the two or three decisions that shaped it. It is written for people outside the team.
 
-The record is the source, not the story. Issues, PRs, commits and reviews tell you what happened and in what order, and they are a small sliver of the picture. Zoom out: read the product the way its users meet it, and find the angle a product marketer would, meaning what changed for users and why it's worth their attention. The post tells the reader what was built, why it matters, and why it is the way it is. Organize by idea, not by date.
+The record is the source, not the story. Issues, PRs, commits and reviews say what happened and in what order, and they are a small slice of the picture. Read the product the way its users meet it, and find the angle a product marketer would: what changed for users, and why it is worth their attention. Organize by idea, not by date.
 
 Three failures this skill exists to prevent:
 
-- **The play-by-play.** The development process narrated in order, with timestamps, PR numbers and who reviewed what. True, and useless to a reader.
+- **The play-by-play.** The development process narrated in order, with timestamps, PR numbers and who reviewed what.
 - **The changelog in prose.** Every change listed, no argument.
 - **The press release.** Confident claims with nothing behind them.
 
-The cure for all three is the same. Find the few ideas and decisions that made the feature what it is, explain each at the altitude your reader needs, and back each one with real evidence.
+The cure for all three is the same. Find the few ideas and decisions that made the feature what it is, explain each at the level the reader needs, and back each one with real evidence.
 
 ## The rules
 
-Each rule carries the fault that taught it.
+Each rule carries the fault that taught it, and links to the reference that holds the detail where there is one.
 
-- **Earn every detail.** Before keeping any detail (a date, a number, a quote, a tool name, a review comment, a code excerpt), ask: would the reader understand the feature or its design less without it? If not, cut it, however true or interesting it is. Nothing in the record is owed a place in the post. *(Fault: an adversarial-review quote that added color and no understanding.)*
-- **Ideas, not chronology.** Chapters are concepts, challenges or parts of the system, never days or PRs. Mention timing only when it is the point ("it shipped in a week because the write path already existed"), and then in days, never minutes. *(Fault: "At 14:56 UTC the decision went the other way; the API half merged at 15:33.")*
-- **Lead with what people can do.** The headline is the capability users see, not the mechanism behind it; the mechanism leads only in a deep dive, when the author asks, or when it *is* what users touch. Open with what the reader would recognize: what was slow, missing or fragile, and what they can do now. Internal names come later, glossed once. *(Fault: a post about one-click preview links whose centerpiece was how the scheduler pools build machines.)*
-- **Show the turn, briefly.** The chapters that matter name a decision, the alternative that lost, and why, in a few sentences. That is strategy, and readers want it. How the team got there (meetings, reviews, reversals) belongs in the post only when the path itself teaches something. *(Fault: "we added per-branch databases" with no word on why not share one with a schema per branch.)*
-- **Process detail is optional.** Review comments, which tools or agents did the work, PR counts and timelines are never required. Light iteration labels are fine and often useful ("round one", "a later pass", "as it ships"), especially on a before/after or a progression of screenshots. Clock times and commit-by-commit narration are not. Include one when it changes the reader's picture: a review that found a flaw the reader would otherwise wonder about, a reversal that explains an odd-looking design. *(Fault: three review quotes in a row, each crediting a reviewer, none needed to understand the design.)*
-- **References are rare and reachable.** Link only what the reader can open and would want to: public docs, the product, the open-source repo, at most a handful of key PRs in a deep dive. In a private project, link nothing internal (issues, PRs, commits, internal docs, dashboards). The prose never depends on a link. *(Fault: a superscript issue number on every other paragraph of a post about a closed-source product.)*
-- **Every number has a source, and earns its place.** A count, a size or a duration comes from the dossier, a file, or a command you ran for this post. Prefer numbers about the product and its users ("a preview is ready about 40 seconds after you push", "links expire after 30 days") over numbers about the process (lines changed, PRs merged). A number in the masthead must make sense before the reader has read anything; most posts have none. *(Fault: "cut latency by ~40%" with no measurement anywhere; a masthead reading "Write paths: 1".)*
-- **Name ideas, not identifiers.** Tool names, function names, flags and enum values are how the code talks, not how the reader thinks. In the story, say what a thing does ("a square-on view of one wall"); save the identifiers for the try-it section and code blocks, where the reader will type them. A deep dive may use more, glossed once. *(Fault: a chapter whose sentences are strung between `render_view`, `render_plan` and `view: "wall"`.)*
-- **Real code, only where the code is the idea.** An excerpt is copied from the shipped commit, at most about 15 lines, labelled with its file name and nothing else, with cuts marked `…`. Release stories rarely need code beyond a usage example; deep dives can carry several. Never write illustrative code and present it as the real thing. *(Fault: a tidy snippet that matches nothing in the repo.)*
-- **One visual per chapter, at most, and it must explain.** A flow, a before/after, a screenshot of what the reader will see, a motion that shows something moving. Decoration goes. *(Fault: a diagram that restates the heading.)*
-- **Infer the angle; don't invent the facts.** Implications, context and hooks the record never states are yours to find and propose. Motives, quotes, events and numbers are not: when the record doesn't say why, ask the author or leave the claim out. *(Faults: a post that only restates the PRs; a plausible but fictional origin story.)*
+- **Earn every detail.** Keep a date, number, quote, tool name, review comment or code excerpt only if the reader would understand the feature less without it. Nothing in the record is owed a place. *(Fault: an adversarial-review quote that added color and no understanding.)*
+- **Lead with what people can do.** The headline is the capability users see, not the mechanism behind it. The mechanism leads only in a deep dive, when the author asks, or when it *is* what users touch. [brief.md](references/brief.md#the-six-fields) *(Fault: a post about one-click preview links whose centerpiece was how the scheduler pools build machines.)*
+- **Ideas, not chronology.** Chapters are concepts, challenges or parts of the system, never days or PRs. Mention timing only when it is the point, and then in days. Iteration labels ("round one", "as it ships") are fine; clock times and commit-by-commit narration are not. [story.md](references/story.md#altitude) *(Fault: "At 14:56 UTC the decision went the other way; the API half merged at 15:33.")*
+- **Show the turn, briefly.** A chapter that matters names the decision, the alternative that lost, and why, in a few sentences. *(Fault: "we added per-branch databases" with no word on why not one shared database with a schema per branch.)*
+- **Process detail is optional.** Review comments, PR counts, timelines, and which tools or agents did the work are never required. Include one only when it changes the reader's picture: a review that found a flaw they would wonder about, a reversal that explains an odd-looking design. If coding agents or automated reviewers did part of the work, say nothing about it by default and don't ask; the `how-made` module is there if the author wants it. *(Fault: three review quotes in a row, each crediting a reviewer, none needed to understand the design.)*
+- **References are rare and reachable.** Link only what the reader can open and would want: public docs, the product, an open-source repo, a few key PRs in a public deep dive. In a private repo, link nothing internal. The text never depends on a link. [story.md](references/story.md#references) *(Fault: a superscript issue number on every other paragraph of a post about a closed-source product.)*
+- **Every number has a source, and earns its place.** It comes from the dossier, a file, or a command you ran for this post. Prefer numbers about the product ("a preview is ready about 40 seconds after you push") over numbers about the process (lines changed, PRs merged). Masthead stats are off by default; keep one only if a stranger gets it cold. [evidence.md](references/evidence.md#numbers-worth-having) *(Fault: "cut latency by ~40%" with no measurement anywhere; a masthead reading "Write paths: 1".)*
+- **Name ideas, not identifiers.** In the story, say what a thing does; save function names, flags and enum values for the try-it section and code blocks. [story.md](references/story.md#name-ideas-not-identifiers) *(Fault: a chapter whose sentences are strung between `flush()`, `commit()` and `edit_rev`.)*
+- **Real code, only where the code is the idea.** Copied from the shipped commit, at most about 15 lines, captioned with the file name only, cuts marked `…`. Never present illustrative code as the real thing. *(Fault: a tidy snippet that matches nothing in the repo.)*
+- **One visual per chapter, at most, and it must explain.** Decoration goes. [visuals.md](references/visuals.md) *(Fault: a diagram that restates the heading.)*
+- **Infer the angle; don't invent the facts.** Implications, context and hooks the record never states are yours to find. Motives, quotes, events and numbers are not: when the record doesn't say, leave the claim out and put it on the open questions. *(Faults: a post that only restates the PRs; a plausible but fictional origin story.)*
+- **Plain, scannable voice.** "We" (or "I"), plain English (STE-lite: short sentences, active voice, one term per thing; strict STE only if the author asks), bold the key decision about once per chapter, lists for three or more items. Sound like a person, not a writer. [story.md](references/story.md#voice) *(Fault: "We added three things. A retry… A queue… And an alert…", a list pretending to be a paragraph.)*
 - **Safe to publish.** No secrets, tokens, internal hostnames, customer names, personal paths or emails, internal links, or unreleased plans unless the author clears them. *(Fault: a terminal excerpt with a live API key in it.)*
 
-## Flavors
+## Flavors and size
 
-Pick one in Scope. It sets the reader, the altitude and the defaults below.
+Pick one in Scope. It sets the reader, the level of detail and the defaults below.
 
 | | **Release story** | **Build story** (default) | **Technical deep dive** |
 |---|---|---|---|
 | Reader | Users and prospective users | Developers who know the product | Engineers who want the mechanism |
 | Answers | What's new, why it matters, how to use it | What we built, how it works, what shaped it | How it works inside, the trade-offs, the edge cases |
-| Altitude | Product and outcomes; internals in a sentence | Concepts and decisions; internals where they explain | Mechanisms, data structures, failure modes |
-| Length (ceiling, no minimum) | up to 1,200 words | up to 2,500 words | as long as it needs |
+| Detail | Product and outcomes; internals in a sentence | Concepts and decisions; internals where they explain | Mechanisms, data structures, failure modes |
 | Visuals | Screenshots, before/after, one simple flow | Diagrams, motion, before/after | Diagrams, terminal runs, charts |
-| Code | A usage example at most | Only where the code is the idea (0–3) | Where it helps (several) |
-| Process detail | None | Only where it explains a design | Where it teaches (a reversal, a review that found a flaw) |
+| Code | A usage example at most | Only where the code is the idea | Where it helps |
+| Process detail | None | Only where it explains a design | Where it teaches |
 | References | Docs and product links | A short "Further reading" at most | Key PRs and docs, if public |
 
-**Size it to the subject, not the flavor.** The lengths above are ceilings for a big feature, not targets. There is no minimum. A small change gets a small post: a **note** of a paragraph or three, with no chapters, no masthead and at most one visual. And some subjects don't deserve a post at all.
+**Size it to the subject, not the flavor.** Word counts are ceilings with no minimum (release story up to 1,200, build story up to 2,500, deep dive as long as it needs; chapters and visuals per flavor in [story.md](references/story.md#length)). A small change gets a **note**: a paragraph or three, no chapters, no masthead, at most one visual.
 
-**Say when it isn't worth a write-up.** If what you were pointed at is thin (a typo, a one-line fix, a dependency bump, an internal refactor users never see), check the nearby work first: it may be one piece of a bigger idea, and that idea is the post. If it is, that's a change of subject, and one of the few things worth stopping for: say in a sentence why the thin change isn't a post, name the bigger idea with the angle you'd lead with, and ask whether to write that instead (pull its PRs in with `--pr` to check it first). If it isn't, tell the author plainly that it's not worth a post, in a sentence or two, and offer the short note or a changelog line instead. Don't over-explain something straightforward to fill a format.
-
-Ryan's anatomy post sits between build story and deep dive: technical, with real code, yet organized entirely by idea, with no dates or process narration.
+**Say when it isn't worth a write-up.** If the subject is thin (a typo, a one-line fix, a dependency bump, a refactor users never see), check the nearby work first. If the thin change is one piece of a bigger idea, that is a change of subject and worth stopping for: say in a sentence why the change alone isn't a post, name the bigger idea and the angle you'd lead with, and ask whether to write that instead (check it first with `--pr`). If there is no bigger idea, say plainly it's not worth a post and offer a short note or a changelog line.
 
 ## Workflow
 
 ### 1. Scope
 
-Settle these from the request, the repo and the defaults below. Don't ask about scope on its own: if something here is truly unclear, fold it into the single message in step 3.
+Settle these from the request, the repo and the defaults. Don't ask about scope on its own; if something is truly unclear, fold it into the one message in step 3.
 
-- **Subject.** The idea the post is about, found from whatever the author points at: an umbrella issue, a PR or two, a search phrase, a commit range or a path. Those are breadcrumbs, not boundaries. A post is rarely one-to-one with a PR: related work landing around the same time (the dossier's **Nearby work**) often belongs to the same idea, and some of what was pointed at may not. Draw the boundary around the idea, and keep it a little fuzzy.
-- **Flavor.** Release story, build story or deep dive, or a short note when the subject is small. Default: build story for a real feature; size down when the subject is thin (see Flavors).
-- **Visibility.** Is the repo public? `gh repo view --json visibility -q .visibility` (the gatherer records it too). If it's private or unknown, the post links nothing internal and keeps no sources list of issues and PRs.
-- **Voice.** "I" or "we". Default: "we", in plain English (STE-lite: short sentences, active voice, one term per thing). Strict Simplified Technical English only if the author asks. See [references/story.md](references/story.md#voice).
-- **House style.** The product's exact name, terms to use and avoid, anything the project's docs fix. For a private repo, also add names that must not appear: customers, partners, suppliers, internal codenames you find in the record. Pass the avoid-list to `lint.mjs --avoid`. Paraphrase around an avoided term; never edit inside a quotation.
-- **Modules.** Standard opt-in extras that sit after the story as an appendix: a PR-by-PR build log, process numbers, a by-day timeline, review notes, a how-it-was-made note, a sources list. All off by default. Include the ones the author asks for. Offer one in a single line only when the evidence makes it unusually good. Menu and how to add each: [references/modules.md](references/modules.md).
-- **Disclosure.** If the record shows coding agents or automated reviewers did part of the work, say nothing about it by default (don't ask). Mention a specific review only when it is part of the story; an author who wants more gets the `how-made` module.
-- **Other repos.** If part of the feature shipped elsewhere (a CLI, an SDK), add it with `--also-repo`.
+- **Subject.** The idea the post is about. Whatever the author points at (an issue, a few PRs, a search phrase, a commit range, a path) is a breadcrumb, not a boundary. Related work landing around the same time (the dossier's **Nearby work**) often belongs to the same idea, and some of what was pointed at may not. Draw the boundary around the idea.
+- **Flavor and size.** Default: build story for a real feature, a note or "not worth a post" for a thin one.
+- **Visibility.** `gh repo view --json visibility -q .visibility` (the gatherer records it too). Private or unknown means nothing internal is linked.
+- **House style.** The product's exact name and terms to use or avoid. For a private repo, add names that must not appear (customers, partners, internal codenames). Pass the avoid-list to `lint.mjs --avoid`; paraphrase around an avoided term, never inside a quotation.
+- **Modules.** Opt-in appendix extras (build log, process numbers, by-day timeline, review notes, how-made, sources), all off by default. Include the ones the author asks for; offer one in a single line only when the evidence makes it unusually good. [modules.md](references/modules.md)
+- **Other repos.** If part of the feature shipped elsewhere (a CLI, an SDK), repeat the search there with `--search … --also-repo owner/name`.
 
 ### 2. Gather the evidence
 
-Make a work dir outside the repo, so it survives worktrees and never lands in tracked files. It goes under `$BUILD_STORY_DIR` (default `~/.build-stories`), grouped by repo:
+Make a work dir outside the repo, so it survives worktrees and never lands in tracked files. `<work-dir>` below means this path, or the author's own place if they name one.
 
 ```bash
-WORK=$(node <skill-dir>/scripts/workdir.mjs weekly-digests)   # → ~/.build-stories/<repo>/2026-10-12-weekly-digests
+WORK=$(node <skill-dir>/scripts/workdir.mjs preview-links)   # → $BUILD_STORY_DIR (default ~/.build-stories)/<repo>/<date>-preview-links
 ```
 
-`<work-dir>` below means that path. If the author names a different place, use theirs.
-
-Run the gatherer. It needs only `git` and an authenticated `gh`:
+Run the gatherer (needs `git` and an authenticated `gh`; `--help` lists every flag):
 
 ```bash
-node <skill-dir>/scripts/gather.mjs --out <work-dir>/evidence --issue 2290
+node <skill-dir>/scripts/gather.mjs --out <work-dir>/evidence --issue 412
 node <skill-dir>/scripts/gather.mjs --out <work-dir>/evidence --pr 120,131,140 --download
 node <skill-dir>/scripts/gather.mjs --out <work-dir>/evidence --search "rate limit" --also-repo acme/cli
-node <skill-dir>/scripts/gather.mjs --out <work-dir>/evidence --since 2026-09-01 --path src/limits   # git only, no GitHub
-node <skill-dir>/scripts/gather.mjs --out <work-dir>/evidence --issue 2290 --prior "rate limit"     # also list earlier work in the area
+node <skill-dir>/scripts/gather.mjs --out <work-dir>/evidence --since 2026-09-01 --path src/limits   # git only
+node <skill-dir>/scripts/gather.mjs --out <work-dir>/evidence --issue 412 --prior "rate limit"     # earlier PRs matching this phrase
 ```
 
-It writes `dossier.md` (a skimmable digest) and `dossier.json` (everything, unabridged). The digest opens with totals and **Story candidates** (decision sections in issue and PR bodies, decision language in comments, bursts of work, follow-up clusters, reverts). Issues that the selected PRs close are pulled in automatically, then **Nearby work** (other merged PRs around the same time, by area; `--window <days>`, default 2), **Prior work**, feedback signals, hot files, cross-repo references, a timeline, and each issue and PR with bot scaffolding stripped. The dossier is detailed so you can find the story. Almost none of that detail goes in the post.
+It writes `dossier.md` (a skimmable digest) and `dossier.json` (everything). The digest opens with totals, hot files and **Story candidates**, then **Nearby work** (other merged PRs within `--window` days, default 2; ★n = files shared with the selected work), **Prior work**, feedback signals, cross-repo references, a timeline, and each issue and PR. Issues the selected PRs close are pulled in automatically. Almost none of this detail goes in the post.
 
-Read in this order and stop when you have the story: `dossier.md` → the design docs it lists → the hot files, only where a chosen idea lives. Details: [references/evidence.md](references/evidence.md).
+Read `dossier.md`, then the design docs it lists, then code only where a chosen idea lives. Stop when you have the story. [evidence.md](references/evidence.md)
 
 ### 3. Frame the story
 
-Before planning beats, decide which story this is. Zoom out first: look at the product as users meet it, earlier releases in the area and how other tools handle the same job, and draft two or three **angles** (a hook, who it speaks to, what it rests on). Then draft a **brief** around the one you recommend: the headline (what people can do now), the starting point and endpoint from the user's side, prior context (is this new, or an iteration on something people already know?), the audience (technical or not), and the supporting cast versus what's out of frame. Decide what you can safely infer and mark it *assumed*. Ask the author only about a guess that would change the shape of the post, such as an audience that could go either way, or two angles too close to call (a clearly stronger angle is stated in the frame, not asked): one message, rarely more than two questions, zero is fine. Either way, tell the author the frame in two or three lines and keep going; don't wait unless you asked. Fields, examples and how to ask: [references/brief.md](references/brief.md).
+Decide which story this is before planning beats. Zoom out to the product as users meet it, earlier releases in the area, and how other tools do the same job. Run the lenses, draft two or three **angles**, and recommend one. Then write the **brief** at the top of `plan.md`: headline, starting point, endpoint, prior context, audience, supporting cast and what's out of frame.
+
+Ask as little as possible. Decide what you can infer and mark it *assumed*. Ask only about a guess that would change the shape of the post (usually the audience, or two angles too close to call): one message, rarely more than two questions, zero is fine. Either way, tell the author the frame in two or three lines and keep going; wait only if you asked. [brief.md](references/brief.md)
 
 ### 4. Plan the beats
 
-Under the brief in `plan.md`, put the **story plan**:
+Under the brief in `plan.md`:
 
-1. **Thesis.** One sentence the reader could repeat, running from the brief's starting point to its endpoint: "Reviewing a change used to mean pulling the branch and running it yourself; now every pull request gets a live link."
-2. **Beats.** One per chapter (the flavor sets how many), each with: the idea, the decision and the alternative if there is one, the evidence, and the **reader takeaway** (what the reader understands after it). A beat with no takeaway gets cut.
-3. **Cuts.** What you're leaving out and why. Most of the dossier lands here: the sequence of events, who reviewed what, timestamps, PR-by-PR detail.
-4. **Open questions.** Gaps only the author can fill.
+1. **Thesis.** One sentence from the brief's starting point to its endpoint.
+2. **Beats.** One per chapter, each with the idea, the decision and the alternative if there is one, the evidence, and the **takeaway** (what the reader understands after it). A beat with no takeaway is cut.
+3. **Cuts.** What you're leaving out and why. Most of the dossier lands here.
+4. **Open questions.** Gaps only the author can fill, each with the claim you left out because of it.
+5. **Notes for the author.** Things they should know that aren't questions, such as docs that lag the code. [evidence.md](references/evidence.md#when-sources-disagree)
 
-Shapes, altitude examples and voice: [references/story.md](references/story.md).
-
-Questions that come up while planning go on the open-questions list, delivered with the draft. Don't stop to ask unless an answer would change the headline or a chapter. **If you can't ask**, note under each question the claim you did *not* make because of it, and deliver the list with the draft.
+Don't stop to ask unless an answer would change the headline or a chapter; both lists go with the draft. Shapes, beats and length: [story.md](references/story.md).
 
 ### 5. Make the visuals
 
-For each beat, decide whether a visual earns its place: a step flow or diagram, a simple motion, a before/after pair, a screenshot of what the reader will see, a chart, or an image already in a PR. Code and terminal blocks are evidence, not visuals. Make the visuals before writing the prose around them. Patterns and capture recipes: [references/visuals.md](references/visuals.md).
+For each beat, decide whether a visual earns its place, and make it before writing the text around it. Code and terminal blocks are evidence, not visuals. Kinds, capture recipes and motion rules: [visuals.md](references/visuals.md).
 
 ### 6. Write the page
 
-Copy [assets/template.html](assets/template.html) into the work dir as `post.html` and replace its example content. Its components are a toolbox, not a checklist. Most posts use four or five of them and delete the rest. The template has: masthead, chapters, options table, step flow, SVG diagram, before/after, screenshot frame, code and terminal blocks, bars, quote-and-change list, timeline, notes and further reading. Opted-in modules go after the last chapter: generate the data ones with `node <skill-dir>/scripts/module.mjs <build-log|numbers|timeline> <work-dir>/evidence/dossier.json` and paste the fragment in. If the project has its own brand or design system, restyle the `:root` tokens to match it.
+Copy [assets/template.html](assets/template.html) to `<work-dir>/post.html` and replace its example content. Its components are a toolbox: most posts use four or five and delete the rest. Opted-in modules go after the last chapter; generate the data ones with `node <skill-dir>/scripts/module.mjs <build-log|numbers|timeline> <work-dir>/evidence/dossier.json`. If the project has its own brand, restyle the `:root` tokens.
 
 ### 7. Check
-
-Start with the linter:
 
 ```bash
 node <skill-dir>/scripts/lint.mjs <work-dir>/post.html --flavor build --avoid "term one,term two" [--private] [--ste]
 ```
 
-It prints prose words per chapter, banned phrasing, mannered constructions, process detail (clock times, issue and PR references, review and merge talk) against the flavor's budget, the opening sentence of each paragraph, every sentence with a number, sentence length and passive voice, masthead stats to justify, terminal blocks that stack commands or run long, leftover template text, and a safety scan. With `--private`, any link to the repo's issues, PRs or commits fails. Then do the half it can't:
+The linter reports words per chapter, banned and writerly phrasing, process detail against the flavor's budget, every sentence with a number, sentence length and passive voice, scan aids, identifiers in the text, masthead stats, terminal blocks, animated-dot faults, leftover template text and a safety scan. It exits 1 on a hard failure; with `--private`, any link to the repo's issues, PRs or commits is one. Then do the half it can't:
 
-- **Detail pass.** Read each paragraph as the flavor's reader. For every detail, apply *earn every detail*. Process detail flagged by the linter is a prompt to cut, not a count to hit.
-- **Fact pass.** Tick each number against the dossier, a file or your own run. Test counts come from running the tests, never from grep. For any shipped/released/live claim, check the code, the release and the public docs; tell the author when they disagree.
+- **Detail pass.** Apply *earn every detail* to each paragraph. A linter flag is a prompt to cut, not a count to hit.
+- **Fact pass.** Tick each number against the dossier, a file or your own run. Test counts come from running the tests, never from grep. Check every shipped/live claim against the code, the release and the docs; record any gap under Notes for the author.
 - **Safety pass.** Read every safety hit, reread each code and terminal block, and open every image.
-- **Render pass.** Open the page once at desktop and phone width, in light and dark. Recipe: [references/visuals.md](references/visuals.md#checking-the-render).
+- **Render pass.** Desktop and phone width, light and dark, once each. [visuals.md](references/visuals.md#checking-the-render)
 
 ### 8. Publish
 
-Embed local images first, because an artifact page can't load images from other hosts:
+An artifact page can't load images from other hosts, so embed them first:
 
 ```bash
 node <skill-dir>/scripts/inline-assets.mjs <work-dir>/post.html > <work-dir>/post.published.html
 ```
 
-Publish `post.published.html` as a private Artifact (title = the post's name) and give the author the link along with the open questions. For their own site, use `--standalone` (adds the doctype and viewport meta), or hand over `post.html` plus `assets/`. The chapters also convert cleanly to Markdown/MDX on request.
+Publish `post.published.html` as a private Artifact (title = the post's name) and give the author the link with the open questions and notes. For their own site, add `--standalone` (doctype and viewport meta) or hand over `post.html` plus `assets/`. The chapters convert cleanly to Markdown/MDX on request.
 
 ## Files
 
-- `scripts/gather.mjs` — evidence dossier from git + GitHub
-- `scripts/workdir.mjs` — a work dir under `$BUILD_STORY_DIR` (default `~/.build-stories/<repo>/`)
-- `scripts/lint.mjs` — word counts, banned phrasing, process-detail budget, number ledger, plain-English metrics, terminal and masthead checks, leftovers, safety scan
-- `scripts/inline-assets.mjs` — embed local images (`src`, `poster`, `srcset`) as data URIs and drop authoring comments (`--standalone` for a full document)
-- `scripts/module.mjs` — render an opt-in module (build log, numbers, timeline) from the dossier
-- `assets/template.html` — page template and component toolbox
-- `references/evidence.md` — what to read, what to skip, mining the record
-- `references/brief.md` — the story brief: headline, start and end, prior context, audience, and the questions to ask the author
-- `references/story.md` — shapes, altitude, voice and banned phrasing
-- `references/visuals.md` — diagram, motion, screenshot and chart patterns
-- `references/modules.md` — the opt-in module menu, placement rules, and when to add a module
+- `scripts/gather.mjs`: evidence dossier from git and GitHub
+- `scripts/workdir.mjs`: a work dir under `$BUILD_STORY_DIR` (default `~/.build-stories/<repo>/`)
+- `scripts/lint.mjs`: the mechanical half of the Check step
+- `scripts/module.mjs`: an opt-in module (build log, numbers, timeline) from the dossier
+- `scripts/inline-assets.mjs`: embed local images and video (`src`, `poster`, `srcset`) as data URIs and drop authoring comments
+- `assets/template.html`: page template and component toolbox
+- `references/brief.md`: angles, the brief, and how little to ask the author
+- `references/evidence.md`: what to read, what to skip, numbers, terminal blocks, sources that disagree
+- `references/story.md`: shapes, beats, altitude, references, voice, length
+- `references/visuals.md`: diagram, motion, screenshot and chart patterns
+- `references/modules.md`: the opt-in module menu and placement rules

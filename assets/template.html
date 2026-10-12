@@ -4,7 +4,7 @@
   Copy to <work-dir>/post.html, replace the example content, delete components you don't use.
   Components: masthead + stats · lede · contents · chapter · ref · code / terminal · options ·
   heard→changed · compare · steps (flow that stacks on phones, with motion) · diagram (SVG, with motion) ·
-  shot · bars · timeline · endnotes · sources · colophon.
+  shot · bars · timeline · module slot · notes · further reading · colophon.
   Restyle by editing the :root tokens only. Keep the light/dark structure.
 -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -254,7 +254,7 @@ figcaption a { color: var(--muted); }
     </dl> -->
   </header>
 
-  <!-- ── LEDE ── problem in the reader's terms, what was built, what the page will show -->
+  <!-- ── LEDE ── the problem in the reader's terms and what was built; list the parts if it names several. No "this post covers". -->
   <p class="lede">A feature leaves behind issues, pull requests, commits and review threads. Read in order, they make a changelog. This page is the template a build story is written into. Each component below shows a decision instead of listing what happened. Every number on a real post comes from the dossier, a file, or a command run for it.</p>
 
   <nav class="toc" aria-label="Chapters">
@@ -336,7 +336,7 @@ figcaption a { color: var(--muted); }
 
     <p>The digest is long on purpose. Choosing what to leave out happens in the plan, where each cut is written down with its reason.</p>
 
-    <!-- CODE: ≤15 real lines from the shipped commit; label with path; mark cuts with … -->
+    <!-- CODE: ≤15 real lines from the shipped commit; caption = the file name only; mark cuts with … -->
     <figure class="code">
       <figcaption><span>scripts/gather.mjs</span></figcaption>
 <pre><code><span class="c">// Release-automation PRs (version bumps) carry no story.</span>
@@ -352,8 +352,8 @@ figcaption a { color: var(--muted); }
          Add .wrap when a line is long prose (an error message); leave it off for tables and JSON. -->
     <figure class="code term">
       <figcaption><span>Terminal</span></figcaption>
-<pre><code><span class="prompt">$ </span>node scripts/gather.mjs --issue 2290 --out evidence
-<span class="dim">dossier: 15 issues · 16 PRs · 0 loose commits · 6 images → evidence/dossier.md</span></code></pre>
+<pre><code><span class="prompt">$ </span>node scripts/gather.mjs --issue 412 --out evidence
+<span class="dim">dossier: 6 issues · 9 PRs · 0 loose commits · 4 images → evidence/dossier.md</span></code></pre>
     </figure>
   </section>
 
@@ -378,7 +378,7 @@ figcaption a { color: var(--muted); }
 
   <section class="ch" id="c3">
     <h2><span class="n">03</span>Showing the change</h2>
-    <p>A before/after pair takes any content: two screenshots, two code blocks, two terminal runs. Label each side with its date or commit.</p>
+    <p>A before/after pair takes any content: two screenshots, two code blocks, two terminal runs. Label each side by iteration ("Before", "Round two", "As it ships"), not by commit.</p>
 
     <!-- COMPARE: two .side blocks; put <img src="assets/…"> or a .code figure in each -->
     <figure class="compare wide">
@@ -402,7 +402,7 @@ figcaption a { color: var(--muted); }
     <!-- SCREENSHOT (uncomment, keep the file in assets/; inline-assets.mjs embeds it)
     <figure class="shot wide">
       <img src="assets/panel.png" alt="Describe what the screenshot shows" width="1600" height="900">
-      <figcaption>Fig. 3. What it shows, and where it came from (PR #, or "captured 12 Oct").</figcaption>
+      <figcaption>Fig. 3. What it shows, in a sentence. Keep sources and capture dates in plan.md.</figcaption>
     </figure>
     -->
   </section>
@@ -422,9 +422,8 @@ figcaption a { color: var(--muted); }
       <figcaption>Fig. 4. Sentences about reviews, merges and PRs that each flavor allows, against the first test draft (a build story). Counted by lint.mjs.</figcaption>
     </figure>
 
-    <!-- TIMELINE (rare): only when the timing itself is the point. Days, never clock times. -->
-
-    <!-- TIMELINE: from dossier.json "timeline"; .merged = filled dot. Keep it to the beats, not every event. -->
+    <!-- TIMELINE (rare): only when the pace itself is the point. Days, never clock times. From dossier.json
+         "timeline"; .merged = filled dot. Keep it to the beats, not every event. -->
     <figure>
     <ol class="timeline">
       <li><time datetime="2026-10-12">12 Oct</time><span class="ev">First version of the skill <small>gatherer, template, rules</small></span></li>

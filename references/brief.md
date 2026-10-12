@@ -2,7 +2,7 @@
 
 Decide *which* story before deciding how to tell it. The record says what the team worked on; it doesn't say what the post is about. The two are often different: the hardest engineering problem is usually a supporting beat, not the headline.
 
-Write the brief from the evidence and your read of the product. Confirm with the author only what you can't safely infer (see below). It sits at the top of `plan.md` and every later step answers to it.
+Write the brief from the evidence and your read of the product. It sits at the top of `plan.md`, and every later step answers to it.
 
 ## Zoom out first: find the angle
 
@@ -11,25 +11,23 @@ PRs and issues are a sliver of the story. They record what engineers needed to s
 Look beyond the record:
 - **The product as users meet it.** Its site, docs, README, pricing or plans page, and the live product (public pages only; never sign in).
 - **What came before.** The changelog, earlier posts and docs for this area. What did users already have, and what did they complain about?
-- **The category.** How do other tools handle the same job? A familiar pattern ("the way docs platforms push to a search index") makes a feature click. Only use comparisons you can check, and don't knock other products unless the author wants that.
+- **The category.** How do other tools handle the same job? A familiar pattern ("the way hosting platforms give every branch its own URL") makes a feature click. Only use comparisons you can check, and don't knock other products unless the author wants that.
 
 Then run the work through a few lenses. Write a line for each one that applies:
 - **The job.** What is the user trying to get done, and what did this take out of their way?
 - **Who wins.** Which user, and what changes in their week? Who benefits second-hand (their readers, their team)?
 - **Newly possible.** Is something now possible that wasn't before, or is an existing thing faster or easier? The first is the stronger headline.
-- **Who holds the pen.** Did control, trust or ownership shift? ("Your changelog says what you wrote, not our reading of your page.")
-- **The surprise.** Something that runs against expectations ("once you push, we stop checking").
+- **Who holds the pen.** Did control, trust or ownership shift? ("Your rate limits live in your own config, not in a support ticket.")
+- **The surprise.** Something that runs against expectations ("previews start faster because we build less of your app, not more").
 - **Direction.** What this says about where the product is going (from roadmap issues, follow-ups, what's next).
 
-From those, draft **two or three candidate angles**. Each gets a hook (one sentence someone might repeat to a colleague), who it speaks to, and what it rests on, split into evidence and inference. Recommend one. The author picks in the headline question, with the angles as the options.
+From those, draft **two or three candidate angles**. Each gets a hook (one sentence someone might repeat to a colleague), who it speaks to, and what it rests on, split into evidence and inference. Recommend one. The angles become the options of a question only when two are too close to call (see below).
 
-**Inference is the job; invention is not.** You may infer implications, context and angles the record never states. You may not present inference as fact about the team: motives, quotes, events, decisions or numbers. Write an implication as what the reader gets ("your release note is in the index minutes after you merge"), not as what the team intended. Anything about intent goes to the author as a question.
+**Inference is the job; invention is not.** You may infer implications, context and angles the record never states. You may not present inference as fact about the team: motives, quotes, events, decisions or numbers. Write an implication as what the reader gets ("a reviewer can click the change a minute after you push"), not as what the team intended. Anything about intent goes on the open questions.
 
 ## The six fields
 
-**1. Headline.** What can people do now that they couldn't before, in their words. This is the centerpiece the whole post serves.
-
-Default to the capability the user sees, not the mechanism that makes it work. The mechanism leads only when the flavor is a deep dive, the author asks for it, or the mechanism *is* what users touch (an API shape, a CLI command, a file format).
+**1. Headline.** What can people do now that they couldn't before, in their words. This is the centerpiece the whole post serves. It is the capability the user sees, not the mechanism that makes it work, unless the flavor is a deep dive, the author asks, or the mechanism *is* what users touch (an API shape, a CLI command, a file format).
 
 | Mechanism as headline (wrong by default) | Capability as headline |
 |---|---|
@@ -43,9 +41,9 @@ Warning signs the headline is at the wrong altitude:
 
 **2. Starting point.** What was true before, from the user's side: how people did this, what was slow, missing or fragile. If the feature extends something that already existed, the starting point is that existing thing, not zero.
 
-**3. Endpoint.** What's true now, from the user's side. The post's thesis is the line from starting point to endpoint: "Reviewing a change used to mean pulling the branch and running it yourself; now every pull request gets a live link."
+**3. Endpoint.** What's true now, from the user's side. The thesis in `plan.md` is the line from starting point to endpoint: "Reviewing a change used to mean pulling the branch and running it yourself; now every pull request gets a live link."
 
-**4. Prior context.** Is this new, or an iteration on something that has been in the product for months or years? List the earlier releases in this area and what has already been announced or explained (changelog entries, docs pages, earlier posts). Covered ground gets one sentence and a link, not a chapter. Sources: the dossier's **Prior work** section (earlier changes to the files this feature modified, plus the changelog files to read), the project's docs and blog, and an explicit search when that list is thin: rerun the gatherer with `--prior "<area terms>"` to list earlier merged PRs in the area. Write each prior-context item with where you found it ("GitHub sources, polled, since spring: CHANGELOG 0.40"), so the author can check it.
+**4. Prior context.** Is this new, or an iteration on something that has been in the product for months or years? List the earlier releases in this area and what has already been announced or explained (changelog entries, docs pages, earlier posts). Covered ground gets one sentence and a link, not a chapter. Sources: the dossier's **Prior work** section (earlier changes to the files this feature modified, plus the changelog files to read), the project's docs and blog, and an explicit search when that list is thin: rerun the gatherer with `--prior "<area terms>"` to list earlier merged PRs in the area. Write each prior-context item with where you found it ("shared staging environment, since spring: CHANGELOG 0.40, docs page 'Staging'"), so the author can check it.
 
 **5. Audience.** Technical (developers who will integrate or extend it) or not (users and customers following the product). This sets the flavor and how far down into mechanics the post goes. A non-technical audience gets the mechanism in a sentence, if at all.
 
@@ -53,31 +51,29 @@ Warning signs the headline is at the wrong altitude:
 
 ## Asking the author: as little as possible
 
-The brief's fields are what *you* need confidence in, not a form for the author to fill in. Most of them you can infer well enough from the evidence and the product. Every question costs the author attention, and a skill that opens with a quiz is one people stop using. Default to deciding and moving on, the way a good writer handed a brief would.
+The brief's fields are what *you* need confidence in, not a form for the author. Most you can infer from the evidence and the product. Every question costs the author attention, and a skill that opens with a quiz is one people stop using. Default to deciding and moving on.
 
 **Rate each field** as you draft it: *sure* (the evidence says so), *likely* (a safe inference), or *guess*. Then:
 
 - **Sure or likely: decide.** Mark it *assumed* in `plan.md` if it's an inference. Don't ask.
 - **A guess that changes the shape of the post: ask.** In practice that's the headline when two angles are genuinely close, or the audience when it could reasonably go either way. Those decide what the whole post is about; a wrong guess costs a rewrite.
 - **The headline is usually not a question.** If one angle is clearly the strongest (it's the thing that's newly possible, or the evidence backs it far better), lead with it and name the runner-up in the frame statement ("say if you'd rather lead with X"). That gives the author the same chance to redirect without a question. Ask only when you would honestly flip a coin.
-- **A guess that only changes a sentence: don't ask.** Write around it (leave the claim out, or state only what the evidence shows) and put it on the list that goes with the draft.
+- **A guess that only changes a sentence: don't ask.** Write around it (leave the claim out, or state only what the evidence shows) and put it on the open questions.
 - **Motive** (why now, why this approach) is never worth blocking on. Use it if the author offers it; otherwise describe the problem the work solves, which the evidence does show.
 
-**The budget.** Zero questions is a good outcome. When you do ask, it's one message, usually one or two questions and never more than three, each with your recommended answer first so the author can reply with a word. Use the `AskUserQuestion` tool when it's available. Never ask them one at a time, and never ask what you can find: names, dates, numbers, what shipped.
+**The budget.** Zero questions is a good outcome. When you do ask, it's one message, rarely more than two questions, each with your recommended answer first so the author can reply with a word. Use the `AskUserQuestion` tool when it's available. Never ask what you can find: names, dates, numbers, what shipped.
 
 **Say the frame, then keep going.** Whether or not you ask anything, tell the author the frame in two or three lines before you plan: the angle you're leading with, the audience, and anything notable you're leaving out. Then carry on. They can redirect you at that point or at the draft; you don't need to wait for a reply unless you asked a question.
 
 > Leading with *every pull request gets a live preview link*, for reviewers and the developers who set it up. Leaving out the scheduler internals. Say if you'd rather lead with the per-preview databases.
 
-**After the draft.** Deliver the remaining unknowns with the draft as a short list of what would make it stronger ("if you can share why this shipped now, the opening gets a better first line"), not as questions blocking the work.
+**After the draft.** Deliver the open questions with the draft as a short list of what would make it stronger ("if you can share why this shipped now, the opening gets a better first line"), not as questions blocking the work.
 
 **Using the answers.** Write the author's answers in the team's voice, as part of the story. Don't quote them back ("As we put it, the goal was…"). Quote the author only when they give you a line meant to be quoted.
 
 If the author has said to go ahead without questions, or can't be asked, ask nothing: decide every field, mark inferences *assumed*, and list them with the draft.
 
-## Notes for the author
-
-While framing you'll find things the author should know that aren't questions: a docs page that says a shipped feature is "coming soon", an issue still open for merged work. Put them under **Notes for the author** in `plan.md` (see *When sources disagree* in [evidence.md](evidence.md)) and include them with the questions; don't spend a question on them.
+**Notes for the author** are not questions: a docs page that says a shipped feature is "coming soon", an issue still open for merged work. List them in `plan.md` (see [evidence.md](evidence.md#when-sources-disagree)) and send them with the draft; don't spend a question on them.
 
 ## In plan.md
 
@@ -88,7 +84,7 @@ While framing you'll find things the author should know that aren't questions: a
 3. Staging for every change. For: platform teams. Evidence: per-preview database. Inference: replaces the shared staging queue.
 
 ## Brief
-- Headline: Every pull request gets a live preview link. (confirmed)
+- Headline: Every pull request gets a live preview link. (sure)
 - Start → end: reviewers pulled the branch and ran it locally → they click a link in the PR.
 - Prior context: shared staging environments exist since spring and are in the docs; one sentence + link.
 - Audience: developers and reviewers on teams that use the product. (assumed)

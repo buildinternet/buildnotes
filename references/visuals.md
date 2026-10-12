@@ -14,12 +14,10 @@ Every visual answers a question a chapter raises. Before making one, write its c
 | What the user actually sees | Screenshot of the real UI | Browser capture of the running app or the live site |
 | An interaction or a sequence over time | Short loop (GIF/MP4/WebM) or a frame strip | Browser recording, or a contact sheet of stills |
 | A state machine, a lifecycle, a set of rules | Small state diagram or a table | Inline SVG or HTML |
-| How the work unfolded | Timeline | `dossier.json` → `timeline` |
+| Pace, when the pace is the point | Timeline, by day | `dossier.json` → `timeline` |
 | Size, speed, counts | One simple chart | Numbers from the dossier or your own run |
-| What the tool prints | Terminal block | A command you ran for this post, output pasted verbatim (redacted) |
-| The core idea in code | Code block | The shipped file, ≤15 lines |
 
-At most one per chapter. A chapter with nothing worth drawing gets a code or terminal block, or nothing.
+At most one per chapter. A chapter with nothing worth drawing gets a code or terminal block, or nothing. Those are evidence, not visuals: code is ≤15 shipped lines (SKILL.md rules), terminal blocks follow [evidence.md](evidence.md#terminal-blocks).
 
 ## Diagrams
 
@@ -29,7 +27,7 @@ Prefer **inline SVG** written by hand: it is small, sharp at any size, themes wi
 
 - Draw the real components with the names the post uses. Five to nine boxes is the useful range; more means split the diagram or the chapter.
 - Colour comes from tokens (`var(--ink)`, `var(--accent)`, `var(--rule)`) via `fill`/`stroke` on classes, so it works in light and dark. Give every shape an explicit fill.
-- Lines end on a box edge. Label edges with the thing that travels ("batch POST", "token check"), not with verbs alone.
+- Lines end on a box edge. Label edges with the thing that travels ("webhook", "build log"), not with verbs alone.
 - Highlight the one part the chapter is about in the accent colour; everything else stays neutral.
 - Set `viewBox`, `width="100%"`, a `role="img"` and a `<title>` and `<desc>`. Wrap wide diagrams in a scroll container rather than shrinking text below 11px.
 - Design for 390px too. The template's SVG keeps a 30rem minimum and scrolls inside its frame below that, so put the part the chapter is about on the left, where a phone reader sees it first. If the key part would be off-screen, draw the diagram top-to-bottom instead: boxes stacked in one column at about 320 units wide, with the outcome at the bottom, fits a phone with no scrolling. A flow whose conclusion sits on the right is the usual case for this.
@@ -83,7 +81,7 @@ A light screenshot glares on a dark page. The template dims `.shot` and `.compar
 
 ## Charts
 
-One number per chart, drawn to scale, labelled directly (no legend if you can avoid it). Draw small charts as inline SVG from the dossier numbers. Good candidates: lines changed per PR along the timeline, a before/after bar, a distribution from a run you made. If a chart needs more than a sentence to explain, it's the wrong chart.
+One number per chart, drawn to scale, labelled directly (no legend if you can avoid it). Draw small charts as inline SVG or with the template's bars. Chart product numbers, not the process: a before/after bar, a limit against real traffic, a distribution from a run you made. If a chart needs more than a sentence to explain, it's the wrong chart.
 
 ## Checking the render
 
