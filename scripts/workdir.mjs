@@ -5,10 +5,12 @@
 // A slug that already starts with a date is used as is.
 //
 // The root is $BUILD_STORY_DIR, or ~/.build-stories by default. Runs are grouped by repo name
-// (the main checkout's folder name, so every worktree of a repo shares one folder).
+// (the main checkout's folder name, so every worktree of a repo shares one folder). The repo folder
+// may hold house-style.md (the product's name, terms to use or avoid), settled by the author once and
+// read on every run; its path is printed to stderr when it exists.
 
 import { execFileSync } from "node:child_process";
-import { mkdirSync } from "node:fs";
+import { existsSync, mkdirSync } from "node:fs";
 import { homedir } from "node:os";
 import { basename, dirname, join } from "node:path";
 
@@ -22,4 +24,6 @@ try {
 } catch { /* not in a repo */ }
 const dir = join(root, repo, name);
 mkdirSync(dir, { recursive: true });
+const style = join(root, repo, "house-style.md");
+if (existsSync(style)) console.error(`house style: ${style} (read it before writing)`);
 console.log(dir);

@@ -17,8 +17,8 @@
 // and the total length. Text inside viz markers is left out of the word counts and the fact ledger;
 // its numbers come from the specs, which are listed for the fact pass.
 // --ste: full Simplified Technical English limits (20-word sentences) instead of STE-lite (25).
-// --product "Name": warns when the product name is in the title or a chapter heading, and counts it in
-// the prose (references/craft.md: name it once where a newcomer needs it). Case-sensitive.
+// --product "Full Name,Short": warns when the product name (or its shorthand) is in the title or a chapter
+// heading or opens a sentence, and counts it in the prose (references/craft.md). Case-sensitive.
 // --private: any link to GitHub issues, pull requests or commits is a hard failure.
 // Every http(s) link is opened; one that doesn't answer 2xx/3xx is a hard failure (--offline skips this).
 // Exit 1 on a hard failure (banned word, avoided term, leftover template text, private link,
@@ -200,21 +200,23 @@ const over = [totals.clock > 0 && "clock times", totals.dates > BUDGET.dates && 
 if (over.length) say(`! over budget: ${over.join(", ")}. Ask of each: would the reader miss it? Organize by idea, not chronology.`);
 say();
 
-// Self-naming: the product in the title or a heading, and how often the prose says it.
-const product = opt("product");
-if (product) {
-  const re = new RegExp(`(?<![\\w-])${product.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(?![\\w-])`, "g");
+// Self-naming: the product (full name and shorthand, comma-separated) in the title or a heading, as a
+// sentence subject, and how often the prose says it.
+const products = (opt("product") ?? "").split(",").map((x) => x.trim()).filter(Boolean).sort((a, b) => b.length - a.length);
+if (products.length) {
+  const alt = products.map((x) => x.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|");
+  const re = new RegExp(`(?<![\\w-])(?:${alt})(?![\\w-])`, "g");
+  const name = products.map((x) => `"${x}"`).join(" or ");
   const heads = [...html.replace(/<!--[\s\S]*?-->/g, "").matchAll(/<(h1|h2)\b[^>]*>([\s\S]*?)<\/\1>/g)]
     .map((m) => text(m[2].replace(/<span class="n">[^<]*<\/span>/, ""))).filter((h) => h.match(re));
   const prose = text(body.replace(/<footer[\s\S]*?<\/footer>/g, " ").replace(/<h[12]\b[\s\S]*?<\/h[12]>/g, " "));
   const n = prose.match(re)?.length ?? 0;
-  say(`Product name "${product}": ${n} in the prose${heads.length ? "" : ", none in the title or headings"}.`);
-  if (heads.length) say(`! "${product}" in the title or a heading: ${heads.map((h) => `"${h}"`).join(" · ")}. Write it about what the reader gets (craft.md).`);
+  say(`Product name ${name}: ${n} in the prose${heads.length ? "" : ", none in the title or headings"}.`);
+  if (heads.length) say(`! ${name} in the title or a heading: ${heads.map((h) => `"${h}"`).join(" · ")}. Write it about what the reader gets (craft.md).`);
   if (n > Math.max(3, words(prose) / 250)) say(`! named often; once where a newcomer needs it, then "it", "we" or the feature's name (craft.md).`);
-  const esc = product.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   const paras = [...body.replace(/<footer[\s\S]*?<\/footer>/g, " ").matchAll(/<(p|li)\b[^>]*>([\s\S]*?)<\/\1>/g)].flatMap((m) => sentences(text(m[2])));
-  const subj = paras.filter((x) => new RegExp(`^${esc}(?:'s|’s)?\\s+(?:now\\s+|also\\s+|still\\s+)?[a-z]+`).test(x));
-  if (subj.length) say(`! "${product}" as the subject of a sentence (${subj.length}); make the reader or the feature the subject: ${subj.slice(0, 3).map((x) => `"${x.slice(0, 70)}"`).join(" · ")}`);
+  const subj = paras.filter((x) => new RegExp(`^(?:${alt})(?:'s|’s)?\\s+(?:now\\s+|also\\s+|still\\s+)?[a-z]+`).test(x));
+  if (subj.length) say(`! ${name} as the subject of a sentence (${subj.length}); make the reader or the feature the subject: ${subj.slice(0, 3).map((x) => `"${x.slice(0, 70)}"`).join(" · ")}`);
   say();
 }
 
