@@ -59,3 +59,18 @@ test("--product flags self-naming in the title and headings", () => {
   assert.match(clean, /Product name "Acme": 2 in the prose, none in the title or headings\./);
   assert.doesNotMatch(clean, /in the title or a heading:/);
 });
+
+test("headings, grading phrases, item-by-item narration and the product as subject", () => {
+  const dir = mkdtempSync(join(tmpdir(), "lint-craft-"));
+  const page = `<article class="post"><header class="mast"><h1>Write a sentence, get the matches</h1></header>
+<section class="ch" id="c1"><h2><span class="n">01</span>Overview</h2><p>Acme now scores each release. The same PR also adds a threshold.</p></section>
+<section class="ch" id="c2"><h2><span class="n">02</span>The <code>matchAlerts()</code> loop</h2><p>We are doubling down on alerts. Stay tuned.</p></section></article>`;
+  writeFileSync(join(dir, "p.html"), page);
+  const out = lint(join(dir, "p.html"), "--product", "Acme", "--offline");
+  assert.match(out, /heading names the slot, not the claim: "Overview"/);
+  assert.match(out, /heading carries a code name or version: "The matchAlerts\(\) loop"/);
+  assert.match(out, /narrates the record item by item: The same PR also adds/);
+  assert.match(out, /✗ banned: doubling down, stay tuned/);
+  assert.match(out, /"Acme" as the subject of a sentence \(1\)/);
+  assert.doesNotMatch(lint(join(dir, "p.html"), "--flavor", "deep", "--offline"), /code name or version/);
+});

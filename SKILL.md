@@ -33,7 +33,7 @@ Each rule carries the fault that taught it, and links to the reference that hold
 - **Name ideas, not identifiers.** In the story, say what a thing does; save function names, flags and enum values for the try-it section and code blocks. [story.md](references/story.md#name-ideas-not-identifiers) *(Fault: a chapter whose sentences are strung between `flush()`, `commit()` and `edit_rev`.)*
 - **Real code, only where the code is the idea.** Copied from the shipped commit, at most about 15 lines, captioned with the file name only, cuts marked `…`. Never present illustrative code as the real thing. *(Fault: a tidy snippet that matches nothing in the repo.)*
 - **One visual per chapter, at most, and it must explain.** Decoration goes. [visuals.md](references/visuals.md) *(Fault: a diagram that restates the heading.)*
-- **Infer the angle; don't invent the facts.** Implications, context and hooks the record never states are yours to find. Motives, quotes, events and numbers are not: when the record doesn't say, leave the claim out and put it on the open questions. *(Faults: a post that only restates the PRs; a plausible but fictional origin story.)*
+- **Infer the angle; don't invent the facts.** Implications, context and hooks the record never states are yours to find. Motives, quotes, events and numbers are not: describe what the record shows the change does, and when it doesn't say why, leave the reason out and put it on the open questions. *(Faults: a post that only restates the PRs; a plausible but fictional origin story; "no fallback model, because another model's score wouldn't mean the same thing", stated as fact with nothing behind it.)*
 - **Plain, scannable voice.** "We" (or "I"), plain English (STE-lite: short sentences, active voice, one term per thing; strict STE only if the author asks), bold the key decision about once per chapter, lists for three or more items. Sound like a person, not a writer. [story.md](references/story.md#voice) *(Fault: "We added three things. A retry… A queue… And an alert…", a list pretending to be a paragraph.)*
 - **Safe to publish.** No secrets, tokens, internal hostnames, customer names, personal paths or emails, internal links, or unreleased plans unless the author clears them. *(Fault: a terminal excerpt with a live API key in it.)*
 
@@ -49,6 +49,7 @@ Pick one in Scope. It sets the reader, the level of detail and the defaults belo
 | Visuals | Screenshots, before/after, one simple flow | Diagrams, motion, before/after | Diagrams, terminal runs, charts |
 | Code | A usage example at most | Only where the code is the idea | Where it helps |
 | Process detail | None | Only where it explains a design | Where it teaches |
+| Operator and admin tooling | Out | Out, unless it explains a design | In, when it teaches |
 | References | Docs and product links | A short "Further reading" at most | Key PRs and docs, if public |
 
 **Size it to the subject, not the flavor.** Word counts are ceilings with no minimum (release story up to 1,200, build story up to 2,500, deep dive as long as it needs; chapters and visuals per flavor in [story.md](references/story.md#length)). A small change gets a **note**: a paragraph or three, no chapters, no masthead, at most one visual.
@@ -62,7 +63,7 @@ Pick one in Scope. It sets the reader, the level of detail and the defaults belo
 Settle these from the request, the repo and the defaults. Don't ask about scope on its own; if something is truly unclear, fold it into the one message in step 3.
 
 - **Subject.** The idea the post is about. Whatever the author points at (an issue, a few PRs, a search phrase, a commit range, a path) is a breadcrumb, not a boundary. Related work landing around the same time (the dossier's **Nearby work**) often belongs to the same idea, and some of what was pointed at may not. Draw the boundary around the idea.
-- **Flavor and size.** Default: build story for a real feature, a note or "not worth a post" for a thin one.
+- **Flavor and size.** Default: build story for a real feature, a note or "not worth a post" for a thin one. If the author asks for a technical or engineering post, that's the deep dive: the internals, operator tooling and trade-offs can be the subject, and the reader-facing tests in [craft.md](references/craft.md) and [brief.md](references/brief.md#zoom-out-first-find-the-angle) bend to that reader.
 - **Visibility.** `gh repo view --json visibility -q .visibility` (the gatherer records it too). Private or unknown means nothing internal is linked.
 - **House style.** The product's exact name (pass it to `lint.mjs --product`) and terms to use or avoid. For a private repo, add names that must not appear (customers, partners, internal codenames). Pass the avoid-list to `lint.mjs --avoid`; paraphrase around an avoided term, never inside a quotation.
 - **Modules.** Opt-in appendix extras (build log, process numbers, by-day timeline, review notes, how-made, sources), all off by default. Include the ones the author asks for; offer one in a single line only when the evidence makes it unusually good. [modules.md](references/modules.md)

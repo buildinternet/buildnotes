@@ -23,7 +23,15 @@ Then run the work through a few lenses. Write a line for each one that applies:
 
 From those, draft **two or three candidate angles**. Each gets a hook (one sentence someone might repeat to a colleague), who it speaks to, and what it rests on, split into evidence and inference. Recommend one. The angles become the options of a question only when two are too close to call (see below).
 
-**Inference is the job; invention is not.** You may infer implications, context and angles the record never states. You may not present inference as fact about the team: motives, quotes, events, decisions or numbers. Write an implication as what the reader gets ("a reviewer can click the change a minute after you push"), not as what the team intended. Anything about intent goes on the open questions.
+**What leads, and what's cut.** When the work holds several changes, rank them for the reader. Lead with the highest:
+1. A breaking change, a changed default or something removed. Check the feature PRs for a default that flipped: "added a setting for X" often means "X is now off unless you turn it on", and that is the news.
+2. Security and data-loss fixes.
+3. A new capability.
+4. A fix to something users hit, then polish.
+
+Then apply the reader test: **they use the product; they don't run it.** Would someone who never signs in as an operator or admin notice this change? If not, it's out of frame: admin views, internal dashboards, migrations (describe the feature a migration enables, not the migration), refactors, and anything still behind a flag that hasn't shipped. **The exception is a post about the engineering.** In a deep dive, or when the author asks for a technical or engineering post, the internals, the operator tooling and the trade-offs behind them can be the subject; size the detail to that reader instead.
+
+**Inference is the job; invention is not.** You may infer implications, context and angles the record never states. You may not present inference as fact about the team: motives, quotes, events, decisions or numbers. Write an implication as what the reader gets ("a reviewer can click the change a minute after you push"), not as what the team intended. Describe only what the record shows the change does; a reason it was built, or a benefit nobody wrote down, stays out of the post. Anything about intent goes on the open questions.
 
 ## The six fields
 

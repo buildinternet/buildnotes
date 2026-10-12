@@ -68,7 +68,7 @@ Don't open with the history of the codebase, a definition, a date, or a question
 
 ## The ending
 
-End on what readers can do now (try it, read the docs) or on what's next. No summary of what they just read. A colophon line about how the post was made is optional; use one if the author wants it.
+End on what readers can do now (try it, read the docs) or on what's next. No summary of what they just read, and no sign-off ("stay tuned", "more to come", "we can't wait"). A colophon line about how the post was made is optional; use one if the author wants it.
 
 ## Voice
 
@@ -125,6 +125,8 @@ Most people skim first. Give them handholds:
 These read as generated or as marketing. Rewrite on sight.
 
 - Hype: comprehensive, robust, seamless, powerful, blazing, world-class, game-changing, cutting-edge, leverage, unlock (as a verb for features), supercharge, elevate, delve, journey, "deep dive" in the post.
+- Grading instead of stating: doubling down, leap forward, transformative, next-generation, continues to evolve, substantial improvements, exciting new; and utilize, facilitate for use, help. State what shipped; don't grade it.
+- Filler for what changed: various improvements, stability improvements, quality improvements, "bug fixes and improvements". Name the change.
 - Mannered devices: "not X, but Y" framing, colon-then-reveal sentences, rhetorical questions as section openers, "Here's the thing", "It turns out", "Enter: …", em-dash asides more than once a section.
 - Throat-clearing: "In this post we will…", "This post covers…", "It's worth noting", "Let's take a look", "As mentioned above".
 - Fake precision: "~40%", "roughly 10x" without a source.

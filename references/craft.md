@@ -25,6 +25,7 @@ Each of these was in a draft that got sent back:
 - **The product as the subject of every sentence.** "Releases reads…", "Releases now sends…", "Releases keeps…". Name it once where a newcomer needs it, then say "it", "we", or the feature's own name ([section 4](#4-naming-the-product)).
 - **A calculated number dressed as a measurement.** An agent's arithmetic ("30 candidate alerts take 3 calls instead of 30") drawn as a before/after `delta`, with "(example)" in small print. The component says "we measured this"; the reader believes it. Put worked examples in a sentence, and keep measurement components for numbers someone measured.
 - **The question list as the ending.** Five open questions and three notes for the author with every draft. Each was fair; together they hand the author a to-do list. Pick the few that change the post ([section 5](#5-the-hand-off)).
+- **A motive stated as fact.** "There's no fallback model because a score from another model wouldn't mean the same thing." Plausible, and nowhere in the record. Say what the change does; a reason or a benefit goes in only when the record states it. Otherwise it's an open question, or it goes.
 
 ## 3. Titles and headings
 
@@ -32,14 +33,16 @@ The title names the capability in the reader's words. The dek (the line under it
 
 - **No product or company name in the title or a chapter heading.** The page, the site and the byline already say whose it is.
 - **The feed test.** Put the title in a list of twenty titles from other teams. If it only stands out because it names you, rewrite it. If it would read just as well with your name deleted, delete it.
-- **Concrete over clever.** A reader skimming headings should learn the post's argument from them alone. "One call per release" passes; "A smarter approach" doesn't.
+- **The reader test.** Someone who sees only the title should know what changed. "Various improvements" and a version number fail.
+- **The outcome, not a generic verb.** Lead with the specific thing and its new state. "Worktrees no longer drop unpushed commits" beats "Fixes worktree bug dropping unpushed commits". No filler ("a number of", "various").
+- **Headings make the argument.** A reader skimming only the headings should learn what shipped and why. "One call per release" passes; "A smarter approach", "Overview" and "Background" don't. A heading says what a thing does, not its code name or version; in a deep dive, or a post the author asked to be about the engineering, a heading may name the mechanism when the mechanism is the subject.
 - **Short.** About eight words for the title, fewer for headings. Cut the subtitle-after-a-colon formula unless both halves earn their place.
 
 From real drafts:
 
 | Draft | Verdict |
 |---|---|
-| Tell Releases what you care about | Sent back: the product is the second word. Try "Write a sentence, get the releases that match it". |
+| Tell Releases what you care about | Sent back: the product is the second word, and it's the subject of the reader's sentence. |
 | Fast pages that still update when a release lands | Kept: the gain and the catch (fast, yet current), no name in it. |
 | Digests, collections and changelogs now load fast | Kept: the reader's own pages, named plainly. |
 
@@ -50,7 +53,7 @@ From real drafts:
 - **"We" for decisions, not applause.** "We chose the smaller pool" carries a decision. "We're excited to announce" carries nothing.
 - **Other products by name when they matter.** A framework, a competitor or a dependency is named where the reader needs it (Next.js in a caching post). That is information, not self-promotion.
 
-`lint.mjs --product "Name"` flags the name in the title, dek and headings, and counts it in the prose.
+`lint.mjs --product "Name"` flags the name in the title and headings, flags sentences that open with it as the subject, and counts it in the prose.
 
 ## 5. The hand-off
 
@@ -61,4 +64,12 @@ The author reads the draft first and the list second, so keep the list short eno
 - **At most two notes for the author**, and only things they would act on: docs that contradict the shipped feature, an issue left open for finished work. Drop the rest.
 - **The full reasoning stays in `plan.md`.** The message that goes with the link carries only the short list.
 
-From a real hand-off: five questions became two. Kept: "why only followed releases?" (it would change chapter 1's turn) and "can we name widening as what's next?" (it would change the ending). Dropped: usage numbers (nice to have, and the post makes no claim without them), the flag state (a note, not a question, and the changelog already says the feature is live) and the reasoning behind the failure behaviour (chapter 3 already stands on what the code does).
+Which kinds survive the cut:
+
+| Kind | Keep it? |
+|---|---|
+| Why the team chose the design a chapter turns on | Yes: the answer changes that chapter's turn. |
+| Whether the post may name what's next | Yes: it changes the ending. |
+| Usage numbers the post makes no claim about | No: nice to have; the post stands without them. |
+| A flag or rollout state the changelog already settles | No: at most a note. |
+| The reasoning behind a behaviour the post describes from the code | No: the chapter stands on what the code does. |

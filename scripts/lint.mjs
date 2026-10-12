@@ -66,7 +66,18 @@ const BANNED = [
   "cutting-edge", "leverage", "leverages", "leveraging", "supercharge", "elevate", "delve", "journey",
   "deep dive", "unlock", "unlocks", "it's worth noting", "worth noting", "let's take a look", "in this post",
   "as mentioned above", "here's the thing", "it turns out", "enter:", "game changer", "best-in-class",
+  // Grading the work instead of stating it, filler for what changed, and sign-offs.
+  "doubling down", "double down", "leap forward", "transformative", "next-generation", "continues to evolve",
+  "substantial improvements", "exciting new", "utilize", "utilizes", "utilizing", "facilitate", "facilitates",
+  "various improvements", "stability improvements", "quality improvements", "bug fixes and improvements",
+  "stay tuned", "more to come", "can't wait", "excited to", "thrilled to",
 ];
+// Headings that name a section's slot instead of its claim.
+const GENERIC_HEAD = /^(overview|background|introduction|intro|conclusion|summary|wrapping up|final thoughts|results|details|the problem|the solution)$/i;
+// Code names and versions in a heading: backticks or <code>, call parens, camelCase, snake_case, v1.2.
+const IDENT_HEAD = /<code\b|`|\w\(\)|\b[a-z]+[A-Z]\w*\b|\b[a-z]+_[a-z_]+\b|\bv?\d+\.\d+(\.\d+)?\b/;
+// The record narrated item by item: "The same PR also…", "A later release fixed…".
+const BY_ITEM = /^(the same|a later|an earlier|that|the next|the following|a follow-up|a second) (pr|pull request|release|commit|patch|version)\b/i;
 const LEFTOVER = ["Author Name", "OWNER/REPO", "Turning a pile of PRs", "Build Story Template", "Umbrella issue title", "PR title —", "{{"];
 const SAFETY = [
   [/\b(sk-[A-Za-z0-9]{8,}|ghp_[A-Za-z0-9]{10,}|gho_[A-Za-z0-9]{10,}|xox[bp]-[A-Za-z0-9-]{8,}|AKIA[A-Z0-9]{12,})/g, "token-shaped string"],
@@ -106,6 +117,9 @@ for (const p of parts) {
   const n = prose.reduce((a, b) => a + words(b.t), 0);
   total += n;
   say(`── ${p.id} · ${title} · ${n} words`);
+  const headHtml = p.html.match(/<h[12][^>]*>([\s\S]*?)<\/h[12]>/)?.[1]?.replace(/<span class="n">[^<]*<\/span>/, "") ?? "";
+  if (p.id !== "opening" && GENERIC_HEAD.test(text(headHtml))) say(`  ! heading names the slot, not the claim: "${text(headHtml)}"; say what the chapter shows (craft.md)`);
+  if (p.id !== "opening" && flavor !== "deep" && IDENT_HEAD.test(headHtml)) say(`  ! heading carries a code name or version: "${text(headHtml)}"; say what it does (a deep dive may name it)`);
   // Visuals: figures that aren't code or terminal blocks (those are evidence). Viz markers count too.
   const vis = [...p.html.matchAll(/<figure\b([^>]*)>/g)].filter((m) => !/class="[^"]*\bcode\b/.test(m[1])).length;
   if (p.id !== "opening" && vis > 1) say(`  ! ${vis} visuals in one chapter; keep the one that explains the most`);
@@ -124,6 +138,7 @@ for (const p of parts) {
     if (/\bnot\s+(just\s+|only\s+)?[^.;]{1,60}?,?\s+but\b/i.test(s)) say(`  ! "not X, but Y": ${s.slice(0, 140)}`);
     if (/^[^:“"]{3,60}:\s+[A-Za-z]/.test(s) && !/^(Fig|Note|Run|Source|In|Out)\b/.test(s)) say(`  ! colon reveal?: ${s.slice(0, 140)}`);
   }
+  for (const s of allSentences) if (BY_ITEM.test(s)) say(`  ! narrates the record item by item: ${s.slice(0, 140)}`);
   const first = prose.find((b) => b.tag === "p");
   if (first && /\?$/.test(sentences(first.t)[0] ?? "")) say(`  ! opens with a question: ${first.t.slice(0, 140)}`);
 
@@ -196,6 +211,10 @@ if (product) {
   say(`Product name "${product}": ${n} in the prose${heads.length ? "" : ", none in the title or headings"}.`);
   if (heads.length) say(`! "${product}" in the title or a heading: ${heads.map((h) => `"${h}"`).join(" · ")}. Write it about what the reader gets (craft.md).`);
   if (n > Math.max(3, words(prose) / 250)) say(`! named often; once where a newcomer needs it, then "it", "we" or the feature's name (craft.md).`);
+  const esc = product.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const paras = [...body.replace(/<footer[\s\S]*?<\/footer>/g, " ").matchAll(/<(p|li)\b[^>]*>([\s\S]*?)<\/\1>/g)].flatMap((m) => sentences(text(m[2])));
+  const subj = paras.filter((x) => new RegExp(`^${esc}(?:'s|’s)?\\s+(?:now\\s+|also\\s+|still\\s+)?[a-z]+`).test(x));
+  if (subj.length) say(`! "${product}" as the subject of a sentence (${subj.length}); make the reader or the feature the subject: ${subj.slice(0, 3).map((x) => `"${x.slice(0, 70)}"`).join(" · ")}`);
   say();
 }
 
