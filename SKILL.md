@@ -43,11 +43,15 @@ Pick one in Scope. It sets the reader, the altitude and the defaults below.
 | Reader | Users and prospective users | Developers who know the product | Engineers who want the mechanism |
 | Answers | What's new, why it matters, how to use it | What we built, how it works, what shaped it | How it works inside, the trade-offs, the edge cases |
 | Altitude | Product and outcomes; internals in a sentence | Concepts and decisions; internals where they explain | Mechanisms, data structures, failure modes |
-| Length | 600–1,200 words | 1,500–2,500 words | 3,000+ words |
+| Length (ceiling, no minimum) | up to 1,200 words | up to 2,500 words | as long as it needs |
 | Visuals | Screenshots, before/after, one simple flow | Diagrams, motion, before/after | Diagrams, terminal runs, charts |
 | Code | A usage example at most | Only where the code is the idea (0–3) | Where it helps (several) |
 | Process detail | None | Only where it explains a design | Where it teaches (a reversal, a review that found a flaw) |
 | References | Docs and product links | A short "Further reading" at most | Key PRs and docs, if public |
+
+**Size it to the subject, not the flavor.** The lengths above are ceilings for a big feature, not targets. There is no minimum. A small change gets a small post: a **note** of a paragraph or three, with no chapters, no masthead and at most one visual. And some subjects don't deserve a post at all.
+
+**Say when it isn't worth a write-up.** If what you were pointed at is thin (a typo, a one-line fix, a dependency bump, an internal refactor users never see), check the nearby work first: it may be one piece of a bigger idea, and that idea is the post. If it isn't, tell the author plainly that it's not worth a post, in a sentence or two, and offer the short note or a changelog line instead. Don't over-explain something straightforward to fill a format.
 
 Ryan's anatomy post sits between build story and deep dive: technical, with real code, yet organized entirely by idea, with no dates or process narration.
 
@@ -58,7 +62,7 @@ Ryan's anatomy post sits between build story and deep dive: technical, with real
 Settle these from the request, the repo and the defaults below. Don't ask about scope on its own: if something here is truly unclear, fold it into the single message in step 3.
 
 - **Subject.** The idea the post is about, found from whatever the author points at: an umbrella issue, a PR or two, a search phrase, a commit range or a path. Those are breadcrumbs, not boundaries. A post is rarely one-to-one with a PR: related work landing around the same time (the dossier's **Nearby work**) often belongs to the same idea, and some of what was pointed at may not. Draw the boundary around the idea, and keep it a little fuzzy.
-- **Flavor.** Release story, build story or deep dive. Default: build story.
+- **Flavor.** Release story, build story or deep dive, or a short note when the subject is small. Default: build story for a real feature; size down when the subject is thin (see Flavors).
 - **Visibility.** Is the repo public? `gh repo view --json visibility -q .visibility` (the gatherer records it too). If it's private or unknown, the post links nothing internal and keeps no sources list of issues and PRs.
 - **Voice.** "I" or "we". Default: "we", in plain English (STE-lite: short sentences, active voice, one term per thing). Strict Simplified Technical English only if the author asks. See [references/story.md](references/story.md#voice).
 - **House style.** The product's exact name, terms to use and avoid, anything the project's docs fix. For a private repo, also add names that must not appear: customers, partners, suppliers, internal codenames you find in the record. Pass the avoid-list to `lint.mjs --avoid`. Paraphrase around an avoided term; never edit inside a quotation.

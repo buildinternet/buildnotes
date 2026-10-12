@@ -137,8 +137,9 @@ These read as generated or as marketing. Rewrite on sight.
 
 | Flavor | Words | Chapters | Visuals | Code blocks |
 |---|---|---|---|---|
-| Release story | 600–1,200 | 2–4 | 1–3 | 0–1 |
-| Build story | 1,500–2,500 | 4–6 | 3–5 | 0–3 |
+| Note (thin subject) | up to ~400, no minimum | none | 0–1 | 0–1 |
+| Release story | up to 1,200 | 2–4 | 1–3 | 0–1 |
+| Build story | up to 2,500 | 4–6 | 3–5 | 0–3 |
 | Deep dive | 3,000+ | 6–12 | one per chapter | as needed |
 
 Words count prose only, not code, terminals, captions, diagrams or end matter (`lint.mjs` counts this way). Code and terminal blocks are evidence, not visuals.

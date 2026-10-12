@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // lint.mjs — the mechanical half of the Check step for a build-story page.
 //
-// Usage: node lint.mjs post.html [--flavor release|build|deep] [--avoid "a,b"] [--private] [--ste]
+// Usage: node lint.mjs post.html [--flavor note|release|build|deep] [--avoid "a,b"] [--private] [--ste]
 //
 // Prints, per chapter: prose word count (code, terminals, SVG and end matter excluded),
 // banned phrasing, mannered constructions, process detail (clock times, dates, issue/PR
@@ -19,22 +19,22 @@ import { readFileSync } from "node:fs";
 const argv = process.argv.slice(2);
 const file = argv.find((a, i) => !a.startsWith("--") && !argv[i - 1]?.startsWith("--"));
 if (!file) {
-  console.error('usage: lint.mjs <post.html> [--flavor release|build|deep] [--avoid "a,b"] [--private]');
+  console.error('usage: lint.mjs <post.html> [--flavor note|release|build|deep] [--avoid "a,b"] [--private]');
   process.exit(2);
 }
 const opt = (k) => { const i = argv.indexOf(`--${k}`); return i >= 0 ? argv[i + 1] : undefined; };
 const avoid = (opt("avoid") ?? "").split(",").map((s) => s.trim()).filter(Boolean);
-const ALIAS = { note: "release", post: "build", deep: "deep", release: "release", build: "build" };
+const ALIAS = { note: "note", post: "build", deep: "deep", release: "release", build: "build" };
 const flavor = ALIAS[opt("flavor") ?? opt("size") ?? "build"] ?? "build";
 const isPrivate = argv.includes("--private");
 const MAX_SENT = argv.includes("--ste") ? 20 : 25;
 const PASSIVE = /\b(is|are|was|were|be|been|being|gets|got)\s+(\w+ly\s+)?(\w+ed|built|done|made|kept|held|sent|set|shown|seen|known|given|taken|written|found|left|run|read|told|put|cut|bound|chosen|drawn|met|paid|stored|thrown)\b/i;
 const plain = { sents: 0, words: 0, passive: 0, long: [] };
 const scan = [];
-const RANGE = { release: [600, 1200], build: [1500, 2500], deep: [3000, Infinity] }[flavor];
+const RANGE = { note: [0, 400], release: [0, 1200], build: [0, 2500], deep: [0, Infinity] }[flavor];
 // Process-detail budget for the whole post's prose: refs = issue/PR/commit references,
 // talk = sentences about reviews, merges, PRs, commits and the tools that made them.
-const BUDGET = { release: { refs: 0, talk: 1, dates: 1 }, build: { refs: 0, talk: 4, dates: 3 }, deep: { refs: 8, talk: 10, dates: 6 } }[flavor];
+const BUDGET = { note: { refs: 0, talk: 0, dates: 0 }, release: { refs: 0, talk: 1, dates: 1 }, build: { refs: 0, talk: 4, dates: 3 }, deep: { refs: 8, talk: 10, dates: 6 } }[flavor];
 const CLOCK = /\b([01]?\d|2[0-3]):[0-5]\d\b(\s?(UTC|GMT|ET|EST|EDT|PT|PST|PDT|CET|am|pm))?/g;
 const DATE = /\b(\d{1,2}\s+(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*|(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\.?\s+\d{1,2}(st|nd|rd|th)?|\d{4}-\d{2}-\d{2})\b/g;
 const REF = /(^|[\s(])#\d{2,}\b|\b[\w.-]+\/[\w.-]+#\d+\b|\b[0-9a-f]{7,12}\b(?=\s|$)/g;
@@ -142,7 +142,7 @@ for (const p of parts) {
   if (inPara > 2) say(`  ! ${inPara} bold phrases in paragraphs; keep about one per chapter (list lead-ins don't count)`);
   // Identifiers in running text (inline <code> in paragraphs and list items, not code blocks).
   const idents = [...p.html.matchAll(/<(p|li)\b[^>]*>([\s\S]*?)<\/\1>/g)].reduce((n, m) => n + (m[2].match(/<code\b/g) ?? []).length, 0);
-  const identMax = flavor === "deep" ? 12 : flavor === "release" ? 2 : 4;
+  const identMax = flavor === "deep" ? 12 : flavor === "build" ? 4 : 2;
   if (idents > identMax && !/try it|get started|how to use/i.test(title)) say(`  ! ${idents} code identifiers in the prose (aim ≤${identMax}); say what each thing does, save names for the try-it section and code blocks`);
   scan.push({ id: p.id, bold: (p.html.match(/<(strong|b)\b/g) ?? []).length, inPara, lists: (p.html.match(/<(ul|ol)\b(?![^>]*class="(timeline|steps)")/g) ?? []).length });
 
@@ -246,8 +246,8 @@ const imgs = (raw.replace(/<!--[\s\S]*?-->/g, "").match(/<img\b|<source\b[^>]*\b
 if (imgs) say(`Images: ${imgs}. The scan cannot see inside them; open each one and look for names, emails, tokens and internal URLs.`);
 
 const [lo, hi] = RANGE;
-say(`Total prose: ${total} words (${flavor}: ${lo}–${hi === Infinity ? "∞" : hi}). Captions, code, terminals, diagrams and end matter are not counted.`);
-if (total < lo * 0.85 || total > hi * 1.15) say("! length is well outside the range for this size; cut beats, not sentences");
+say(`Total prose: ${total} words (${flavor}: ${hi === Infinity ? "no limit" : `up to ${hi}`}, no minimum). Captions, code, terminals, diagrams and end matter are not counted.`);
+if (total > hi * 1.15) say("! long for this flavor; cut beats, not sentences (there is no minimum)");
 
 console.log(out.join("\n"));
 process.exit(hard ? 1 : 0);
