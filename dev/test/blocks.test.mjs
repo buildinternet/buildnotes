@@ -54,6 +54,17 @@ test("code: lines, cuts and dedent from a source", () => {
   assert.throws(() => excerpt({ file: "f.js", lines: "2-9" }, source), /has 6 lines/);
 });
 
+test("code: a start anchor finds the block, and a stray bracket warns", () => {
+  const source = "import x;\nfunction f(a) {\n  const s = \"}\";\n  if (a) {\n    return 1;\n  }\n  return 2;\n}\nconst y = 1;\n";
+  const plain = (spec) => excerpt({ file: "f.js", ...spec }, source).html.replace(/<[^>]+>/g, "");
+  assert.equal(plain({ start: "function f(" }), 'function f(a) {\n  const s = &quot;}&quot;;\n  if (a) {\n    return 1;\n  }\n  return 2;\n}');
+  assert.equal(plain({ start: "function f(", cut: "3-5" }), 'function f(a) {\n  const s = &quot;}&quot;;\n  …\n  return 2;\n}');
+  assert.equal(plain({ start: "if (a)", end: "return 2" }), "if (a) {\n  return 1;\n}\nreturn 2;");
+  assert.equal(excerpt({ file: "f.js", start: "function f(" }, source).stray, false);
+  assert.equal(excerpt({ file: "f.js", lines: "3-8" }, source).stray, true);
+  assert.throws(() => excerpt({ file: "f.js", start: "nope" }, source), /no line in f\.js contains "nope"/);
+});
+
 test("code: reads the committed file from git and captions it with the path", () => {
   const html = code({ file: "scripts/gather.mjs", rev: "2cddb0c", lines: "159-167", cut: "160-166" }, { base: root });
   assert.match(html, /<figcaption><span>scripts\/gather\.mjs<\/span><button type="button" class="copy" aria-label="Copy code">/);

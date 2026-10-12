@@ -61,6 +61,21 @@ test("a forward edge that would cross a box goes around", () => {
   assert.equal(g.edges[2].kind, "around");
 });
 
+test("stacked edge labels stay clear of each other, or warn", () => {
+  const spec = (deep) => ({
+    nodes: [{ id: "a", label: "Changelog URL" }, { id: "b", label: "Cached page" }, { id: "c", label: "Deep-link route" }, { id: "d", label: "Changelog view" }],
+    edges: [["a", "b", "no query"], ["a", "c", deep], ["b", "d"], ["c", "d"]],
+  });
+  takeWarnings();
+  const ok = render(spec("deep link"), { id: "ok" });
+  assert.deepEqual(takeWarnings(), []);
+  const v = ok.match(/<svg class="v"[\s\S]*?<\/svg>/)[0];
+  const [l1, l2] = [...v.matchAll(/<text class="edge" x="([\d.]+)"[^>]*>([^<]+)</g)].map((m) => ({ x: +m[1], text: m[2] }));
+  assert.ok(l2.x - (l1.x + l1.text.length * 6.4) > 10, "the two labels keep a gap");
+  render(spec("?path, ?offset"), { id: "long" });
+  assert.match(takeWarnings().join("\n"), /edge label "\?path, \?offset" doesn't fit beside its wire/);
+});
+
 test("bad specs fail with a message", () => {
   assert.throws(() => graph({ nodes: [] }), /nodes/);
   assert.throws(() => graph({ nodes: [{ id: "a" }], edges: [["a", "z"]] }), /unknown node "z"/);

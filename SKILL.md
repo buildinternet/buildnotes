@@ -85,7 +85,7 @@ node <skill-dir>/scripts/gather.mjs --out <work-dir>/evidence --since 2026-09-01
 node <skill-dir>/scripts/gather.mjs --out <work-dir>/evidence --issue 412 --prior "rate limit"     # earlier PRs matching this phrase
 ```
 
-It writes `dossier.md` (a skimmable digest) and `dossier.json` (everything). The digest opens with totals, hot files and **Story candidates**, then **Nearby work** (other merged PRs within `--window` days, default 2; ★n = files shared with the selected work), **Prior work**, feedback signals, cross-repo references, a timeline, and each issue and PR. Issues the selected PRs close are pulled in automatically. Almost none of this detail goes in the post.
+It writes `dossier.md` (a skimmable digest) and `dossier.json` (everything). The digest opens with totals, hot files and **Story candidates**, then **Nearby work** (other merged PRs within `--window` days, default 2; ★n = files shared with the selected work), **Prior work**, feedback signals, cross-repo references, a timeline, and each issue and PR. Issues the selected PRs close, or say they are part of ("Part of #12", "Refs #12"), are pulled in automatically; they often hold the problem statement. Almost none of this detail goes in the post.
 
 Read `dossier.md`, then the design docs it lists, then code only where a chosen idea lives. Stop when you have the story. [evidence.md](references/evidence.md)
 

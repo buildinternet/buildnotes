@@ -8,13 +8,15 @@
 //     "change": "4× faster",                  (optional; default a signed percent and the ratio)
 //     "measure": "median build, 200 runs" }   (optional; what was measured, printed small)
 // A side may carry "display" ("9.2 s") instead of being formatted from value and unit.
+// Labels over 18 characters wrap on phones and stagger the two sides, so they get a warning.
 
-import { esc, fmt, decimalsFor, share } from "./util.mjs";
+import { esc, fmt, decimalsFor, share, warn } from "./util.mjs";
 
 export function render(spec, { id = "delta" } = {}) {
   const { before: b, after: a } = spec;
   if (!b || !a) throw new Error("delta: the spec needs before and after");
   for (const s of [b, a]) if (!Number.isFinite(s.value) && !s.display) throw new Error("delta: each side needs a value (or a display string)");
+  for (const s of [b, a]) if ((s.label ?? "").length > 18) warn(`delta "${id}": label "${s.label}" wraps on phones (over 18 characters); shorten it and put the detail in "measure"`);
   const decimals = decimalsFor([b.value, a.value].filter(Number.isFinite));
   const show = (s) => s.display ?? fmt(s.value, { unit: s.unit, prefix: s.prefix, decimals });
   const numeric = Number.isFinite(b.value) && Number.isFinite(a.value) && b.value >= 0 && a.value >= 0 && (b.unit ?? "") === (a.unit ?? "");

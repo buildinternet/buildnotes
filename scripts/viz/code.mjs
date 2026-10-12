@@ -3,12 +3,17 @@
 // Spec:
 //   { "file": "src/limits/bucket.ts",   (path in the repo; it is also the caption)
 //     "lines": "12-40",                  (1-based, inclusive; default the whole file)
-//     "cut": "18-31",                    (optional; ranges inside "lines" shown as one "…" line each)
+//     or "start": "function dynamicOgImageRoutes(",  (text on the first line to show, found at rev; with no
+//        "end", the excerpt runs until its brackets close. Line numbers move between commits; text doesn't.)
+//     "end": "return found;",            (optional with start: text on the last line to show)
+//     "cut": "18-31",                    (optional; ranges inside "lines" shown as one "…" line each; with
+//                                         start, count from the excerpt's first line, which is 1)
 //     "rev": "a1b2c3d",                  (optional; default HEAD)
 //     "repo": "../../code/app",          (optional; relative to the spec file; default the current directory)
 //     "lang": "ts" }                     (optional; default from the file extension)
 // The fragment is a whole <figure class="code"> with the file path as its caption: don't wrap it.
-// Common indentation is removed. More than 15 shown lines gets a warning.
+// Common indentation is removed. More than 15 shown lines gets a warning, and so do brackets that
+// close something the excerpt never opened (usually line numbers read at another commit).
 
 import { execFileSync } from "node:child_process";
 import { resolve } from "node:path";
@@ -66,9 +71,18 @@ function read(spec, base = process.cwd()) {
 // The excerpt as HTML lines: shown lines highlighted, each cut run collapsed to one "…" line.
 export function excerpt(spec, source) {
   const all = source.replace(/\n$/, "").split("\n");
-  const want = spec.lines ? ranges(spec.lines) : all.map((_, k) => k + 1);
+  const lang = spec.lang ?? spec.file.split(".").pop();
+  let want, first = 1;
+  if (spec.start) {
+    const a = all.findIndex((l) => l.includes(spec.start));
+    if (a < 0) throw new Error(`code: no line in ${spec.file} contains "${spec.start}"`);
+    let b = spec.end ? all.findIndex((l, k) => k >= a && l.includes(spec.end)) : blockEnd(all, a, lang);
+    if (b < 0) throw new Error(`code: no line in ${spec.file} after "${spec.start}" contains ${spec.end ? `"${spec.end}"` : "the closing bracket"}`);
+    want = Array.from({ length: b - a + 1 }, (_, k) => a + 1 + k);
+    first = a + 1;
+  } else want = spec.lines ? ranges(spec.lines) : all.map((_, k) => k + 1);
   if (want.at(-1) > all.length) throw new Error(`code: ${spec.file} has ${all.length} lines; asked for ${spec.lines}`);
-  const cut = new Set(spec.cut ? ranges(spec.cut) : []);
+  const cut = new Set(spec.cut ? ranges(spec.cut).map((n) => n + first - 1) : []);
   const shown = want.filter((n) => !cut.has(n));
   const indent = Math.min(...shown.map((n) => all[n - 1]).filter((l) => l.trim()).map((l) => l.match(/^\s*/)[0].length));
   const chunks = [];
@@ -77,19 +91,45 @@ export function excerpt(spec, source) {
     if (chunks.at(-1)?.kind !== kind) chunks.push({ kind, lines: [] });
     chunks.at(-1).lines.push(all[n - 1].slice(Number.isFinite(indent) ? indent : 0));
   }
-  const lang = spec.lang ?? spec.file.split(".").pop();
   const html = chunks.map((c) => {
     if (c.kind === "show") return highlight(c.lines.join("\n"), lang);
     const pad = c.lines.find((l) => l.trim())?.match(/^\s*/)[0] ?? "";
     return `${pad}<span class="cut">…</span>`;
   }).join("\n");
-  return { html, shown: shown.length };
+  const depth = brackets(want.map((n) => all[n - 1]).join("\n"), lang);
+  return { html, shown: shown.length, stray: depth.min < 0 };
+}
+
+// Code with its comments and strings blanked, so brackets inside them don't count.
+function bare(text, lang) {
+  const L = LANGS[EXT[lang] ?? lang];
+  if (!L) return text;
+  const alts = [String.raw`"(?:\\.|[^"\\\n])*"|'(?:\\.|[^'\\\n])*'|` + "`(?:\\\\.|[^`\\\\])*`"];
+  if (L.block) alts.push(String.raw`\/\*[\s\S]*?\*\/`);
+  if (L.line) alts.push(`${L.line.replace(/[/#-]/g, "\\$&")}[^\\n]*`);
+  return text.replace(new RegExp(alts.join("|"), "g"), (m) => m.replace(/[^\n]/g, " "));
+}
+// Running bracket depth: min < 0 means a bracket closes something opened before the excerpt.
+function brackets(text, lang) {
+  let d = 0, min = 0;
+  for (const ch of bare(text, lang)) { if ("({[".includes(ch)) d++; else if (")}]".includes(ch)) min = Math.min(min, --d); }
+  return { end: d, min };
+}
+// The line where the block opened on line a closes (brackets back to zero), or -1.
+function blockEnd(all, a, lang) {
+  let d = 0, opened = false;
+  for (let k = a; k < all.length; k++) {
+    for (const ch of bare(all[k], lang)) { if ("({[".includes(ch)) { d++; opened = true; } else if (")}]".includes(ch)) d--; }
+    if (opened && d <= 0) return k;
+  }
+  return -1;
 }
 
 export function render(spec, { id = "code", base } = {}) {
   // spec.source exists for tests only; posts read from git so the excerpt is the shipped code.
-  const { html, shown } = excerpt(spec, spec.source ?? read(spec, base));
+  const { html, shown, stray } = excerpt(spec, spec.source ?? read(spec, base));
   if (shown > 15) warn(`code "${id}": ${shown} lines shown; keep it to about 15 (cut the middle with "cut")`);
+  if (stray) warn(`code "${id}": a bracket closes something the excerpt never opened; check the lines at this rev, or anchor with "start"`);
   return `<figure class="code">
   <figcaption><span>${esc(spec.file)}</span>${copyButton("Copy code")}</figcaption>
 <pre><code>${html}</code></pre>

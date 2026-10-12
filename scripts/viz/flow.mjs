@@ -198,6 +198,7 @@ function draw(g, spec, o, sid) {
   for (const n of nodes) { const [x, y] = P(n.u0, n.v0); const [w, h] = P(M, n.C); n.box = { x, y, w, h }; see(x, y); see(x + w, y + h); }
   for (const [, { pts }] of geo) for (const [x, y] of pts) see(x, y);
   const labels = [];
+  const left = Math.min(...nodes.map((n) => n.box.x)), right = Math.max(...nodes.map((n) => n.box.x + n.box.w));
   for (const e of edges) {
     if (!e.label) continue;
     const { lab } = geo.get(e);
@@ -212,11 +213,20 @@ function draw(g, spec, o, sid) {
       anchor = lab.side > 0 ? "start" : "end";
       see(x + w * lab.side, y - 9); see(x, y + 3);
     } else {
-      [x, y] = [lab.v + 6, lab.u + 4];
-      anchor = "start";
-      see(x + w, y - 9); see(x, y + 3);
+      // A straight drop: the label goes right of the wire, or left when the right runs past the
+      // boxes or into another wire or label. If neither side is clear, it stays right, with a warning.
+      y = lab.u + 4;
+      const clear = (x0, x1) => x0 >= left && x1 <= right
+        && !labels.some((l) => Math.abs(l.y - y) < 12 && l.x0 < x1 + 10 && x0 < l.x1 + 10)
+        && ![...geo].some(([f, { pts }]) => f !== e && pts.some(([ax, ay], k) => k && ax === pts[k - 1][0] && ax > x0 - 2 && ax < x1 + 2 && Math.min(ay, pts[k - 1][1]) < y + 3 && Math.max(ay, pts[k - 1][1]) > y - 9));
+      const side = clear(lab.v + 6, lab.v + 6 + w) ? 1 : clear(lab.v - 6 - w, lab.v - 6) ? -1 : 0;
+      if (!side) warn(`flow "${g.id}": edge label "${e.label}" doesn't fit beside its wire in the stacked drawing; shorten it`);
+      x = lab.v + 6 * (side || 1);
+      anchor = side < 0 ? "end" : "start";
+      see(x + w * (side || 1), y - 9); see(x, y + 3);
     }
-    labels.push({ x, y, anchor, text: e.label });
+    const [x0, x1] = anchor === "middle" ? [x - w / 2, x + w / 2] : anchor === "end" ? [x - w, x] : [x, x + w];
+    labels.push({ x, y, x0, x1, anchor, text: e.label });
   }
   const minX = Math.min(...xs), minY = Math.min(...ys);
   const dx = PAD - minX, dy = PAD - minY;

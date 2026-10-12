@@ -9,7 +9,7 @@
 // Selectors (combine freely; everything found is merged and de-duplicated):
 //   --issue 412,413        issues: body, comments, sub-issues, and merged PRs that reference them
 //   --pr 120,131           pull requests: body, branch commits, files, review threads
-//                          (issues these PRs close are pulled in too)
+//                          (issues these PRs close or are "part of" are pulled in too)
 //   --search "rate limit"  merged PRs whose title/body match (gh search syntax, up to 50)
 //   --range v1.2.0..v1.3.0    commits in a git range
 //   --path src/limits         limit --range/--since/--grep commits to a path
@@ -80,9 +80,12 @@ const { renames, headFiles } = loadRenames();
 
 for (const n of list(args.issue)) await addIssue(n, 0);
 for (const n of list(args.pr)) addPr(n);
-// Issues a selected PR closes often hold the plan and its decision tables. Pull their bodies,
-// without widening the search to every PR that mentions them.
-for (const p of [...dossier.prs]) if (p.repo === repo) for (const n of p.closes) await addIssue(n, 1, { follow: false });
+// Issues a selected PR closes, or says it is part of ("Part of #12", "Refs #12"), often hold the
+// plan, the problem statement and its numbers. Pull their bodies, without widening the search to
+// every PR that mentions them. A number that turns out to be a PR is skipped.
+for (const p of [...dossier.prs]) if (p.repo === repo) for (const n of [...p.closes, ...p.partOf]) {
+  try { await addIssue(n, 1, { follow: false }); } catch { seenIssue.delete(Number(n)); }
+}
 if (args.search) {
   const found = ghJson(["pr", "list", "-R", repo, "--state", "merged", "--limit", "50", "--search", args.search, "--json", "number"]);
   for (const { number } of found) addPr(number);
@@ -199,6 +202,7 @@ function addPr(n, r = repo) {
     changedFiles: p.changedFiles,
     labels: p.labels.map((l) => l.name),
     closes: (p.closingIssuesReferences ?? []).map((i) => i.number),
+    partOf: partOf(p.body, p.number),
     coAuthors,
     commitAuthors,
     agentSignals,
@@ -637,7 +641,8 @@ function renderMarkdown() {
     L.push(
       `${p.url} · ${p.state} · ${p.author} · opened ${p.createdAt.slice(0, 10)}${p.mergedAt ? ` · merged ${p.mergedAt.slice(0, 10)}` : ""}` +
         `${p.mergeCommit ? ` as \`${p.mergeCommit.short}\`` : ""} · +${p.additions} −${p.deletions} in ${p.changedFiles} files` +
-        `${p.closes.length ? ` · closes ${p.closes.map((n) => `#${n}`).join(", ")}` : ""}`,
+        `${p.closes.length ? ` · closes ${p.closes.map((n) => `#${n}`).join(", ")}` : ""}` +
+        `${p.partOf.length ? ` · part of ${p.partOf.map((n) => `#${n}`).join(", ")}` : ""}`,
       "",
     );
     L.push("### Description", "", trim(p.body), "");
@@ -835,6 +840,14 @@ function guessExt(u) { const e = extname(new URL(u).pathname).toLowerCase(); ret
 function extFromType(t = "") { return { "image/png": ".png", "image/jpeg": ".jpg", "image/gif": ".gif", "image/webp": ".webp", "image/svg+xml": ".svg", "video/mp4": ".mp4", "video/webm": ".webm" }[t?.split(";")[0]]; }
 function sh(cmd, a) { return execFileSync(cmd, a, { encoding: "utf8", maxBuffer: 256 * 1024 * 1024, stdio: ["ignore", "pipe", "pipe"] }); }
 function ghJson(a) { return JSON.parse(sh("gh", a)); }
+// Issues a PR body names as its parent: "Part of #12", "Refs #12", "Related to #12", "Follow-up to #12",
+// "Tracking: #12". Same-repo numbers only; closing keywords are GitHub's own list (closes).
+function partOf(body = "", self) {
+  const re = /\b(?:part of|parts? of|refs?|references|related(?: to)?|relates to|follow[- ]?up (?:to|of|for)|tracking(?: issue)?:?)\s*:?\s*((?:#\d+(?:\s*(?:,|and|&)\s*)?)+)/gi;
+  const out = new Set();
+  for (const m of String(body).matchAll(re)) for (const [, n] of m[1].matchAll(/#(\d+)/g)) if (Number(n) !== self) out.add(Number(n));
+  return [...out];
+}
 function ghJsonSafe(a) {
   try {
     const out = sh("gh", a).trim();
