@@ -20,7 +20,7 @@ mkdirSync(shots, { recursive: true });
 
 execFileSync("node", [join(root, "dev/gallery.mjs"), ...(opt("only") ? ["--only", opt("only")] : [])], { stdio: "inherit" });
 const page = `file://${join(dir, "gallery.html")}`;
-const ids = [...readFileSync(join(dir, "gallery.html"), "utf8").matchAll(/<section class="ch" id="([^"]+)"/g)].map((m) => m[1]);
+const ids = [...readFileSync(join(dir, "gallery.html"), "utf8").matchAll(/<div class="ex" id="([^"]+)"/g)].map((m) => m[1]);
 
 const ab = (...args) => execFileSync("agent-browser", ["--session", "viz-shots", ...args], { encoding: "utf8" }).trim();
 const modes = [[1280, 800, "light"], [1280, 800, "dark"], [390, 844, "light"], [390, 844, "dark"]];
@@ -41,7 +41,7 @@ try {
     for (const id of ids) {
       const file = join(shots, `${id}-${w}-${theme}.png`);
       // Show one section at a time at the top of the page: agent-browser's element shots go wrong below the fold.
-      ab("eval", `document.querySelectorAll("section.ch, .mast").forEach((s) => { s.style.display = s.id === ${JSON.stringify(id)} ? "" : "none"; }); scrollTo(0, 0); true`);
+      ab("eval", `const t = document.getElementById(${JSON.stringify(id)}); document.querySelectorAll("section.ch, .mast, .toc, .ex").forEach((s) => { s.style.display = s === t || s.contains(t) ? "" : "none"; }); scrollTo(0, 0); true`);
       ab("screenshot", `#${id} figure`, file);
       rows.push({ id, w, theme, file });
     }

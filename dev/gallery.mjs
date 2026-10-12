@@ -67,26 +67,32 @@ const specs = Object.keys(EXAMPLES).filter((f) => !only || f.startsWith(`${only}
   .sort((a, b) => ORDER.indexOf(a.split("-")[0]) - ORDER.indexOf(b.split("-")[0]));
 // Specs point at images relative to themselves; point them at the spec folder from the page instead.
 const imgBase = relative(dirname(out), specDir) || ".";
-const sections = [];
-const toc = [];
+// One section per kind, headed by the kind's name; each example is a subheading inside it.
+const byKind = new Map();
 let warned = 0;
-let lastKind;
 for (const f of specs) {
   const kind = f.split("-")[0];
   const id = f.replace(/\.\w+$/, "");
   const text = readFileSync(join(specDir, f), "utf8");
   const frag = renderKind(kind, text, { id, base: specDir }).replace(/src="img\//g, `src="${imgBase}/img/`);
   for (const w of takeWarnings()) { warned++; console.error(`! ${f}: ${w}`); }
-  const first = kind !== lastKind;
-  lastKind = kind;
-  if (first) toc.push(`<li><a href="#${id}"><span>${String(toc.length + 1).padStart(2, "0")}</span>${kind}</a></li>`);
+  const name = id.slice(kind.length + 1);
   const whole = /^(code|term)$/.test(kind);
-  sections.push(`  <section class="ch" id="${id}">
-    <h2><span class="n">${kind}</span>${esc(id.slice(kind.length + 1))}</h2>
-${first ? `    <p>${esc(ABOUT[kind] ?? "")}</p>\n` : ""}${whole ? `    ${frag}\n    <p class="label">${esc(EXAMPLES[f])}</p>` : `    <figure class="wide">\n${frag}\n      <figcaption>${esc(EXAMPLES[f])}</figcaption>\n    </figure>`}
-    <details class="spec"><summary>${esc(f)}</summary><figure class="code"><pre><code>${esc(text.trim())}</code></pre></figure></details>
-  </section>`);
+  const example = `    <div class="ex" id="${id}">
+      <h3>${esc(name[0].toUpperCase() + name.slice(1))}</h3>
+${whole ? `      ${frag}\n      <p class="label">${esc(EXAMPLES[f])}</p>` : `      <figure class="wide">\n${frag}\n        <figcaption>${esc(EXAMPLES[f])}</figcaption>\n      </figure>`}
+      <details class="spec"><summary>${esc(f)}</summary><figure class="code"><pre><code>${esc(text.trim())}</code></pre></figure></details>
+    </div>`;
+  if (!byKind.has(kind)) byKind.set(kind, []);
+  byKind.get(kind).push(example);
 }
+const kinds = [...byKind.keys()];
+const toc = kinds.map((k, i) => `<li><a href="#${k}"><span>${String(i + 1).padStart(2, "0")}</span>${k}</a></li>`);
+const sections = kinds.map((k, i) => `  <section class="ch" id="${k}">
+    <h2><span class="n">${String(i + 1).padStart(2, "0")}</span>${k}</h2>
+    <p>${esc(ABOUT[k] ?? "")}</p>
+${byKind.get(k).join("\n")}
+  </section>`);
 
 mkdirSync(dirname(out), { recursive: true });
 writeFileSync(out, `<!doctype html>
@@ -94,6 +100,12 @@ writeFileSync(out, `<!doctype html>
 <title>Build story components</title>
 ${head}
 <style>
+/* each example's parts sit in the chapter grid, so wide figures can still break out of the column */
+.ex { display: contents; }
+.ex > * { width: 100%; max-width: var(--col); margin-inline: auto; min-width: 0; }
+.ex > .wide { max-width: var(--wide); }
+.ex h3 { margin-top: 1.25rem; }
+.ex h3 + * { margin-top: -0.35rem; }
 .spec summary { cursor: pointer; font: 0.75rem var(--font-mono); color: var(--muted); }
 .spec[open] summary { margin-bottom: 0.5rem; }
 .theme { justify-self: start; font: 0.75rem var(--font-mono); color: var(--ink); background: var(--wash); border: 1px solid var(--rule); border-radius: 4px; padding: 0.3rem 0.6rem; cursor: pointer; }

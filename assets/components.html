@@ -357,6 +357,12 @@ figcaption a { color: var(--muted); }
 @media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
 </style>
 <style>
+/* each example's parts sit in the chapter grid, so wide figures can still break out of the column */
+.ex { display: contents; }
+.ex > * { width: 100%; max-width: var(--col); margin-inline: auto; min-width: 0; }
+.ex > .wide { max-width: var(--wide); }
+.ex h3 { margin-top: 1.25rem; }
+.ex h3 + * { margin-top: -0.35rem; }
 .spec summary { cursor: pointer; font: 0.75rem var(--font-mono); color: var(--muted); }
 .spec[open] summary { margin-bottom: 0.5rem; }
 .theme { justify-self: start; font: 0.75rem var(--font-mono); color: var(--ink); background: var(--wash); border: 1px solid var(--rule); border-radius: 4px; padding: 0.3rem 0.6rem; cursor: pointer; }
@@ -370,11 +376,13 @@ figcaption a { color: var(--muted); }
     <p class="byline">Write a spec in the post's <code>viz/</code> folder, put a marker where the figure goes, and run <code>node scripts/viz.mjs build post.html</code>. Regenerate this page with <code>node dev/gallery.mjs --publish</code>.</p>
     <button class="theme" type="button">Theme: auto</button>
   </header>
-  <nav class="toc" aria-label="Components"><ol><li><a href="#flow-preview"><span>01</span>flow</a></li><li><a href="#steps-pipeline"><span>02</span>steps</a></li><li><a href="#bars-budget"><span>03</span>bars</a></li><li><a href="#delta-build"><span>04</span>delta</a></li><li><a href="#line-latency"><span>05</span>line</a></li><li><a href="#options-database"><span>06</span>options</a></li><li><a href="#matrix-previews"><span>07</span>matrix</a></li><li><a href="#code-gather"><span>08</span>code</a></li><li><a href="#term-gather"><span>09</span>term</a></li><li><a href="#strip-rounds"><span>10</span>strip</a></li></ol></nav>
-  <section class="ch" id="flow-preview">
-    <h2><span class="n">flow</span>preview</h2>
+  <nav class="toc" aria-label="Components"><ol><li><a href="#flow"><span>01</span>flow</a></li><li><a href="#steps"><span>02</span>steps</a></li><li><a href="#bars"><span>03</span>bars</a></li><li><a href="#delta"><span>04</span>delta</a></li><li><a href="#line"><span>05</span>line</a></li><li><a href="#options"><span>06</span>options</a></li><li><a href="#matrix"><span>07</span>matrix</a></li><li><a href="#code"><span>08</span>code</a></li><li><a href="#term"><span>09</span>term</a></li><li><a href="#strip"><span>10</span>strip</a></li></ol></nav>
+  <section class="ch" id="flow">
+    <h2><span class="n">01</span>flow</h2>
     <p>A flow that branches, fans in or loops. One spec gives a left-to-right drawing and a stacked one for phones; the marching dashes or the dot follow the drawn lines.</p>
-    <figure class="wide">
+    <div class="ex" id="flow-preview">
+      <h3>Preview</h3>
+      <figure class="wide">
 <div class="flow" data-fold="30">
 <svg class="h" viewBox="0 0 525.6 156" width="100%" style="max-width:526px" role="img" aria-labelledby="flow-preview-h-t flow-preview-h-d">
   <title id="flow-preview-h-t">From push to preview link</title>
@@ -425,9 +433,9 @@ figcaption a { color: var(--muted); }
   <text class="edge" x="202.8" y="192" text-anchor="start">output</text>
 </svg>
 </div>
-      <figcaption>A fan-out, with marching dashes along the route.</figcaption>
-    </figure>
-    <details class="spec"><summary>flow-preview.json</summary><figure class="code"><pre><code>{
+        <figcaption>A fan-out, with marching dashes along the route.</figcaption>
+      </figure>
+      <details class="spec"><summary>flow-preview.json</summary><figure class="code"><pre><code>{
   &quot;title&quot;: &quot;From push to preview link&quot;,
   &quot;nodes&quot;: [
     { &quot;id&quot;: &quot;push&quot;, &quot;label&quot;: &quot;git push&quot;, &quot;sub&quot;: &quot;any branch&quot; },
@@ -438,10 +446,10 @@ figcaption a { color: var(--muted); }
   &quot;edges&quot;: [[&quot;push&quot;, &quot;build&quot;, &quot;webhook&quot;], [&quot;build&quot;, &quot;preview&quot;, &quot;image&quot;], [&quot;build&quot;, &quot;log&quot;, &quot;output&quot;]],
   &quot;motion&quot;: { &quot;route&quot;: [&quot;push&quot;, &quot;build&quot;, &quot;preview&quot;], &quot;style&quot;: &quot;dashes&quot; }
 }</code></pre></figure></details>
-  </section>
-  <section class="ch" id="flow-limits">
-    <h2><span class="n">flow</span>limits</h2>
-    <figure class="wide">
+    </div>
+    <div class="ex" id="flow-limits">
+      <h3>Limits</h3>
+      <figure class="wide">
 <div class="flow" data-fold="30">
 <svg class="h" viewBox="0 0 525.6 240" width="100%" style="max-width:526px" role="img" aria-labelledby="flow-limits-h-t flow-limits-h-d">
   <title id="flow-limits-h-t">Three sources of traffic share one limit</title>
@@ -488,9 +496,9 @@ figcaption a { color: var(--muted); }
   <text class="edge" x="174" y="184" text-anchor="start">allowed</text>
 </svg>
 </div>
-      <figcaption>A fan-in from three sources, with a moving dot.</figcaption>
-    </figure>
-    <details class="spec"><summary>flow-limits.json</summary><figure class="code"><pre><code>{
+        <figcaption>A fan-in from three sources, with a moving dot.</figcaption>
+      </figure>
+      <details class="spec"><summary>flow-limits.json</summary><figure class="code"><pre><code>{
   &quot;title&quot;: &quot;Three sources of traffic share one limit&quot;,
   &quot;nodes&quot;: [
     { &quot;id&quot;: &quot;web&quot;, &quot;label&quot;: &quot;Web app&quot; },
@@ -502,10 +510,10 @@ figcaption a { color: var(--muted); }
   &quot;edges&quot;: [[&quot;web&quot;, &quot;bucket&quot;], [&quot;cli&quot;, &quot;bucket&quot;], [&quot;api&quot;, &quot;bucket&quot;], [&quot;bucket&quot;, &quot;handler&quot;, &quot;allowed&quot;]],
   &quot;motion&quot;: { &quot;route&quot;: [&quot;cli&quot;, &quot;bucket&quot;, &quot;handler&quot;], &quot;style&quot;: &quot;dot&quot; }
 }</code></pre></figure></details>
-  </section>
-  <section class="ch" id="flow-retry">
-    <h2><span class="n">flow</span>retry</h2>
-    <figure class="wide">
+    </div>
+    <div class="ex" id="flow-retry">
+      <h3>Retry</h3>
+      <figure class="wide">
 <div class="flow" data-fold="38">
 <svg class="h" viewBox="0 0 577.5 192" width="100%" style="max-width:578px" role="img" aria-labelledby="flow-retry-h-t flow-retry-h-d">
   <title id="flow-retry-h-t">A failed delivery retries until it lands</title>
@@ -558,9 +566,9 @@ figcaption a { color: var(--muted); }
   <text class="edge" x="296" y="184" text-anchor="start">retry</text>
 </svg>
 </div>
-      <figcaption>A retry loop, which runs around the outside.</figcaption>
-    </figure>
-    <details class="spec"><summary>flow-retry.json</summary><figure class="code"><pre><code>{
+        <figcaption>A retry loop, which runs around the outside.</figcaption>
+      </figure>
+      <details class="spec"><summary>flow-retry.json</summary><figure class="code"><pre><code>{
   &quot;title&quot;: &quot;A failed delivery retries until it lands&quot;,
   &quot;nodes&quot;: [
     { &quot;id&quot;: &quot;queue&quot;, &quot;label&quot;: &quot;Queue&quot;, &quot;sub&quot;: &quot;outbox table&quot; },
@@ -571,10 +579,10 @@ figcaption a { color: var(--muted); }
   &quot;edges&quot;: [[&quot;queue&quot;, &quot;send&quot;, &quot;next event&quot;], [&quot;send&quot;, &quot;done&quot;, &quot;2xx&quot;], [&quot;send&quot;, &quot;wait&quot;, &quot;5xx&quot;], [&quot;wait&quot;, &quot;send&quot;, &quot;retry&quot;]],
   &quot;motion&quot;: { &quot;route&quot;: [&quot;queue&quot;, &quot;send&quot;, &quot;wait&quot;, &quot;send&quot;, &quot;done&quot;], &quot;style&quot;: &quot;dot&quot; }
 }</code></pre></figure></details>
-  </section>
-  <section class="ch" id="flow-pipeline">
-    <h2><span class="n">flow</span>pipeline</h2>
-    <figure class="wide">
+    </div>
+    <div class="ex" id="flow-pipeline">
+      <h3>Pipeline</h3>
+      <figure class="wide">
 <div class="flow" data-fold="46">
 <svg class="h" viewBox="0 0 757.6 156" width="100%" style="max-width:758px" role="img" aria-labelledby="flow-pipeline-h-t flow-pipeline-h-d">
   <title id="flow-pipeline-h-t">Pipeline from repository record to published page</title>
@@ -639,9 +647,9 @@ figcaption a { color: var(--muted); }
   <text class="edge" x="76.3" y="274" text-anchor="start">embed</text>
 </svg>
 </div>
-      <figcaption>A fan-out that joins again, with a moving dot. Used by the page template.</figcaption>
-    </figure>
-    <details class="spec"><summary>flow-pipeline.json</summary><figure class="code"><pre><code>{
+        <figcaption>A fan-out that joins again, with a moving dot. Used by the page template.</figcaption>
+      </figure>
+      <details class="spec"><summary>flow-pipeline.json</summary><figure class="code"><pre><code>{
   &quot;title&quot;: &quot;Pipeline from repository record to published page&quot;,
   &quot;nodes&quot;: [
     { &quot;id&quot;: &quot;record&quot;, &quot;label&quot;: &quot;Issues &amp; PRs&quot;, &quot;sub&quot;: &quot;git + gh&quot; },
@@ -653,20 +661,23 @@ figcaption a { color: var(--muted); }
   &quot;edges&quot;: [[&quot;record&quot;, &quot;gather&quot;, &quot;fetch&quot;], [&quot;gather&quot;, &quot;plan&quot;, &quot;read&quot;], [&quot;gather&quot;, &quot;images&quot;, &quot;download&quot;], [&quot;plan&quot;, &quot;page&quot;, &quot;write&quot;], [&quot;images&quot;, &quot;page&quot;, &quot;embed&quot;]],
   &quot;motion&quot;: { &quot;route&quot;: [&quot;record&quot;, &quot;gather&quot;, &quot;plan&quot;, &quot;page&quot;], &quot;style&quot;: &quot;dot&quot; }
 }</code></pre></figure></details>
+    </div>
   </section>
-  <section class="ch" id="steps-pipeline">
-    <h2><span class="n">steps</span>pipeline</h2>
+  <section class="ch" id="steps">
+    <h2><span class="n">02</span>steps</h2>
     <p>A straight line of steps. A row on wide screens, a column on phones; the highlight steps through the boxes.</p>
-    <figure class="wide">
+    <div class="ex" id="steps-pipeline">
+      <h3>Pipeline</h3>
+      <figure class="wide">
 <ol class="steps live" style="--n:4" aria-label="From record to page">
   <li style="--i:0"><div class="box"><b>Issues &amp; PRs</b><small>git + gh</small></div></li>
   <li style="--i:1" class="hot"><div class="box"><b>Dossier</b><small>gather.mjs</small></div></li>
   <li style="--i:2"><div class="box"><b>Story plan</b><small>plan.md</small></div></li>
   <li style="--i:3"><div class="box"><b>Page</b><small>post.html</small></div></li>
 </ol>
-      <figcaption>Four steps with the moving highlight. Used by the page template.</figcaption>
-    </figure>
-    <details class="spec"><summary>steps-pipeline.json</summary><figure class="code"><pre><code>{
+        <figcaption>Four steps with the moving highlight. Used by the page template.</figcaption>
+      </figure>
+      <details class="spec"><summary>steps-pipeline.json</summary><figure class="code"><pre><code>{
   &quot;label&quot;: &quot;From record to page&quot;,
   &quot;steps&quot;: [
     { &quot;label&quot;: &quot;Issues &amp; PRs&quot;, &quot;sub&quot;: &quot;git + gh&quot; },
@@ -676,20 +687,23 @@ figcaption a { color: var(--muted); }
   ],
   &quot;live&quot;: true
 }</code></pre></figure></details>
+    </div>
   </section>
-  <section class="ch" id="bars-budget">
-    <h2><span class="n">bars</span>budget</h2>
+  <section class="ch" id="bars">
+    <h2><span class="n">03</span>bars</h2>
     <p>Sizes or counts, drawn to scale and labelled directly. Mark one row hot to grey the rest; add a limit for a budget.</p>
-    <figure class="wide">
+    <div class="ex" id="bars-budget">
+      <h3>Budget</h3>
+      <figure class="wide">
 <div class="bars emph" role="list" style="--lw:9ch;--vw:2ch">
   <div class="row" role="listitem" style="--v:0.037"><span>Release</span><span class="track"><i></i></span><b>1</b></div>
   <div class="row" role="listitem" style="--v:0.148"><span>Build</span><span class="track"><i></i></span><b>4</b></div>
   <div class="row" role="listitem" style="--v:0.37"><span>Deep dive</span><span class="track"><i></i></span><b>10</b></div>
   <div class="row hot" role="listitem" style="--v:1"><span>Draft 1</span><span class="track"><i></i></span><b>27</b></div>
 </div>
-      <figcaption>One row marked hot; the others turn grey.</figcaption>
-    </figure>
-    <details class="spec"><summary>bars-budget.json</summary><figure class="code"><pre><code>{
+        <figcaption>One row marked hot; the others turn grey.</figcaption>
+      </figure>
+      <details class="spec"><summary>bars-budget.json</summary><figure class="code"><pre><code>{
   &quot;rows&quot;: [
     { &quot;label&quot;: &quot;Release&quot;, &quot;value&quot;: 1 },
     { &quot;label&quot;: &quot;Build&quot;, &quot;value&quot;: 4 },
@@ -697,19 +711,19 @@ figcaption a { color: var(--muted); }
     { &quot;label&quot;: &quot;Draft 1&quot;, &quot;value&quot;: 27, &quot;hot&quot;: true }
   ]
 }</code></pre></figure></details>
-  </section>
-  <section class="ch" id="bars-limit">
-    <h2><span class="n">bars</span>limit</h2>
-    <figure class="wide">
+    </div>
+    <div class="ex" id="bars-limit">
+      <h3>Limit</h3>
+      <figure class="wide">
 <div class="bars emph" role="list" style="--lw:14ch;--vw:8ch">
   <div class="row" role="listitem" style="--v:1"><span>Cold start</span><span class="track"><i></i><s class="limit" style="--l:0.543"></s></span><b>1,840 ms</b></div>
   <div class="row" role="listitem" style="--v:0.337"><span>Warm, no cache</span><span class="track"><i></i><s class="limit" style="--l:0.543"></s></span><b>620 ms</b></div>
   <div class="row hot" role="listitem" style="--v:0.052"><span>Warm, cached</span><span class="track"><i></i><s class="limit" style="--l:0.543"></s></span><b>95 ms</b></div>
   <div class="row note" aria-hidden="true"><span></span><span class="track"><em class="" style="--l:0.543">budget 1,000 ms</em></span><b></b></div>
 </div>
-      <figcaption>Values with a unit, and a limit line.</figcaption>
-    </figure>
-    <details class="spec"><summary>bars-limit.json</summary><figure class="code"><pre><code>{
+        <figcaption>Values with a unit, and a limit line.</figcaption>
+      </figure>
+      <details class="spec"><summary>bars-limit.json</summary><figure class="code"><pre><code>{
   &quot;rows&quot;: [
     { &quot;label&quot;: &quot;Cold start&quot;, &quot;value&quot;: 1840 },
     { &quot;label&quot;: &quot;Warm, no cache&quot;, &quot;value&quot;: 620 },
@@ -718,11 +732,14 @@ figcaption a { color: var(--muted); }
   &quot;unit&quot;: &quot;ms&quot;,
   &quot;limit&quot;: { &quot;value&quot;: 1000, &quot;label&quot;: &quot;budget&quot; }
 }</code></pre></figure></details>
+    </div>
   </section>
-  <section class="ch" id="delta-build">
-    <h2><span class="n">delta</span>build</h2>
+  <section class="ch" id="delta">
+    <h2><span class="n">04</span>delta</h2>
     <p>One measured change: the number before and after, the change, and two bars to scale.</p>
-    <figure class="wide">
+    <div class="ex" id="delta-build">
+      <h3>Build</h3>
+      <figure class="wide">
 <div class="delta">
   <div class="side"><span class="tag">Before</span><span class="num">38 s</span></div>
   <span class="to" aria-hidden="true">→</span>
@@ -730,19 +747,22 @@ figcaption a { color: var(--muted); }
   <div class="change"><b>4× faster</b> · median time from push to preview link, 200 builds</div>
   <div class="pair" aria-hidden="true"><i style="--v:1"></i><i class="after" style="--v:0.237"></i></div>
 </div>
-      <figcaption>A written change, and what was measured.</figcaption>
-    </figure>
-    <details class="spec"><summary>delta-build.json</summary><figure class="code"><pre><code>{
+        <figcaption>A written change, and what was measured.</figcaption>
+      </figure>
+      <details class="spec"><summary>delta-build.json</summary><figure class="code"><pre><code>{
   &quot;before&quot;: { &quot;label&quot;: &quot;Before&quot;, &quot;value&quot;: 38, &quot;unit&quot;: &quot;s&quot; },
   &quot;after&quot;: { &quot;label&quot;: &quot;As it ships&quot;, &quot;value&quot;: 9, &quot;unit&quot;: &quot;s&quot; },
   &quot;change&quot;: &quot;4× faster&quot;,
   &quot;measure&quot;: &quot;median time from push to preview link, 200 builds&quot;
 }</code></pre></figure></details>
+    </div>
   </section>
-  <section class="ch" id="line-latency">
-    <h2><span class="n">line</span>latency</h2>
+  <section class="ch" id="line">
+    <h2><span class="n">05</span>line</h2>
     <p>A trend over time: one series (two at most), the last value at the line's end, an optional marked point.</p>
-    <figure class="wide">
+    <div class="ex" id="line-latency">
+      <h3>Latency</h3>
+      <figure class="wide">
 <div class="line-box"><div class="line marked" style="--yw:3ch;--ew:6ch">
   <div class="top"><em style="--x:54.5" class="">cache on</em></div>
   <div class="yaxis" aria-hidden="true"><span style="--y:100">0</span><span style="--y:80">100</span><span style="--y:60">200</span><span style="--y:40">300</span><span style="--y:20">400</span><span style="--y:0">500</span></div>
@@ -765,19 +785,19 @@ figcaption a { color: var(--muted); }
   <div class="xaxis" aria-hidden="true"><span style="--x:0" class="at-start">1 Oct</span><span style="--x:27.3" class="odd">4 Oct</span><span style="--x:54.5" class="">7 Oct</span><span style="--x:100" class="at-end">12 Oct</span></div>
   <table class="vh"><caption>p95 response time by day</caption><thead><tr><th></th><th>p95</th></tr></thead><tbody><tr><th>1 Oct</th><td>410 ms</td></tr><tr><th>2 Oct</th><td>432 ms</td></tr><tr><th>3 Oct</th><td>398 ms</td></tr><tr><th>4 Oct</th><td>445 ms</td></tr><tr><th>5 Oct</th><td>420 ms</td></tr><tr><th>6 Oct</th><td>415 ms</td></tr><tr><th>7 Oct</th><td>180 ms</td></tr><tr><th>8 Oct</th><td>172 ms</td></tr><tr><th>9 Oct</th><td>168 ms</td></tr><tr><th>10 Oct</th><td>175 ms</td></tr><tr><th>11 Oct</th><td>171 ms</td></tr><tr><th>12 Oct</th><td>166 ms</td></tr></tbody></table>
 </div></div>
-      <figcaption>One series with a marked point.</figcaption>
-    </figure>
-    <details class="spec"><summary>line-latency.json</summary><figure class="code"><pre><code>{
+        <figcaption>One series with a marked point.</figcaption>
+      </figure>
+      <details class="spec"><summary>line-latency.json</summary><figure class="code"><pre><code>{
   &quot;title&quot;: &quot;p95 response time by day&quot;,
   &quot;x&quot;: [&quot;1 Oct&quot;, &quot;2 Oct&quot;, &quot;3 Oct&quot;, &quot;4 Oct&quot;, &quot;5 Oct&quot;, &quot;6 Oct&quot;, &quot;7 Oct&quot;, &quot;8 Oct&quot;, &quot;9 Oct&quot;, &quot;10 Oct&quot;, &quot;11 Oct&quot;, &quot;12 Oct&quot;],
   &quot;series&quot;: [{ &quot;name&quot;: &quot;p95&quot;, &quot;values&quot;: [410, 432, 398, 445, 420, 415, 180, 172, 168, 175, 171, 166] }],
   &quot;y&quot;: { &quot;unit&quot;: &quot;ms&quot; },
   &quot;mark&quot;: { &quot;at&quot;: &quot;7 Oct&quot;, &quot;label&quot;: &quot;cache on&quot; }
 }</code></pre></figure></details>
-  </section>
-  <section class="ch" id="line-two">
-    <h2><span class="n">line</span>two</h2>
-    <figure class="wide">
+    </div>
+    <div class="ex" id="line-two">
+      <h3>Two</h3>
+      <figure class="wide">
 <div class="line-box"><div class="line" style="--yw:3ch;--ew:2ch">
   <div class="legend"><span class="s"><i></i>Preview</span><span class="s dim"><i></i>Production</span></div>
   <div class="yaxis" aria-hidden="true"><span style="--y:100">0</span><span style="--y:75">100</span><span style="--y:50">200</span><span style="--y:25">300</span><span style="--y:0">400</span></div>
@@ -799,9 +819,9 @@ figcaption a { color: var(--muted); }
   <div class="xaxis" aria-hidden="true"><span style="--x:0" class="at-start">Mon</span><span style="--x:33.3" class="odd">Wed</span><span style="--x:66.7" class="">Fri</span><span style="--x:100" class="at-end">Sun</span></div>
   <table class="vh"><caption>Builds per day, preview vs production</caption><thead><tr><th></th><th>Preview</th><th>Production</th></tr></thead><tbody><tr><th>Mon</th><td>120</td><td>40</td></tr><tr><th>Tue</th><td>180</td><td>42</td></tr><tr><th>Wed</th><td>260</td><td>38</td></tr><tr><th>Thu</th><td>310</td><td>45</td></tr><tr><th>Fri</th><td>340</td><td>50</td></tr><tr><th>Sat</th><td>90</td><td>12</td></tr><tr><th>Sun</th><td>70</td><td>10</td></tr></tbody></table>
 </div></div>
-      <figcaption>Two series: the second is grey and gets a legend.</figcaption>
-    </figure>
-    <details class="spec"><summary>line-two.json</summary><figure class="code"><pre><code>{
+        <figcaption>Two series: the second is grey and gets a legend.</figcaption>
+      </figure>
+      <details class="spec"><summary>line-two.json</summary><figure class="code"><pre><code>{
   &quot;title&quot;: &quot;Builds per day, preview vs production&quot;,
   &quot;x&quot;: [&quot;Mon&quot;, &quot;Tue&quot;, &quot;Wed&quot;, &quot;Thu&quot;, &quot;Fri&quot;, &quot;Sat&quot;, &quot;Sun&quot;],
   &quot;series&quot;: [
@@ -809,11 +829,14 @@ figcaption a { color: var(--muted); }
     { &quot;name&quot;: &quot;Production&quot;, &quot;values&quot;: [40, 42, 38, 45, 50, 12, 10] }
   ]
 }</code></pre></figure></details>
+    </div>
   </section>
-  <section class="ch" id="options-database">
-    <h2><span class="n">options</span>database</h2>
+  <section class="ch" id="options">
+    <h2><span class="n">06</span>options</h2>
     <p>The turn: the options the record shows were weighed, the winner marked. Becomes cards on phones.</p>
-    <figure class="wide">
+    <div class="ex" id="options-database">
+      <h3>Database</h3>
+      <figure class="wide">
 <div class="options vtable">
 <table>
   <thead><tr><th>Option</th><th>Verdict</th><th>Why</th></tr></thead>
@@ -824,18 +847,21 @@ figcaption a { color: var(--muted); }
   </tbody>
 </table>
 </div>
-      <figcaption>The bold first cell marks the chosen row.</figcaption>
-    </figure>
-    <details class="spec"><summary>options-database.md</summary><figure class="code"><pre><code>| Option | Verdict | Why |
+        <figcaption>The bold first cell marks the chosen row.</figcaption>
+      </figure>
+      <details class="spec"><summary>options-database.md</summary><figure class="code"><pre><code>| Option | Verdict | Why |
 |---|---|---|
 | One shared database | rejected | Migrations on one branch break every other preview. |
 | **Database per branch** | chosen | Full isolation, for the cost of a copy that takes about 20 seconds. |
 | Schema per branch | rejected | Isolated tables, but extensions and roles are still shared. |</code></pre></figure></details>
+    </div>
   </section>
-  <section class="ch" id="matrix-previews">
-    <h2><span class="n">matrix</span>previews</h2>
+  <section class="ch" id="matrix">
+    <h2><span class="n">07</span>matrix</h2>
     <p>Options compared on several points, with ✓ ✗ ~ marks and short notes. Becomes cards on phones.</p>
-    <figure class="wide">
+    <div class="ex" id="matrix-previews">
+      <h3>Previews</h3>
+      <figure class="wide">
 <div class="matrix vtable">
 <table>
   <thead><tr><th></th><th>Shared DB</th><th class="hot">Per branch</th><th>Snapshots</th></tr></thead>
@@ -847,74 +873,83 @@ figcaption a { color: var(--muted); }
   </tbody>
 </table>
 </div>
-      <figcaption>The bold header marks the option built; a mark can carry a short note.</figcaption>
-    </figure>
-    <details class="spec"><summary>matrix-previews.md</summary><figure class="code"><pre><code>| | Shared DB | **Per branch** | Snapshots |
+        <figcaption>The bold header marks the option built; a mark can carry a short note.</figcaption>
+      </figure>
+      <details class="spec"><summary>matrix-previews.md</summary><figure class="code"><pre><code>| | Shared DB | **Per branch** | Snapshots |
 |---|---|---|---|
 | Isolated migrations | ✗ | ✓ | ✓ |
 | Ready in under a minute | ✓ | ~ about 20 s | ✗ 3–5 min |
 | Real data shape | ✓ | ✓ | ✓ |
 | Cleans itself up | ✓ | ✓ on branch delete | ✗ |</code></pre></figure></details>
+    </div>
   </section>
-  <section class="ch" id="code-gather">
-    <h2><span class="n">code</span>gather</h2>
+  <section class="ch" id="code">
+    <h2><span class="n">08</span>code</h2>
     <p>Real code from git at a given commit, cut to the lines that make the point. Renders the whole figure.</p>
-    <figure class="code">
+    <div class="ex" id="code-gather">
+      <h3>Gather</h3>
+      <figure class="code">
   <figcaption><span>scripts/gather.mjs</span><button type="button" class="copy" aria-label="Copy code"><svg class="idle" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5.5" y="5.5" width="8" height="8" rx="2"/><path d="M10.5 5.5V4A1.5 1.5 0 0 0 9 2.5H4A1.5 1.5 0 0 0 2.5 4v5A1.5 1.5 0 0 0 4 10.5h1.5"/></svg><svg class="done" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7"/></svg></button></figcaption>
 <pre><code><span class="k">let</span> p;
 <span class="cut">…</span>
 <span class="k">if</span> (isBotPr(p) &amp;&amp; !args[<span class="s">&quot;keep-bot-prs&quot;</span>]) <span class="k">return</span>;
 <span class="k">const</span> inline = ghJsonSafe([<span class="s">&quot;api&quot;</span>, <span class="s">`repos/${r}/pulls/${n}/comments`</span>, <span class="s">&quot;--paginate&quot;</span>]) ?? [];</code></pre>
 </figure>
-    <p class="label">Lines read from git at a pinned commit, with the middle cut.</p>
-    <details class="spec"><summary>code-gather.json</summary><figure class="code"><pre><code>{
+      <p class="label">Lines read from git at a pinned commit, with the middle cut.</p>
+      <details class="spec"><summary>code-gather.json</summary><figure class="code"><pre><code>{
   &quot;file&quot;: &quot;scripts/gather.mjs&quot;,
   &quot;repo&quot;: &quot;../..&quot;,
   &quot;rev&quot;: &quot;2cddb0c&quot;,
   &quot;lines&quot;: &quot;159-168&quot;,
   &quot;cut&quot;: &quot;160-166&quot;
 }</code></pre></figure></details>
+    </div>
   </section>
-  <section class="ch" id="term-gather">
-    <h2><span class="n">term</span>gather</h2>
+  <section class="ch" id="term">
+    <h2><span class="n">09</span>term</h2>
     <p>One command and the output lines that matter. Renders the whole figure.</p>
-    <figure class="code term">
+    <div class="ex" id="term-gather">
+      <h3>Gather</h3>
+      <figure class="code term">
   <figcaption><span>Terminal</span><button type="button" class="copy" aria-label="Copy command"><svg class="idle" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5.5" y="5.5" width="8" height="8" rx="2"/><path d="M10.5 5.5V4A1.5 1.5 0 0 0 9 2.5H4A1.5 1.5 0 0 0 2.5 4v5A1.5 1.5 0 0 0 4 10.5h1.5"/></svg><svg class="done" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7"/></svg></button></figcaption>
 <pre><code><span class="prompt">$ </span>node scripts/gather.mjs --issue 412 --out evidence
 <span class="dim">issue 412: 1 issue, 9 PRs</span>
 <span class="dim">…</span>
 <span class="dim">dossier: 6 issues · 9 PRs · 0 loose commits · 4 images → evidence/dossier.md</span></code></pre>
 </figure>
-    <p class="label">Two of four output lines kept; each gap becomes &quot;…&quot;.</p>
-    <details class="spec"><summary>term-gather.json</summary><figure class="code"><pre><code>{
+      <p class="label">Two of four output lines kept; each gap becomes &quot;…&quot;.</p>
+      <details class="spec"><summary>term-gather.json</summary><figure class="code"><pre><code>{
   &quot;cmd&quot;: &quot;node scripts/gather.mjs --issue 412 --out evidence&quot;,
   &quot;out&quot;: [&quot;issue 412: 1 issue, 9 PRs&quot;, &quot;pr 120 … pr 140&quot;, &quot;images: 4 downloaded&quot;, &quot;dossier: 6 issues · 9 PRs · 0 loose commits · 4 images → evidence/dossier.md&quot;],
   &quot;keep&quot;: &quot;1,4&quot;,
   &quot;dim&quot;: true
 }</code></pre></figure></details>
+    </div>
   </section>
-  <section class="ch" id="strip-rounds">
-    <h2><span class="n">strip</span>rounds</h2>
+  <section class="ch" id="strip">
+    <h2><span class="n">10</span>strip</h2>
     <p>Before/after, or a progression of up to four rounds: images, code or terminal output.</p>
-    <figure class="wide">
+    <div class="ex" id="strip-rounds">
+      <h3>Rounds</h3>
+      <figure class="wide">
 <div class="strip-box"><div class="strip" style="--n:3">
   <div class="frame"><span class="tag">Round one</span><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA4MDAgNDUwIiBmb250LWZhbWlseT0iSGVsdmV0aWNhLCBBcmlhbCwgc2Fucy1zZXJpZiI+CjxyZWN0IHdpZHRoPSI4MDAiIGhlaWdodD0iNDUwIiBmaWxsPSIjZmZmZmZmIi8+CjxyZWN0IHg9IjAiIHk9IjAiIHdpZHRoPSI4MDAiIGhlaWdodD0iNTIiIGZpbGw9IiNmMWYzZjUiLz48Y2lyY2xlIGN4PSIyOCIgY3k9IjI2IiByPSI2IiBmaWxsPSIjZDBkNGQ5Ii8+PGNpcmNsZSBjeD0iNDgiIGN5PSIyNiIgcj0iNiIgZmlsbD0iI2QwZDRkOSIvPjxjaXJjbGUgY3g9IjY4IiBjeT0iMjYiIHI9IjYiIGZpbGw9IiNkMGQ0ZDkiLz4KPHRleHQgeD0iNDAiIHk9IjEwMCIgZm9udC1zaXplPSIyNiIgZm9udC13ZWlnaHQ9IjcwMCIgZmlsbD0iIzE2MTkxZCI+VGhpcyB3ZWVrPC90ZXh0Pgo8ZyBmaWxsPSIjNWI2MzZlIiBmb250LXNpemU9IjE3Ij48dGV4dCB4PSI0MCIgeT0iMTUwIj7igKIgQWNtZSBDTEkgMi4zLjEg4oCUIGZpeGVzPC90ZXh0Pjx0ZXh0IHg9IjQwIiB5PSIxODUiPuKAoiBBY21lIENMSSAyLjMuMiDigJQgZml4ZXM8L3RleHQ+PHRleHQgeD0iNDAiIHk9IjIyMCI+4oCiIEFjbWUgQ0xJIDIuMy4zIOKAlCBmaXhlczwvdGV4dD48dGV4dCB4PSI0MCIgeT0iMjU1Ij7igKIgV2lkZ2V0IFNESyA0LjAg4oCUIG5ldyBkZWZhdWx0IG1vZGVsPC90ZXh0Pjx0ZXh0IHg9IjQwIiB5PSIyOTAiPuKAoiBBY21lIENMSSAyLjMuNCDigJQgZml4ZXM8L3RleHQ+PHRleHQgeD0iNDAiIHk9IjMyNSI+4oCiIEFjbWUgQ0xJIDIuMy41IOKAlCBmaXhlczwvdGV4dD48L2c+Cjwvc3ZnPgo=" alt="A plain list of releases, mostly small fixes, with one big launch buried in the middle." width="800" height="450"></div>
   <div class="frame"><span class="tag">Round two</span><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA4MDAgNDUwIiBmb250LWZhbWlseT0iSGVsdmV0aWNhLCBBcmlhbCwgc2Fucy1zZXJpZiI+CjxyZWN0IHdpZHRoPSI4MDAiIGhlaWdodD0iNDUwIiBmaWxsPSIjZmZmZmZmIi8+CjxyZWN0IHg9IjAiIHk9IjAiIHdpZHRoPSI4MDAiIGhlaWdodD0iNTIiIGZpbGw9IiNmMWYzZjUiLz48Y2lyY2xlIGN4PSIyOCIgY3k9IjI2IiByPSI2IiBmaWxsPSIjZDBkNGQ5Ii8+PGNpcmNsZSBjeD0iNDgiIGN5PSIyNiIgcj0iNiIgZmlsbD0iI2QwZDRkOSIvPjxjaXJjbGUgY3g9IjY4IiBjeT0iMjYiIHI9IjYiIGZpbGw9IiNkMGQ0ZDkiLz4KPHRleHQgeD0iNDAiIHk9IjEwMCIgZm9udC1zaXplPSIyNiIgZm9udC13ZWlnaHQ9IjcwMCIgZmlsbD0iIzE2MTkxZCI+VGhpcyB3ZWVrPC90ZXh0Pgo8cmVjdCB4PSI0MCIgeT0iMTI1IiB3aWR0aD0iNDYwIiBoZWlnaHQ9IjI2MCIgcng9IjgiIGZpbGw9IiNkZmU4ZmEiLz48dGV4dCB4PSI2MCIgeT0iMTY1IiBmb250LXNpemU9IjIwIiBmb250LXdlaWdodD0iNzAwIiBmaWxsPSIjMTYxOTFkIj5BY21lIENMSTwvdGV4dD48dGV4dCB4PSI2MCIgeT0iMTkyIiBmb250LXNpemU9IjE1IiBmaWxsPSIjNWI2MzZlIj42IHJlbGVhc2VzPC90ZXh0PjxyZWN0IHg9IjUxMCIgeT0iMTI1IiB3aWR0aD0iMjUwIiBoZWlnaHQ9IjI2MCIgcng9IjgiIGZpbGw9IiNlYWVkZjAiLz48dGV4dCB4PSI1MzAiIHk9IjE2NSIgZm9udC1zaXplPSIyMCIgZm9udC13ZWlnaHQ9IjcwMCIgZmlsbD0iIzE2MTkxZCI+V2lkZ2V0IFNESzwvdGV4dD48dGV4dCB4PSI1MzAiIHk9IjE5MiIgZm9udC1zaXplPSIxNSIgZmlsbD0iIzViNjM2ZSI+MSByZWxlYXNlPC90ZXh0Pgo8L3N2Zz4K" alt="Tiles sized by release count: the product with six fix releases gets the biggest tile." width="800" height="450"></div>
   <div class="frame"><span class="tag after">As it ships</span><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA4MDAgNDUwIiBmb250LWZhbWlseT0iSGVsdmV0aWNhLCBBcmlhbCwgc2Fucy1zZXJpZiI+CjxyZWN0IHdpZHRoPSI4MDAiIGhlaWdodD0iNDUwIiBmaWxsPSIjZmZmZmZmIi8+CjxyZWN0IHg9IjAiIHk9IjAiIHdpZHRoPSI4MDAiIGhlaWdodD0iNTIiIGZpbGw9IiNmMWYzZjUiLz48Y2lyY2xlIGN4PSIyOCIgY3k9IjI2IiByPSI2IiBmaWxsPSIjZDBkNGQ5Ii8+PGNpcmNsZSBjeD0iNDgiIGN5PSIyNiIgcj0iNiIgZmlsbD0iI2QwZDRkOSIvPjxjaXJjbGUgY3g9IjY4IiBjeT0iMjYiIHI9IjYiIGZpbGw9IiNkMGQ0ZDkiLz4KPHRleHQgeD0iNDAiIHk9IjEwMCIgZm9udC1zaXplPSIyNiIgZm9udC13ZWlnaHQ9IjcwMCIgZmlsbD0iIzE2MTkxZCI+VGhpcyB3ZWVrPC90ZXh0Pgo8cmVjdCB4PSI0MCIgeT0iMTI1IiB3aWR0aD0iNDIwIiBoZWlnaHQ9IjI2MCIgcng9IjgiIGZpbGw9IiNkZmU4ZmEiLz48dGV4dCB4PSI2MCIgeT0iMTY1IiBmb250LXNpemU9IjIwIiBmb250LXdlaWdodD0iNzAwIiBmaWxsPSIjMTYxOTFkIj5XaWRnZXQgU0RLPC90ZXh0Pjx0ZXh0IHg9IjYwIiB5PSIxOTIiIGZvbnQtc2l6ZT0iMTUiIGZpbGw9IiM1YjYzNmUiPk5ldyBkZWZhdWx0IG1vZGVsPC90ZXh0PjxyZWN0IHg9IjQ3MCIgeT0iMTI1IiB3aWR0aD0iMjkwIiBoZWlnaHQ9IjEyNSIgcng9IjgiIGZpbGw9IiNlYWVkZjAiLz48dGV4dCB4PSI0OTAiIHk9IjE2MyIgZm9udC1zaXplPSIxOCIgZm9udC13ZWlnaHQ9IjcwMCIgZmlsbD0iIzE2MTkxZCI+QWNtZSBDTEk8L3RleHQ+PHRleHQgeD0iNDkwIiB5PSIxODgiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IiM1YjYzNmUiPjYgZml4IHJlbGVhc2VzPC90ZXh0PjxyZWN0IHg9IjQ3MCIgeT0iMjYwIiB3aWR0aD0iMjkwIiBoZWlnaHQ9IjEyNSIgcng9IjgiIGZpbGw9IiNlYWVkZjAiLz48dGV4dCB4PSI0OTAiIHk9IjI5OCIgZm9udC1zaXplPSIxOCIgZm9udC13ZWlnaHQ9IjcwMCIgZmlsbD0iIzE2MTkxZCI+RG9jczwvdGV4dD48dGV4dCB4PSI0OTAiIHk9IjMyMyIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzViNjM2ZSI+MiB1cGRhdGVzPC90ZXh0Pgo8L3N2Zz4K" alt="Tiles sized by impact: the product with the new default model gets the biggest tile." width="800" height="450"></div>
 </div></div>
-      <figcaption>Three rounds of a design, as images.</figcaption>
-    </figure>
-    <details class="spec"><summary>strip-rounds.json</summary><figure class="code"><pre><code>{
+        <figcaption>Three rounds of a design, as images.</figcaption>
+      </figure>
+      <details class="spec"><summary>strip-rounds.json</summary><figure class="code"><pre><code>{
   &quot;frames&quot;: [
     { &quot;label&quot;: &quot;Round one&quot;, &quot;src&quot;: &quot;img/round-1.svg&quot;, &quot;alt&quot;: &quot;A plain list of releases, mostly small fixes, with one big launch buried in the middle.&quot;, &quot;width&quot;: 800, &quot;height&quot;: 450 },
     { &quot;label&quot;: &quot;Round two&quot;, &quot;src&quot;: &quot;img/round-2.svg&quot;, &quot;alt&quot;: &quot;Tiles sized by release count: the product with six fix releases gets the biggest tile.&quot;, &quot;width&quot;: 800, &quot;height&quot;: 450 },
     { &quot;label&quot;: &quot;As it ships&quot;, &quot;src&quot;: &quot;img/round-3.svg&quot;, &quot;alt&quot;: &quot;Tiles sized by impact: the product with the new default model gets the biggest tile.&quot;, &quot;width&quot;: 800, &quot;height&quot;: 450 }
   ]
 }</code></pre></figure></details>
-  </section>
-  <section class="ch" id="strip-filter">
-    <h2><span class="n">strip</span>filter</h2>
-    <figure class="wide">
+    </div>
+    <div class="ex" id="strip-filter">
+      <h3>Filter</h3>
+      <figure class="wide">
 <div class="strip-box"><div class="strip" style="--n:2">
   <div class="frame"><span class="tag">Before · first run</span><figure class="code term"><pre><code>Images:
 - …/open-in-web-dark.png
@@ -923,14 +958,15 @@ figcaption a { color: var(--muted); }
 (none: this feature has no screenshots,
  so the post captures fresh ones)</code></pre></figure></div>
 </div></div>
-      <figcaption>Before and after, as terminal output.</figcaption>
-    </figure>
-    <details class="spec"><summary>strip-filter.json</summary><figure class="code"><pre><code>{
+        <figcaption>Before and after, as terminal output.</figcaption>
+      </figure>
+      <details class="spec"><summary>strip-filter.json</summary><figure class="code"><pre><code>{
   &quot;frames&quot;: [
     { &quot;label&quot;: &quot;Before · first run&quot;, &quot;term&quot;: { &quot;out&quot;: [&quot;Images:&quot;, &quot;- …/open-in-web-dark.png&quot;, &quot;- …/open-in-cursor-dark.png&quot;] } },
     { &quot;label&quot;: &quot;After · with the filter&quot;, &quot;term&quot;: { &quot;out&quot;: [&quot;Images:&quot;, &quot;(none: this feature has no screenshots,&quot;, &quot; so the post captures fresh ones)&quot;] } }
   ]
 }</code></pre></figure></details>
+    </div>
   </section>
 </article>
 <script>
