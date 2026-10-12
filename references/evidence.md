@@ -65,7 +65,7 @@ A runner's own summary (`12 pass · 0 fail`, `audit passed`) is often the whole 
 
 ## When sources disagree
 
-Issues stay open after the work ships; docs lag the code; a PR body states the plan, not what merged. For any claim about status (shipped, released, live, default-on), check the code on the default branch, the release or tag, and the public docs, and trust them in that order for what exists, and the docs for what users are told. Note the disagreement in `plan.md` and tell the author which source is stale; that's useful to them even if it never reaches the post.
+Issues stay open after the work ships; docs lag the code; a PR body states the plan, not what merged. For any claim about status (shipped, released, live, default-on), check the code on the default branch, the release or tag, and the public docs, and trust them in that order for what exists, and the docs for what users are told. **Merged is not live.** For a hosted product, a merged PR may not be deployed yet. Before the post says users can do something, check the surface they'd use: the deployed API or MCP tool list, the CLI's published version, the public page. If you can't confirm it, say what you can ("merged, rolling out") and tell the author. Note the disagreement in `plan.md` and tell the author which source is stale; that's useful to them even if it never reaches the post.
 
 ## Things the record can't tell you
 
