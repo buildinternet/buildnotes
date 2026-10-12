@@ -51,6 +51,7 @@ For a longer explainer clip (20 s+, narrated or captioned), a video tool such as
 
 ## Screenshots and recordings
 
+- **Crop to the subject.** A PR screenshot often shows the feature in one corner of a wide frame. Crop to the part the caption talks about before using it (`sips -c <h> <w> --cropOffset <y> <x> in.png --out out.png` on macOS, or ImageMagick `magick in.png -crop WxH+X+Y out.png`).
 - **From the record**: `gather.mjs --download` saves images embedded in PR and issue bodies to `evidence/assets/` and notes which PR each came from. These are often the best before/after material, because they were taken at the time.
 - **No access**: if the screen you'd want sits behind a sign-in you shouldn't use, or the feature has no UI, use the PR's own screenshots, a diagram, or a terminal run of the same behaviour. Don't sign in to anything to get a shot.
 - **Fresh captures**: run the app (or open the live site) with whatever browser tool the session has, and capture the element, not the whole window. After each capture, open the image and check it shows what the caption will say; the first capture is often the wrong scroll position. Use a fixed viewport (1280×800 desktop, 390×844 phone), the light theme unless dark is the point, and real-looking data. Crop tight; add a 1px border in the page via `figure.shot`.

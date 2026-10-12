@@ -32,7 +32,8 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import { join, extname } from "node:path";
 
 const args = parseArgs(process.argv.slice(2));
-if (!args.out) die("missing --out <dir>");
+if (args.help || args.h) { process.stdout.write(readFileSync(new URL(import.meta.url), "utf8").split("\n").filter((l) => l.startsWith("//")).map((l) => l.replace(/^\/\/ ?/, "")).join("\n") + "\n"); process.exit(0); }
+if (!args.out) die("missing --out <dir> (see --help)");
 const BODY_CHARS = Number(args["body-chars"] ?? 2500);
 const repo = args.repo ?? sh("gh", ["repo", "view", "--json", "nameWithOwner", "-q", ".nameWithOwner"]).trim();
 const TZ = typeof args.tz === "string" ? args.tz : null;
