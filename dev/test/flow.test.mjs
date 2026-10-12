@@ -96,3 +96,11 @@ test("build renders markers in place, stamps a hash, and is idempotent", () => {
   assert.match(build(once.html, dir, { check: true }).problems[0], /changed since the last render/);
   assert.match(build(post, dir, { check: true }).problems[0], /not rendered yet/);
 });
+
+test("fold buckets stop at what a wide figure can hold", () => {
+  const spec = { nodes: ["a", "b", "c", "d", "e"].map((id) => ({ id, label: `A long label ${id}`, sub: "and a sub label" })), edges: [["a", "b"], ["b", "c"], ["c", "d"], ["d", "e"]] };
+  takeWarnings();
+  const html = render(spec, { id: "wide" });
+  const fold = Number(html.match(/data-fold="(\d+)"/)[1]);
+  assert.ok([30, 38, 46, 52].includes(fold), `fold ${fold} is a bucket a figure can reach`);
+});

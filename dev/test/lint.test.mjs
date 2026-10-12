@@ -74,3 +74,12 @@ test("headings, grading phrases, item-by-item narration and the product as subje
   assert.match(out, /"Acme" as the subject of a sentence \(1\)/);
   assert.doesNotMatch(lint(join(dir, "p.html"), "--flavor", "deep", "--offline"), /code name or version/);
 });
+
+test("a flow wider than the column needs a wide figure", () => {
+  const dir = mkdtempSync(join(tmpdir(), "lint-wide-"));
+  const flow = (fold) => `<div class="flow" data-fold="${fold}"><svg class="h"></svg><svg class="v"></svg></div>`;
+  writeFileSync(join(dir, "p.html"), `<article class="post"><section class="ch" id="c1"><h2>One</h2><p>Text.</p><figure>${flow(46)}</figure><figure class="wide">${flow(52)}</figure><figure>${flow(38)}</figure></section></article>`);
+  const out = lint(join(dir, "p.html"), "--offline");
+  assert.equal(out.match(/a flow needs a wide figure/g)?.length, 1);
+  assert.match(out, /data-fold 46/);
+});

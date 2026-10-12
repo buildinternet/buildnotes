@@ -23,8 +23,10 @@ export function render(spec, opts = {}) {
   const v = draw(g, spec, "v", `${id}-v`);
   // Show the stacked drawing when the wide one would shrink below ~88% (13px labels → 11.4px).
   const need = (h.w * 0.88) / 16;
-  const fold = [30, 38, 46, 54].find((t) => t >= need) ?? 54;
-  if (need > 54) warn(`flow "${id}": the wide drawing is ${Math.round(h.w)} units across and shrinks on most screens; use fewer ranks or split it`);
+  // Buckets are the .flow box's inner width (rem) in a column figure (38) up to a wide one (52, i.e.
+  // 54rem less padding): a bucket above 52 could never show the wide drawing.
+  const fold = [30, 38, 46, 52].find((t) => t >= need) ?? 52;
+  if (need > 52) warn(`flow "${id}": the wide drawing is ${Math.round(h.w)} units across, too wide for any figure, so only the stacked drawing shows; use fewer ranks, shorter labels, or "steps" for a straight line`);
   if (v.w > PHONE + 2 * PAD + 4) warn(`flow "${id}": the stacked drawing is ${Math.round(v.w)} units across (phone budget ${PHONE + 2 * PAD}); shorten labels or use fewer lanes`);
   return `<div class="flow" data-fold="${fold}">\n${h.svg}\n${v.svg}\n</div>`;
 }

@@ -290,6 +290,10 @@ if (vizSpecs.length) {
   say(`Components: ${vizSpecs.length} rendered from specs (tick their numbers in the specs): ${vizSpecs.join(" · ")}`);
   for (const p of viz.problems) say(`  ! ${p}${/changed|not rendered/.test(p) ? " (run viz.mjs build)" : ""}`);
 }
+// A flow wider than the reading column shows its stacked drawing on desktop unless its figure is wide.
+for (const m of raw.matchAll(/<figure\b([^>]*)>(?:(?!<\/figure>)[\s\S])*?<div class="flow" data-fold="(46|52)"/g)) {
+  if (!/class="[^"]*\bwide\b/.test(m[1])) say(`! a flow needs a wide figure (data-fold ${m[2]}); use <figure class="wide">, or the stacked drawing shows on desktop too`);
+}
 if (/<!-- viz \w+ specs\//.test(raw)) { hard++; say("✗ viz markers still point at the template's example specs (specs/…); write your own in viz/"); }
 const live = raw.replace(/<!--[\s\S]*?-->/g, "");
 for (const m of live.matchAll(/<div class="flow"[^>]*>([\s\S]*?)<\/div>/g)) {
