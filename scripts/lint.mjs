@@ -68,7 +68,8 @@ const strip = (s) => s
   .replace(/<(style|script|svg|pre)\b[\s\S]*?<\/\1>/gi, " ");
 const text = (s) => s.replace(/<[^>]+>/g, " ").replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&[#a-z0-9]+;/gi, "'").replace(/\s+/g, " ").trim();
 const words = (s) => (s.match(/[A-Za-z0-9][A-Za-z0-9'’.,-]*/g) ?? []).length;
-const sentences = (s) => s.split(/(?<=[.!?])\s+(?=[A-Z0-9#“"(])/).map((x) => x.trim()).filter(Boolean);
+// A sentence ends at . ! or ?, plus any closing quotes or brackets after it ("done.” Next").
+const sentences = (s) => s.split(/(?<=[.!?][”’"')\]]*)\s+(?=[A-Z0-9#“‘"(])/).map((x) => x.trim()).filter(Boolean);
 
 // Opt-in modules (aside.module) are appendix material: excluded from word counts and the process budget.
 const modules = [...html.matchAll(/<aside class="module"[^>]*data-module="([^"]+)"/g)].map((m) => m[1]);
