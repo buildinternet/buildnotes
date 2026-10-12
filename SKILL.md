@@ -23,7 +23,7 @@ Each rule carries the fault that taught it.
 
 - **Earn every detail.** Before keeping any detail (a date, a number, a quote, a tool name, a review comment, a code excerpt), ask: would the reader understand the feature or its design less without it? If not, cut it, however true or interesting it is. Nothing in the record is owed a place in the post. *(Fault: an adversarial-review quote that added color and no understanding.)*
 - **Ideas, not chronology.** Chapters are concepts, challenges or parts of the system, never days or PRs. Mention timing only when it is the point ("it shipped in a week because the write path already existed"), and then in days, never minutes. *(Fault: "At 14:56 UTC the decision went the other way; the API half merged at 15:33.")*
-- **The reader's problem first, the system second.** Open with what the reader would recognize: what was slow, missing, fragile or confusing, and what they can do now. Internal names come later, glossed once. *(Fault: an opening paragraph about Durable Objects in a post about publishing changelogs.)*
+- **Lead with what people can do.** The headline is the capability users see, not the mechanism behind it; the mechanism leads only in a deep dive, when the author asks, or when it *is* what users touch. Open with what the reader would recognize: what was slow, missing or fragile, and what they can do now. Internal names come later, glossed once. *(Fault: a post about pushing release notes from GitHub whose centerpiece was how CI tokens are scoped.)*
 - **Show the turn, briefly.** The chapters that matter name a decision, the alternative that lost, and why, in a few sentences. That is strategy, and readers want it. How the team got there (meetings, reviews, reversals) belongs in the post only when the path itself teaches something. *(Fault: "we added publish tokens" with no word on why not reuse API keys.)*
 - **Process detail is optional.** Review comments, which tools or agents did the work, PR counts and timelines are never required. Light iteration labels are fine and often useful ("round one", "a later pass", "as it ships"), especially on a before/after or a progression of screenshots. Clock times and commit-by-commit narration are not. Include one when it changes the reader's picture: a review that found a flaw the reader would otherwise wonder about, a reversal that explains an odd-looking design. *(Fault: three review quotes in a row, each crediting a reviewer, none needed to understand the design.)*
 - **References are rare and reachable.** Link only what the reader can open and would want to: public docs, the product, the open-source repo, at most a handful of key PRs in a deep dive. In a private project, link nothing internal (issues, PRs, commits, internal docs, dashboards). The prose never depends on a link. *(Fault: a superscript issue number on every other paragraph of a post about a closed-source product.)*
@@ -59,7 +59,7 @@ Settle these, inferring what you can and asking only for what you can't:
 - **Subject.** Which feature, as concrete selectors: an umbrella issue, a PR list, a search phrase, a commit range or a path.
 - **Flavor.** Release story, build story or deep dive. Default: build story.
 - **Visibility.** Is the repo public? `gh repo view --json visibility -q .visibility` (the gatherer records it too). If it's private or unknown, the post links nothing internal and keeps no sources list of issues and PRs.
-- **Voice and reader.** "I" or "we", and who reads it. Default: "we", for developers who might use the feature, in plain English (STE-lite: short sentences, active voice, one term per thing). Strict Simplified Technical English only if the author asks. See [references/story.md](references/story.md#voice).
+- **Voice.** "I" or "we". Default: "we", in plain English (STE-lite: short sentences, active voice, one term per thing). Strict Simplified Technical English only if the author asks. See [references/story.md](references/story.md#voice).
 - **House style.** The product's exact name, terms to use and avoid, anything the project's docs fix. Pass the avoid-list to `lint.mjs --avoid`. Paraphrase around an avoided term; never edit inside a quotation.
 - **Modules.** Standard opt-in extras that sit after the story as an appendix: a PR-by-PR build log, process numbers, a by-day timeline, review notes, a how-it-was-made note, a sources list. All off by default. Include the ones the author asks for. Offer one in a single line only when the evidence makes it unusually good. Menu and how to add each: [references/modules.md](references/modules.md).
 - **Disclosure.** If the record shows coding agents or automated reviewers did part of the work, ask whether the post should say so. Default: say nothing unless a specific review is part of the story; an author who wants it gets the `how-made` module.
@@ -80,28 +80,32 @@ It writes `dossier.md` (a skimmable digest) and `dossier.json` (everything, unab
 
 Read in this order and stop when you have the story: `dossier.md` → the design docs it lists → the hot files, only where a chosen idea lives. Details: [references/evidence.md](references/evidence.md).
 
-### 3. Find the story
+### 3. Frame the story with the author
 
-Before writing, put a **story plan** in the work dir (`plan.md`):
+Before planning beats, decide which story this is. Draft a **brief** from the evidence: the headline (what people can do now), the starting point and endpoint from the user's side, prior context (is this new, or an iteration on something people already know?), the audience (technical or not), and the supporting cast versus what's out of frame. Then confirm it with the author in one message of up to five questions, each carrying your proposed answer. Always confirm the headline and the audience. If you can't ask, mark your proposals *assumed*. Fields, examples and how to ask: [references/brief.md](references/brief.md).
 
-1. **Thesis.** One sentence the reader could repeat: "Teams can now publish release notes from CI, and the hard part was deciding what a CI token may do."
+### 4. Plan the beats
+
+Under the brief in `plan.md`, put the **story plan**:
+
+1. **Thesis.** One sentence the reader could repeat, running from the brief's starting point to its endpoint: "Your changelog used to reach Release Notes Index hours late; now your CI pushes it the moment you merge."
 2. **Beats.** One per chapter (the flavor sets how many), each with: the idea, the decision and the alternative if there is one, the evidence, and the **reader takeaway** (what the reader understands after it). A beat with no takeaway gets cut.
 3. **Cuts.** What you're leaving out and why. Most of the dossier lands here: the sequence of events, who reviewed what, timestamps, PR-by-PR detail.
 4. **Open questions.** Gaps only the author can fill.
 
 Shapes, altitude examples and voice: [references/story.md](references/story.md).
 
-**Ask the author** up to three questions from the open-questions list (why this approach over the obvious one, what surprised you, what you'd do differently), unless they've said to go ahead without asking. **If you can't ask**, keep the list in `plan.md`, note under each question the claim you did *not* make because of it, and deliver the list with the draft.
+Questions that come up while planning go on the open-questions list. Don't ask a second round unless an answer would change the headline or a chapter. **If you can't ask**, note under each question the claim you did *not* make because of it, and deliver the list with the draft.
 
-### 4. Plan and make the visuals
+### 5. Make the visuals
 
 For each beat, decide whether a visual earns its place: a step flow or diagram, a simple motion, a before/after pair, a screenshot of what the reader will see, a chart, or an image already in a PR. Code and terminal blocks are evidence, not visuals. Make the visuals before writing the prose around them. Patterns and capture recipes: [references/visuals.md](references/visuals.md).
 
-### 5. Write the page
+### 6. Write the page
 
 Copy [assets/template.html](assets/template.html) into the work dir as `post.html` and replace its example content. Its components are a toolbox, not a checklist. Most posts use four or five of them and delete the rest. The template has: masthead, chapters, options table, step flow, SVG diagram, before/after, screenshot frame, code and terminal blocks, bars, quote-and-change list, timeline, notes and further reading. Opted-in modules go after the last chapter: generate the data ones with `node <skill-dir>/scripts/module.mjs <build-log|numbers|timeline> <work-dir>/evidence/dossier.json` and paste the fragment in. If the project has its own brand or design system, restyle the `:root` tokens to match it.
 
-### 6. Check
+### 7. Check
 
 Start with the linter:
 
@@ -116,7 +120,7 @@ It prints prose words per chapter, banned phrasing, mannered constructions, proc
 - **Safety pass.** Read every safety hit, reread each code and terminal block, and open every image.
 - **Render pass.** Open the page once at desktop and phone width, in light and dark. Recipe: [references/visuals.md](references/visuals.md#checking-the-render).
 
-### 7. Publish
+### 8. Publish
 
 Embed local images first, because an artifact page can't load images from other hosts:
 
@@ -134,6 +138,7 @@ Publish `post.published.html` as a private Artifact (title = the post's name) an
 - `scripts/module.mjs` — render an opt-in module (build log, numbers, timeline) from the dossier
 - `assets/template.html` — page template and component toolbox
 - `references/evidence.md` — what to read, what to skip, mining the record
+- `references/brief.md` — the story brief: headline, start and end, prior context, audience, and the questions to ask the author
 - `references/story.md` — shapes, altitude, voice and banned phrasing
 - `references/visuals.md` — diagram, motion, screenshot and chart patterns
 - `references/modules.md` — the opt-in module menu, placement rules, and when to add a module

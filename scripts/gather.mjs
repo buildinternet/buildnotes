@@ -89,6 +89,7 @@ dossier.timeline = timeline();
 dossier.feedbackSignals = feedbackSignals();
 dossier.crossRepo = crossRepoRefs();
 dossier.storyCandidates = storyCandidates();
+dossier.priorWork = priorWork();
 
 mkdirSync(args.out, { recursive: true });
 if (args.download) await downloadImages();
@@ -304,6 +305,49 @@ function summarize() {
   };
 }
 
+// Earlier changes to the feature's hot files, before its first issue or PR: is this new, or an
+// iteration on something users already know? Feeds the brief's prior-context field.
+function priorWork() {
+  const start = [...dossier.issues.map((i) => i.createdAt), ...dossier.prs.map((p) => p.createdAt), ...dossier.commits.map((c) => c.date)].filter(Boolean).sort()[0];
+  if (!start) return { before: null, files: [], changes: [] };
+  let rev = "";
+  try { rev = sh("git", ["rev-list", "-1", `--before=${start}`, "HEAD"]).trim(); } catch { /* no history */ }
+  if (!rev) return { before: start.slice(0, 10), files: [], changes: [] };
+  // New files have no past; the files the feature *changed* show what it builds on. Paths are
+  // current, so map each back through renames to its name at that time.
+  const oldName = new Map();
+  for (const [from, to] of renames) if (!oldName.has(to)) oldName.set(to, from);
+  const existed = (f) => { try { sh("git", ["cat-file", "-e", `${rev}:${f}`]); return true; } catch { return false; } };
+  const files = [];
+  for (const [f] of dossier.summary.hotFiles.length ? topAll() : []) {
+    if (f.includes(":") || /(^|\/)(CHANGELOG|package)\.(md|json)$|\.lock$|test/.test(f)) continue;
+    const then = existed(f) ? f : oldName.has(f) && existed(oldName.get(f)) ? oldName.get(f) : null;
+    if (then) files.push(then);
+    if (files.length >= 8) break;
+  }
+  if (!files.length) return { before: start.slice(0, 10), files, changes: [] };
+  let log = "";
+  try { log = sh("git", ["log", rev, "-n", "400", "--format=%h%x1f%ad%x1f%s", "--date=short", "--", ...files]); } catch { /* ignore */ }
+  const changes = [];
+  const seen = new Set();
+  for (const line of log.split("\n").filter(Boolean)) {
+    const [sha, date, subject] = line.split("\x1f");
+    if (/^chore(\(release\))?: (version packages|release)|^Merge (branch|pull request)/i.test(subject)) continue;
+    const key = subject.match(/\(#(\d+)\)\s*$/)?.[1] ?? sha;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    changes.push({ sha, date, subject });
+    if (changes.length >= 15) break;
+  }
+  return { before: start.slice(0, 10), files, changes };
+
+  function topAll() {
+    const m = new Map();
+    for (const p of dossier.prs) for (const f of p.files) bump(m, fileKey(p.repo, f.path), f.additions + f.deletions);
+    return [...m].sort((x, y) => y[1] - x[1]).slice(0, 60);
+  }
+}
+
 function timeline() {
   const ev = [];
   for (const i of dossier.issues) {
@@ -481,6 +525,12 @@ function renderMarkdown() {
   for (const c of sc.followUpClusters) { L.push(`- follow-up cluster: ${fmtAt(c.at)} — ${c.refs.length} issues opened within 10 min (${c.refs.join(", ")})`); any = true; }
   for (const r of sc.reverts) { L.push(`- revert: ${r.ref} ${esc(r.title)}`); any = true; }
   if (!any) L.push("- none detected");
+  L.push("");
+
+  const pw = dossier.priorWork;
+  L.push("## Prior work", "", `Earlier changes to existing files this feature modified, before ${pw.before ?? "the feature"}, newest first. Use them for the brief's prior context: is this new, or an iteration on something users already know? Then check what was already announced (changelog, docs, earlier posts).`, "");
+  if (pw.changes.length) for (const c of pw.changes) L.push(`- ${c.date} \`${c.sha}\` ${esc(oneLine(c.subject, 110))}`);
+  else L.push("- none found (new files, or history not available)");
   L.push("");
 
   if (dossier.feedbackSignals.length) {
