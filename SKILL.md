@@ -81,9 +81,9 @@ It writes `dossier.md` (a skimmable digest) and `dossier.json` (everything, unab
 
 Read in this order and stop when you have the story: `dossier.md` → the design docs it lists → the hot files, only where a chosen idea lives. Details: [references/evidence.md](references/evidence.md).
 
-### 3. Frame the story with the author
+### 3. Frame the story
 
-Before planning beats, decide which story this is. Zoom out first: look at the product as users meet it, earlier releases in the area and how other tools handle the same job, and draft two or three **angles** (a hook, who it speaks to, what it rests on). Then draft a **brief** around the one you recommend: the headline (what people can do now), the starting point and endpoint from the user's side, prior context (is this new, or an iteration on something people already know?), the audience (technical or not), and the supporting cast versus what's out of frame. Then confirm it with the author in one message of up to five questions, each carrying your proposed answer. Always confirm the headline (offer the angles as the options) and the audience. If you can't ask, mark your proposals *assumed*. Fields, examples and how to ask: [references/brief.md](references/brief.md).
+Before planning beats, decide which story this is. Zoom out first: look at the product as users meet it, earlier releases in the area and how other tools handle the same job, and draft two or three **angles** (a hook, who it speaks to, what it rests on). Then draft a **brief** around the one you recommend: the headline (what people can do now), the starting point and endpoint from the user's side, prior context (is this new, or an iteration on something people already know?), the audience (technical or not), and the supporting cast versus what's out of frame. Decide what you can safely infer and mark it *assumed*. Ask the author only about a guess that would change the shape of the post, usually the headline or the audience: one message, rarely more than two questions, zero is fine. Either way, tell the author the frame in two or three lines and keep going; don't wait unless you asked. Fields, examples and how to ask: [references/brief.md](references/brief.md).
 
 ### 4. Plan the beats
 
@@ -96,7 +96,7 @@ Under the brief in `plan.md`, put the **story plan**:
 
 Shapes, altitude examples and voice: [references/story.md](references/story.md).
 
-Questions that come up while planning go on the open-questions list. Don't ask a second round unless an answer would change the headline or a chapter. **If you can't ask**, note under each question the claim you did *not* make because of it, and deliver the list with the draft.
+Questions that come up while planning go on the open-questions list, delivered with the draft. Don't stop to ask unless an answer would change the headline or a chapter. **If you can't ask**, note under each question the claim you did *not* make because of it, and deliver the list with the draft.
 
 ### 5. Make the visuals
 

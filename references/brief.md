@@ -2,7 +2,7 @@
 
 Decide *which* story before deciding how to tell it. The record says what the team worked on; it doesn't say what the post is about. The two are often different: the hardest engineering problem is usually a supporting beat, not the headline.
 
-Write the brief from the evidence first, then confirm it with the author. It sits at the top of `plan.md` and every later step answers to it.
+Write the brief from the evidence and your read of the product. Confirm with the author only what you can't safely infer (see below). It sits at the top of `plan.md` and every later step answers to it.
 
 ## Zoom out first: find the angle
 
@@ -51,24 +51,28 @@ Warning signs the headline is at the wrong altitude:
 
 **6. Supporting cast and out of frame.** The two to four ideas that serve the headline (each becomes a beat), and the true, interesting things that are not this story. Mechanics live in the supporting cast: a sentence or a short chapter each, framed by what they mean for the user ("each preview gets its own copy of the database, so testing a migration can't break anyone else's"). Out of frame is where the rest goes, and the author may want some of it for a separate post.
 
-## Asking the author
+## Asking the author: as little as possible
 
-Ask once, in a single message, after gathering and before planning. Up to five questions. Put your proposed answer in each, so the author can confirm with a word and only writes when you're wrong. Use the `AskUserQuestion` tool when it's available: your proposal as the first option, one or two real alternatives after it.
+The brief's fields are what *you* need confidence in, not a form for the author to fill in. Most of them you can infer well enough from the evidence and the product. Every question costs the author attention, and a skill that opens with a quiz is one people stop using. Default to deciding and moving on, the way a good writer handed a brief would.
 
-Always confirm:
-- **Headline.** Offer your candidate angles as the options, recommended one first: "*Every pull request gets a live preview link*" / "*Review without checking out a branch*" / "*Staging for every change, not one shared box*".
-- **Audience.** "Developers who'd configure this for their team, or everyone who reviews changes?"
+**Rate each field** as you draft it: *sure* (the evidence says so), *likely* (a safe inference), or *guess*. Then:
 
-Ask about these only when the evidence is thin or ambiguous:
-- **Starting point and prior context.** "This builds on the staging environments from last spring. Has that been written up already?"
-- **Out of frame.** "I'm planning to leave out the machine-pool autoscaling work. Should it get a chapter?"
-- **Motive.** What the record can't say: why now, why this approach over the obvious one, what surprised you, what you'd do differently.
+- **Sure or likely: decide.** Mark it *assumed* in `plan.md` if it's an inference. Don't ask.
+- **A guess that changes the shape of the post: ask.** In practice that's the headline when two angles are close, or the audience when it could reasonably go either way. Those decide what the whole post is about; a wrong guess costs a rewrite.
+- **A guess that only changes a sentence: don't ask.** Write around it (leave the claim out, or state only what the evidence shows) and put it on the list that goes with the draft.
+- **Motive** (why now, why this approach) is never worth blocking on. Use it if the author offers it; otherwise describe the problem the work solves, which the evidence does show.
 
-Don't ask what you can find: names, dates, numbers, what shipped.
+**The budget.** Zero questions is a good outcome. When you do ask, it's one message, usually one or two questions and never more than three, each with your recommended answer first so the author can reply with a word. Use the `AskUserQuestion` tool when it's available. Never ask them one at a time, and never ask what you can find: names, dates, numbers, what shipped.
+
+**Say the frame, then keep going.** Whether or not you ask anything, tell the author the frame in two or three lines before you plan: the angle you're leading with, the audience, and anything notable you're leaving out. Then carry on. They can redirect you at that point or at the draft; you don't need to wait for a reply unless you asked a question.
+
+> Leading with *every pull request gets a live preview link*, for reviewers and the developers who set it up. Leaving out the scheduler internals. Say if you'd rather lead with the per-preview databases.
+
+**After the draft.** Deliver the remaining unknowns with the draft as a short list of what would make it stronger ("if you can share why this shipped now, the opening gets a better first line"), not as questions blocking the work.
 
 **Using the answers.** Write the author's answers in the team's voice, as part of the story. Don't quote them back ("As we put it, the goal was…"). Quote the author only when they give you a line meant to be quoted.
 
-If the author says to go ahead without questions, or can't be asked, use your proposals, mark each one *assumed* in `plan.md`, and list them with the draft so the author can correct the frame before the prose.
+If the author has said to go ahead without questions, or can't be asked, ask nothing: decide every field, mark inferences *assumed*, and list them with the draft.
 
 ## Notes for the author
 
