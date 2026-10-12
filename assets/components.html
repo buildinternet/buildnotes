@@ -80,12 +80,12 @@ h1 {
 .ch > * { width: 100%; max-width: var(--col); margin-inline: auto; min-width: 0; }
 .ch h2 {
   font: 600 1.5rem/1.2 var(--font-display); letter-spacing: -0.01em; margin-block: 0; text-wrap: balance;
-  display: flex; gap: 0.9rem; align-items: baseline;
+  display: flex; flex-direction: column; gap: 0.3rem;
 }
 .ch h3 { font: 600 1.0625rem/1.3 var(--font-display); margin-block: 0.5rem 0; }
 .n { font-size: 0.8125rem; color: var(--mark); font-weight: 500; }
 /* Hang the number in the margin once there is room for it (column + number + gap + page padding),
-   so headings line up with the text; on phones it stays inline. */
+   so headings line up with the text; on phones it sits on its own line above the heading. */
 @media (min-width: 48rem) {
   .ch h2 { position: relative; }
   .ch h2 .n { position: absolute; right: calc(100% + 1rem); top: 0.45rem; }
