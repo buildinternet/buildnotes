@@ -22,7 +22,8 @@
 //   --download          download images found in PR/issue bodies into <out>/assets/
 //   --body-chars 2500   cap each PR/issue body in the markdown dossier
 //   --keep-bot-prs      keep release-automation PRs (dropped by default)
-//   --prior "github action"  merged PRs matching these terms from before the feature (prior context)
+//   --prior "tag filter"  merged PRs from before the feature that match this phrase (prior context);
+//                       several plain words search as one phrase, search syntax passes through
 //   --window 2          days around the feature's span to list other merged PRs as "Nearby work" (0 = off)
 //
 // Writes <out>/dossier.json (everything, full cleaned text) and <out>/dossier.md (a skimmable digest).
@@ -323,7 +324,7 @@ function priorWork() {
 
   // Explicit search for earlier work in the area (--prior "terms").
   if (args.prior) {
-    const hits = ghJsonSafe(["pr", "list", "-R", repo, "--state", "merged", "--limit", "15", "--search", `${args.prior} merged:<${before}`, "--json", "number,title,mergedAt"]) ?? [];
+    const hits = ghJsonSafe(["pr", "list", "-R", repo, "--state", "merged", "--limit", "15", "--search", `${priorQuery(args.prior)} merged:<${before}`, "--json", "number,title,mergedAt"]) ?? [];
     out.prs = hits.filter((h) => !/^chore(\(release\))?: (version packages|release)|^changelog: \d{4}-/i.test(h.title)).map((h) => ({ number: h.number, title: h.title, date: h.mergedAt?.slice(0, 10) }));
   }
 
@@ -815,6 +816,13 @@ function oneLine(s, n) { const t = s.replace(/\s+/g, " ").trim(); return t.lengt
 function esc(s) { return String(s).replace(/\|/g, "\\|"); }
 function bump(m, k, n) { m.set(k, (m.get(k) ?? 0) + n); }
 function top(m, n) { return [...m].sort((a, b) => b[1] - a[1]).slice(0, n); }
+// Several plain words search as one phrase; GitHub otherwise matches each word anywhere in the PR.
+// Terms that already use search syntax (quotes, qualifiers, OR/NOT, -exclusions) pass through.
+function priorQuery(v) {
+  const t = String(v).trim();
+  if (!/\s/.test(t) || /["():]|(^|\s)-\S|\b(OR|AND|NOT)\b/.test(t)) return t;
+  return `"${t}"`;
+}
 function list(v) { return v && v !== true ? String(v).split(",").map((s) => s.trim()).filter(Boolean) : []; }
 function guessExt(u) { const e = extname(new URL(u).pathname).toLowerCase(); return /^\.(png|jpe?g|gif|webp|svg|mp4|webm)$/.test(e) ? e : ".bin"; }
 function extFromType(t = "") { return { "image/png": ".png", "image/jpeg": ".jpg", "image/gif": ".gif", "image/webp": ".webp", "image/svg+xml": ".svg", "video/mp4": ".mp4", "video/webm": ".webm" }[t?.split(";")[0]]; }
