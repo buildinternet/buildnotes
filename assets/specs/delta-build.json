@@ -1,0 +1,6 @@
+{
+  "before": { "label": "Before", "value": 38, "unit": "s" },
+  "after": { "label": "As it ships", "value": 9, "unit": "s" },
+  "change": "4× faster",
+  "measure": "median time from push to preview link, 200 builds"
+}

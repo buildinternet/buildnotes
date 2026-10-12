@@ -19,8 +19,11 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { hash, takeWarnings } from "./viz/util.mjs";
 import * as flow from "./viz/flow.mjs";
+import * as bars from "./viz/bars.mjs";
+import * as delta from "./viz/delta.mjs";
+import * as line from "./viz/line.mjs";
 
-export const KINDS = { flow };
+export const KINDS = { flow, bars, delta, line };
 export const MARKER = /<!-- viz (\w+) (\S+?)(?: #([0-9a-f]{6}))? -->([\s\S]*?)<!-- \/viz -->/g;
 
 export function renderKind(kind, specText, opts = {}) {

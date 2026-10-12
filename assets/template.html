@@ -21,6 +21,7 @@
   --accent: #1d5bd0;
   --accent-wash: #dfe8fa;
   --mark: #b0450e;
+  --dim: #7b838d; /* de-emphasised data marks (the series that isn't the point) */
   --term-bg: #15181c;
   --term-fg: #e3e6ea;
   --term-dim: #a3acb6;
@@ -34,12 +35,12 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --paper: #0f1215; --ink: #e3e6ea; --muted: #9aa3ad; --rule: #2a3037; --wash: #171b20;
-    --accent: #82a8f6; --accent-wash: #1a2538; --mark: #f08c4e; --term-bg: #07090b; color-scheme: dark;
+    --accent: #82a8f6; --accent-wash: #1a2538; --mark: #f08c4e; --dim: #646c76; --term-bg: #07090b; color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
   --paper: #0f1215; --ink: #e3e6ea; --muted: #9aa3ad; --rule: #2a3037; --wash: #171b20;
-  --accent: #82a8f6; --accent-wash: #1a2538; --mark: #f08c4e; --term-bg: #07090b; color-scheme: dark;
+  --accent: #82a8f6; --accent-wash: #1a2538; --mark: #f08c4e; --dim: #646c76; --term-bg: #07090b; color-scheme: dark;
 }
 
 * { box-sizing: border-box; }
@@ -212,11 +213,72 @@ figcaption a { color: var(--muted); }
 .flow .sub { font: 400 11px var(--font-mono); fill: var(--muted); }
 .flow .edge { font: 400 10.5px var(--font-mono); fill: var(--muted); paint-order: stroke; stroke: var(--paper); stroke-width: 4px; stroke-linejoin: round; }
 
-/* bars (drawn to scale: --v is value / max) */
-.bars { display: grid; gap: 0.35rem; font: 0.75rem/1.3 var(--font-mono); }
-.bars .row { display: grid; grid-template-columns: 4.5rem 1fr 4.5rem; align-items: center; gap: 0.75rem; }
-.bars .row i { display: block; height: 0.7rem; width: calc(var(--v) * 100%); min-width: 2px; background: var(--accent); border-radius: 1px; }
-.bars .row b { font-weight: 400; color: var(--muted); text-align: right; font-variant-numeric: tabular-nums; }
+/* ── component: bars (viz.mjs bars) ── drawn to scale: --v = value ÷ largest. --lw/--vw = label and value
+   column widths in ch. .emph greys every bar but the .hot one; .limit is a dashed rule at --l. */
+.bars { display: grid; gap: 0.4rem; font: 0.75rem/1.3 var(--font-mono); }
+.bars .row { display: grid; grid-template-columns: minmax(0, var(--lw, 8ch)) minmax(0, 1fr) var(--vw, 6ch); align-items: center; gap: 0.75rem; }
+.bars .row > span:first-child { overflow-wrap: anywhere; }
+.bars .track { position: relative; display: block; height: 0.75rem; }
+.bars .row i { display: block; height: 100%; width: calc(var(--v) * 100%); min-width: 2px; background: var(--accent); border-radius: 0 4px 4px 0; }
+.bars.emph .row:not(.hot) i { background: var(--dim); }
+.bars .row b { font-weight: 400; color: var(--muted); text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.bars .row.hot b, .bars .row.hot > span:first-child { color: var(--ink); }
+.bars .limit { position: absolute; left: calc(var(--l) * 100%); top: -0.25rem; bottom: -0.25rem; border-left: 1px dashed var(--ink); }
+.bars .note .track { height: 1rem; }
+.bars .note em { position: absolute; left: calc(var(--l) * 100%); top: 0; transform: translateX(-50%); font-style: normal; color: var(--muted); white-space: nowrap; }
+.bars .note em.at-end { transform: translateX(-100%); }
+.bars .note em.at-start { transform: none; }
+
+/* ── component: delta (viz.mjs delta) ── one number before and after, the change, and bars to scale */
+.delta { display: grid; grid-template-columns: auto auto 1fr; align-items: end; gap: 0.35rem 1.25rem; }
+.delta .side { display: grid; gap: 0.15rem; }
+.delta .num { font: 600 clamp(1.75rem, 6vw, 2.5rem)/1.1 var(--font-display); letter-spacing: -0.01em; }
+.delta .side:not(.after) .num { color: var(--muted); }
+.delta .to { font: 1.5rem/1.6 var(--font-mono); color: var(--muted); }
+.delta .change { grid-column: 1 / -1; font: 0.8125rem/1.5 var(--font-mono); color: var(--muted); }
+.delta .change b { color: var(--ink); font-weight: 500; }
+.delta .pair { grid-column: 1 / -1; display: grid; gap: 4px; max-width: 24rem; }
+.delta .pair i { display: block; height: 0.5rem; width: calc(var(--v) * 100%); min-width: 2px; border-radius: 0 4px 4px 0; background: var(--dim); }
+.delta .pair i.after { background: var(--accent); }
+
+/* ── component: line (viz.mjs line) ── SVG line stretched to the plot; text, dots and the mark are HTML
+   placed in percent (--x, --y), so nothing stretches. --yw/--ew = tick and end-label widths in ch. */
+.line { --plot: 11rem; display: grid; grid-template-columns: var(--yw) minmax(0, 1fr) var(--ew); column-gap: 0.6rem; font: 0.75rem/1.3 var(--font-mono); color: var(--muted);
+  grid-template-areas: "legend legend legend" ". top ." "y plot ends" ". x ."; }
+.line .legend { grid-area: legend; display: flex; flex-wrap: wrap; gap: 0.25rem 1.25rem; margin: 0 0 0.6rem; }
+.line .legend span { display: inline-flex; align-items: center; gap: 0.45rem; }
+.line .legend i { width: 1rem; height: 2px; border-radius: 1px; background: var(--accent); }
+.line .legend .dim i { background: var(--dim); }
+.line .top { grid-area: top; position: relative; height: 1.4rem; }
+.line .top em { position: absolute; left: calc(var(--x) * 1%); bottom: 0.3rem; transform: translateX(-50%); font-style: normal; color: var(--ink); white-space: nowrap; }
+.line .top em.at-end { transform: translateX(-100%); }
+.line .top em.at-start { transform: none; }
+.line .yaxis, .line .ends { position: relative; height: var(--plot); }
+.line .yaxis { grid-area: y; } .line .ends { grid-area: ends; }
+.line .yaxis span { position: absolute; right: 0; top: calc(var(--y) * 1%); transform: translateY(-50%); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.line .ends span { position: absolute; left: 0; top: calc(var(--y) * 1%); transform: translateY(-50%); color: var(--ink); white-space: nowrap; }
+.line .plot { grid-area: plot; position: relative; height: var(--plot); }
+.line svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.line svg line { stroke-width: 1; vector-effect: non-scaling-stroke; }
+.line svg .grid { stroke: var(--rule); }
+.line svg .base { stroke: var(--muted); }
+.line svg .mark { stroke: var(--ink); stroke-opacity: 0.5; }
+.line svg path { fill: none; stroke: var(--accent); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; vector-effect: non-scaling-stroke; }
+.line svg path.dim { stroke: var(--dim); }
+.line .pt { position: absolute; left: calc(var(--x) * 1%); top: calc(var(--y) * 1%); width: 9px; height: 9px; margin: -4.5px 0 0 -4.5px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 2px var(--paper); }
+.line .pt.dim { background: var(--dim); }
+.line .hit { position: absolute; top: 0; bottom: 0; left: calc(var(--x) * 1% - 50% / var(--n)); width: calc(100% / var(--n)); }
+.line .hit:hover { background: linear-gradient(var(--rule), var(--rule)) center / 1px 100% no-repeat; }
+.line .xaxis { grid-area: x; position: relative; height: 1.5rem; }
+.line .xaxis span { position: absolute; top: 0.45rem; left: calc(var(--x) * 1%); transform: translateX(-50%); white-space: nowrap; }
+.line .xaxis span.at-start { transform: none; }
+.line .xaxis span.at-end { transform: translateX(-100%); }
+.line .xaxis span.odd { visibility: var(--odd, visible); }
+.line-box { container-type: inline-size; }
+@container (max-width: 30rem) { .line { --plot: 9.5rem; --odd: hidden; } }
+
+/* visually hidden, still read aloud (a chart's data table) */
+.vh { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 
 /* timeline */
 .timeline { list-style: none; margin-block: 0; padding: 0; display: grid; gap: 0; font-size: 0.9375rem; }
