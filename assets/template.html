@@ -24,7 +24,7 @@
   --wash: #eaedf0;
   --accent: #1d5bd0;
   --accent-wash: #dfe8fa;
-  --mark: #b0450e;
+  --mark: #df004e; /* annotation accent: chapter numbers, footnotes, partial marks; #ff3264 deepened in oklch for 4.5:1 on paper */
   --dim: #7b838d; /* de-emphasised data marks (the series that isn't the point) */
   --card: #ffffff; /* code and terminal blocks: a card lifted by a soft ring and shadow, no border */
   --card-shadow: 0 0 0 1px rgb(0 0 0 / 0.05), 0 1px 2px 0 rgb(0 0 0 / 0.04), 0 2px 8px -2px rgb(0 0 0 / 0.06);
@@ -37,12 +37,12 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --paper: #0f1215; --ink: #e3e6ea; --muted: #9aa3ad; --rule: #2a3037; --wash: #171b20;
-    --accent: #82a8f6; --accent-wash: #1a2538; --mark: #f08c4e; --dim: #646c76; --card: #161a1f; --card-shadow: 0 0 0 1px rgb(255 255 255 / 0.07); color-scheme: dark;
+    --accent: #82a8f6; --accent-wash: #1a2538; --mark: #ff3264; --dim: #646c76; --card: #161a1f; --card-shadow: 0 0 0 1px rgb(255 255 255 / 0.07); color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
   --paper: #0f1215; --ink: #e3e6ea; --muted: #9aa3ad; --rule: #2a3037; --wash: #171b20;
-  --accent: #82a8f6; --accent-wash: #1a2538; --mark: #f08c4e; --dim: #646c76; --card: #161a1f; --card-shadow: 0 0 0 1px rgb(255 255 255 / 0.07); color-scheme: dark;
+  --accent: #82a8f6; --accent-wash: #1a2538; --mark: #ff3264; --dim: #646c76; --card: #161a1f; --card-shadow: 0 0 0 1px rgb(255 255 255 / 0.07); color-scheme: dark;
 }
 
 * { box-sizing: border-box; }
@@ -325,10 +325,13 @@ figcaption a { color: var(--muted); }
 
 /* ── component: shader (viz.mjs shader) ── a WebGL canvas drawn by a fragment shader; the script below
    runs it. --aspect sets the shape. The fallback text shows without scripts or WebGL. */
-.shader { border: 1px solid var(--rule); border-radius: 6px; overflow: hidden; background: var(--paper); }
+.shader { position: relative; border: 1px solid var(--rule); border-radius: 6px; overflow: hidden; background: var(--paper); }
+.shader .tag { position: absolute; white-space: nowrap; color: var(--muted); pointer-events: none; }
+.shader .tag.ink { color: var(--ink); }
+.shader .tag.mark { color: var(--mark); }
 .shader canvas { display: block; width: 100%; aspect-ratio: var(--aspect, 16 / 9); touch-action: pan-y; }
 .shader .fallback { display: none; padding: 1rem; font: 0.875rem/1.5 var(--font-mono); color: var(--muted); }
-:root:not(.js) .shader canvas, .shader.no-gl canvas { display: none; }
+:root:not(.js) .shader :is(canvas, .tag), .shader.no-gl :is(canvas, .tag) { display: none; }
 :root:not(.js) .shader .fallback, .shader.no-gl .fallback { display: block; }
 
 /* visually hidden, still read aloud (a chart's data table) */
@@ -691,6 +694,7 @@ figcaption a { color: var(--muted); }
       const src = box.querySelector('script[type="x-shader/x-fragment"]')?.textContent ?? "";
       const extra = JSON.parse(box.dataset.uniforms || "{}");
       const loop = parseFloat(box.dataset.loop) || 0;
+      const moves = /\bu_(time|phase)\b/.test(src); // a still shader draws only when something changes
       const rest = parseFloat(box.dataset.rest) || 0;
       const fail = (why) => { box.classList.add("no-gl"); if (why) console.error("shader:", why); };
       const gl = canvas.getContext("webgl", { antialias: true });
@@ -719,8 +723,9 @@ figcaption a { color: var(--muted); }
       const colors = {};
       const theme = () => { for (const t of TOKENS) colors[t] = rgb(t); };
       let pointer = [-1, -1];
-      canvas.addEventListener("pointermove", (e) => { const r = canvas.getBoundingClientRect(); pointer = [(e.clientX - r.left) / r.width, 1 - (e.clientY - r.top) / r.height]; });
-      canvas.addEventListener("pointerleave", () => { pointer = [-1, -1]; });
+      const hover = /\bu_pointer\b/.test(src);
+      canvas.addEventListener("pointermove", (e) => { const r = canvas.getBoundingClientRect(); pointer = [(e.clientX - r.left) / r.width, 1 - (e.clientY - r.top) / r.height]; if (hover && !running) still(); });
+      canvas.addEventListener("pointerleave", () => { pointer = [-1, -1]; if (hover && !running) still(); });
       let last = 0;
       const draw = (ms) => {
         last = ms;
@@ -744,7 +749,7 @@ figcaption a { color: var(--muted); }
       // Animate only while on screen and while motion is welcome; otherwise hold one frame.
       let visible = true, running = false;
       const tick = (ms) => { if (!visible || reduce.matches) { running = false; return; } draw(ms); requestAnimationFrame(tick); };
-      const start = () => { if (!running && visible && !reduce.matches) { running = true; requestAnimationFrame(tick); } };
+      const start = () => { if (moves && !running && visible && !reduce.matches) { running = true; requestAnimationFrame(tick); } };
       const still = () => draw(reduce.matches ? rest * 1000 : last);
       const retheme = () => { theme(); still(); };
       theme();

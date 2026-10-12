@@ -14,7 +14,7 @@
   --wash: #eaedf0;
   --accent: #1d5bd0;
   --accent-wash: #dfe8fa;
-  --mark: #b0450e;
+  --mark: #df004e; /* annotation accent: chapter numbers, footnotes, partial marks; #ff3264 deepened in oklch for 4.5:1 on paper */
   --dim: #7b838d; /* de-emphasised data marks (the series that isn't the point) */
   --card: #ffffff; /* code and terminal blocks: a card lifted by a soft ring and shadow, no border */
   --card-shadow: 0 0 0 1px rgb(0 0 0 / 0.05), 0 1px 2px 0 rgb(0 0 0 / 0.04), 0 2px 8px -2px rgb(0 0 0 / 0.06);
@@ -27,12 +27,12 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --paper: #0f1215; --ink: #e3e6ea; --muted: #9aa3ad; --rule: #2a3037; --wash: #171b20;
-    --accent: #82a8f6; --accent-wash: #1a2538; --mark: #f08c4e; --dim: #646c76; --card: #161a1f; --card-shadow: 0 0 0 1px rgb(255 255 255 / 0.07); color-scheme: dark;
+    --accent: #82a8f6; --accent-wash: #1a2538; --mark: #ff3264; --dim: #646c76; --card: #161a1f; --card-shadow: 0 0 0 1px rgb(255 255 255 / 0.07); color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
   --paper: #0f1215; --ink: #e3e6ea; --muted: #9aa3ad; --rule: #2a3037; --wash: #171b20;
-  --accent: #82a8f6; --accent-wash: #1a2538; --mark: #f08c4e; --dim: #646c76; --card: #161a1f; --card-shadow: 0 0 0 1px rgb(255 255 255 / 0.07); color-scheme: dark;
+  --accent: #82a8f6; --accent-wash: #1a2538; --mark: #ff3264; --dim: #646c76; --card: #161a1f; --card-shadow: 0 0 0 1px rgb(255 255 255 / 0.07); color-scheme: dark;
 }
 
 * { box-sizing: border-box; }
@@ -315,10 +315,13 @@ figcaption a { color: var(--muted); }
 
 /* ── component: shader (viz.mjs shader) ── a WebGL canvas drawn by a fragment shader; the script below
    runs it. --aspect sets the shape. The fallback text shows without scripts or WebGL. */
-.shader { border: 1px solid var(--rule); border-radius: 6px; overflow: hidden; background: var(--paper); }
+.shader { position: relative; border: 1px solid var(--rule); border-radius: 6px; overflow: hidden; background: var(--paper); }
+.shader .tag { position: absolute; white-space: nowrap; color: var(--muted); pointer-events: none; }
+.shader .tag.ink { color: var(--ink); }
+.shader .tag.mark { color: var(--mark); }
 .shader canvas { display: block; width: 100%; aspect-ratio: var(--aspect, 16 / 9); touch-action: pan-y; }
 .shader .fallback { display: none; padding: 1rem; font: 0.875rem/1.5 var(--font-mono); color: var(--muted); }
-:root:not(.js) .shader canvas, .shader.no-gl canvas { display: none; }
+:root:not(.js) .shader :is(canvas, .tag), .shader.no-gl :is(canvas, .tag) { display: none; }
 :root:not(.js) .shader .fallback, .shader.no-gl .fallback { display: block; }
 
 /* visually hidden, still read aloud (a chart's data table) */
@@ -978,83 +981,131 @@ figcaption a { color: var(--muted); }
   </section>
   <section class="ch" id="shader">
     <h2><span class="n">11</span>shader</h2>
-    <p>A WebGL figure drawn by a fragment shader, for what boxes and lines can't show: waves, fields, light, many things at once. Follows the theme, pauses off screen, holds a still frame for reduced motion.</p>
-    <div class="ex" id="shader-ripple">
-      <h3>Ripple</h3>
+    <p>A WebGL figure drawn by a fragment shader, for what boxes and lines can't show: many things moving at once, a field or gradient, or pixels that are themselves the subject. Follows the theme, pauses off screen, holds a still frame for reduced motion.</p>
+    <div class="ex" id="shader-jitter">
+      <h3>Jitter</h3>
       <figure class="wide">
-<div class="shader" data-loop="4" data-rest="0.6" data-uniforms="{&quot;u_a&quot;:[0.36,0.5],&quot;u_b&quot;:[0.64,0.5]}" style="--aspect:16 / 9">
-  <canvas role="img" aria-label="Two sources send out ripples; where crests from both meet, the water stands highest"></canvas>
+<div class="shader" data-loop="5" data-rest="4.75" data-uniforms="{&quot;u_capacity&quot;:0.3}" style="--aspect:2 / 1">
+  <canvas role="img" aria-label="80 clients retry after an outage. Without jitter they all retry at once and the spike passes the server's capacity; with jitter the same retries spread out and stay under it"></canvas>
+  <span class="tag" aria-hidden="true" style="left:2%;top:8%;translate:0 -50%">Same delay</span>
+  <span class="tag" aria-hidden="true" style="left:52%;top:8%;translate:0 -50%">Random delay (jitter)</span>
+  <span class="tag" aria-hidden="true" style="left:52%;top:75%;translate:0 -50%">capacity</span>
   <script type="x-shader/x-fragment">
-// Two sources send out ripples. Where crests from both meet, the water stands highest (accent);
-// where a crest meets a trough, it stays flat. Four crests leave each source per loop.
-uniform vec2 u_a;
-uniform vec2 u_b;
+// Retries after an outage, with and without jitter. The same 80 clients sit in each halfW. At 0.25 of
+// the loop every request has just failed; on the left each client retries after the same fixed delay,
+// on the right after a random share of a longer window. Each dot flashes when its client retries,
+// and the chart below counts the retries landing at each moment against the server's capacity.
+uniform float u_capacity;                 // share of all clients the server can take at once (0–1)
+
+const float N = 80.0, COLS = 16.0, ROWS = 5.0;
+const float FAIL = 0.25, SPREAD = 0.5, WINDOW = 0.05;
+
+float hash(vec2 v) { return fract(sin(dot(v, vec2(12.9898, 78.233))) * 43758.5453); }
+// When client (col, row) retries, in loop phase.
+float fireAt(vec2 cell, float jitter) { return FAIL + jitter * hash(cell) * SPREAD; }
 
 void main() {
-  float aspect = u_resolution.x / u_resolution.y;
-  vec2 uv = gl_FragCoord.xy / u_resolution.y;
-  vec2 a = u_a * vec2(aspect, 1.0);
-  vec2 b = u_b * vec2(aspect, 1.0);
-  float da = distance(uv, a);
-  float db = distance(uv, b);
-  float k = 42.0;
-  float t = TAU * u_phase * 4.0;
-  float w = sin(k * da - t) / (1.0 + 2.0 * da) + sin(k * db - t) / (1.0 + 2.0 * db);
-  float h = clamp(w * 0.3 + 0.5, 0.0, 1.0);
-  vec3 col = mix(u_paper, u_accent_wash, smoothstep(0.35, 0.65, h));
-  col = mix(col, u_accent, smoothstep(0.72, 0.92, h));
-  float src = min(da, db);
-  col = mix(col, u_ink, 1.0 - smoothstep(0.011, 0.016, src));
+  vec2 size = u_resolution / u_dpr;
+  vec2 p = vec2(gl_FragCoord.x, u_resolution.y - gl_FragCoord.y) / u_dpr;  // CSS px, y down
+  float halfW = size.x * 0.5;
+  float jitter = step(halfW, p.x);                                           // 0 left, 1 right
+  float x = p.x - jitter * halfW;
+  float pad = 16.0, w = halfW - pad * 2.0;
+  vec3 col = u_paper;
+
+  // Clients: a grid of dots.
+  float top = size.y * 0.17, bottom = size.y * 0.53;
+  vec2 cellSize = vec2(w / COLS, (bottom - top) / ROWS);
+  vec2 g = vec2(x - pad, p.y - top) / cellSize;
+  if (g.x >= 0.0 && g.x < COLS && g.y >= 0.0 && g.y < ROWS) {
+    vec2 cell = floor(g);
+    float since = u_phase - fireAt(cell, jitter);
+    float lit = since >= 0.0 ? exp(-since / WINDOW) : 0.0;
+    float r = min(cellSize.x, cellSize.y) * mix(0.2, 0.36, lit);
+    float d = length((fract(g) - 0.5) * cellSize);
+    col = mix(col, mix(u_dim, u_accent, lit), 1.0 - smoothstep(r - 0.6, r + 0.6, d));
+  }
+
+  // Load on the server: retries arriving in the last WINDOW, drawn up to now.
+  float base = size.y * 0.9, height = size.y * 0.3;
+  float t = (x - pad) / w;
+  if (t >= 0.0 && t <= 1.0 && p.y > base - height - 1.0 && p.y < base + 1.0) {
+    if (t <= u_phase) {
+      float n = 0.0;
+      for (float k = 0.0; k < N; k++) {
+        float s = t - fireAt(vec2(mod(k, COLS), floor(k / COLS)), jitter);
+        n += step(0.0, s) * step(s, WINDOW);
+      }
+      float level = base - height * n / N;
+      if (p.y >= level) col = p.y < base - height * u_capacity ? u_mark : u_accent;
+    }
+    float cap = abs(p.y - (base - height * u_capacity));
+    if (cap < 0.6 && mod(x, 6.0) < 3.0) col = u_muted;                     // capacity, dashed
+    if (abs(p.y - base) < 0.6) col = u_dim;                                  // baseline
+    if (abs(t - u_phase) * w < 0.6) col = u_muted;                           // now
+  }
   gl_FragColor = vec4(col, 1.0);
 }
   </script>
-  <div class="fallback">Two sources send out ripples; where crests from both meet, the water stands highest</div>
+  <div class="fallback">80 clients retry after an outage. Without jitter they all retry at once and the spike passes the server's capacity; with jitter the same retries spread out and stay under it</div>
 </div>
-        <figcaption>Interference from two sources, placed with extra uniforms. It loops every 4 s on u_phase.</figcaption>
+        <figcaption>Many things at once: 80 clients retrying, and the load they put on the server. Loops every 5 s on u_phase; labels sit over the canvas.</figcaption>
       </figure>
-      <details class="spec"><summary>shader-ripple.json</summary><figure class="code"><pre><code>{
-  &quot;label&quot;: &quot;Two sources send out ripples; where crests from both meet, the water stands highest&quot;,
-  &quot;frag&quot;: &quot;ripple.glsl&quot;,
-  &quot;uniforms&quot;: { &quot;u_a&quot;: [0.36, 0.5], &quot;u_b&quot;: [0.64, 0.5] },
-  &quot;loop&quot;: 4,
-  &quot;rest&quot;: 0.6,
-  &quot;aspect&quot;: &quot;16 / 9&quot;
+      <details class="spec"><summary>shader-jitter.json</summary><figure class="code"><pre><code>{
+  &quot;label&quot;: &quot;80 clients retry after an outage. Without jitter they all retry at once and the spike passes the server's capacity; with jitter the same retries spread out and stay under it&quot;,
+  &quot;frag&quot;: &quot;jitter.glsl&quot;,
+  &quot;loop&quot;: 5,
+  &quot;rest&quot;: 4.75,
+  &quot;aspect&quot;: &quot;2 / 1&quot;,
+  &quot;uniforms&quot;: { &quot;u_capacity&quot;: 0.3 },
+  &quot;labels&quot;: [
+    { &quot;text&quot;: &quot;Same delay&quot;, &quot;x&quot;: 0.02, &quot;y&quot;: 0.08 },
+    { &quot;text&quot;: &quot;Random delay (jitter)&quot;, &quot;x&quot;: 0.52, &quot;y&quot;: 0.08 },
+    { &quot;text&quot;: &quot;capacity&quot;, &quot;x&quot;: 0.52, &quot;y&quot;: 0.75 }
+  ]
 }</code></pre></figure></details>
     </div>
-    <div class="ex" id="shader-fanout">
-      <h3>Fanout</h3>
+    <div class="ex" id="shader-banding">
+      <h3>Banding</h3>
       <figure class="wide">
-<div class="shader" data-loop="3" data-rest="1" style="--aspect:2 / 1">
-  <canvas role="img" aria-label="One request fans out from the centre and reaches every server, nearest first"></canvas>
+<div class="shader" data-uniforms="{&quot;u_levels&quot;:12}" style="--aspect:5 / 2">
+  <canvas role="img" aria-label="The same gradient at 12 levels, twice: rounded, it shows hard bands; dithered, it reads as smooth"></canvas>
+  <span class="tag" aria-hidden="true" style="left:1.5%;top:10%;translate:0 -50%">12 levels, rounded</span>
+  <span class="tag" aria-hidden="true" style="left:1.5%;top:60%;translate:0 -50%">12 levels, dithered</span>
   <script type="x-shader/x-fragment">
-// One request fans out: a wave leaves the centre and lights each server (dot) as it arrives,
-// then the light fades. By the end of the loop every dot is dark again, so the loop closes cleanly.
+// One gradient, paper to accent, squeezed into a few levels. Top: each pixel rounds to the nearest
+// level, so the steps show as bands. Bottom: the same levels, but each pixel adds a little noise
+// before rounding, so neighbours land on different levels and the eye averages them back to smooth.
+uniform float u_levels;
+
+// Interleaved gradient noise: an even scatter of thresholds across neighbouring pixels.
+float noise(vec2 px) { return fract(52.9829189 * fract(dot(px, vec2(0.06711056, 0.00583715)))); }
+
 void main() {
-  vec2 p = gl_FragCoord.xy / u_dpr;                 // CSS pixels, so the grid keeps its spacing
   vec2 size = u_resolution / u_dpr;
-  float cell = 22.0;
-  vec2 c = (floor(p / cell) + 0.5) * cell;          // this cell's dot
-  float d = distance(c, size * 0.5);
-  float reach = length(size) * 0.5 + 240.0;
-  float front = u_phase * reach;
-  float lit = step(d, front) * exp(-(front - d) / 60.0);
-  bool hub = d < cell * 0.5;                        // the dot the request starts from
-  float r = hub ? 5.0 : mix(1.6, 3.4, lit);
-  float m = 1.0 - smoothstep(r - 0.7, r + 0.7, distance(p, c));
-  vec3 tint = mix(u_dim, u_accent, lit);
-  gl_FragColor = vec4(mix(u_paper, hub ? u_ink : tint, m), 1.0);
+  vec2 p = vec2(gl_FragCoord.x, u_resolution.y - gl_FragCoord.y) / u_dpr;
+  float x = clamp(p.x / size.x, 0.0, 1.0);
+  float steps = u_levels - 1.0;
+  bool dithered = p.y > size.y * 0.5;
+  float level = dithered ? floor(x * steps + noise(gl_FragCoord.xy)) / steps : floor(x * steps + 0.5) / steps;
+  vec3 col = mix(u_paper, u_accent, level);
+  if (abs(p.y - size.y * 0.5) < 2.0) col = u_paper;                        // gap between the halves
+  gl_FragColor = vec4(col, 1.0);
 }
   </script>
-  <div class="fallback">One request fans out from the centre and reaches every server, nearest first</div>
+  <div class="fallback">The same gradient at 12 levels, twice: rounded, it shows hard bands; dithered, it reads as smooth</div>
 </div>
-        <figcaption>A dot grid lit by a wave from the centre; dark again by the end of each loop.</figcaption>
+        <figcaption>When the pixels are the subject: a rendering fix, shown on the reader's own screen. A still shader, with the level count as an extra uniform.</figcaption>
       </figure>
-      <details class="spec"><summary>shader-fanout.json</summary><figure class="code"><pre><code>{
-  &quot;label&quot;: &quot;One request fans out from the centre and reaches every server, nearest first&quot;,
-  &quot;frag&quot;: &quot;fanout.glsl&quot;,
-  &quot;loop&quot;: 3,
-  &quot;rest&quot;: 1,
-  &quot;aspect&quot;: &quot;2 / 1&quot;
+      <details class="spec"><summary>shader-banding.json</summary><figure class="code"><pre><code>{
+  &quot;label&quot;: &quot;The same gradient at 12 levels, twice: rounded, it shows hard bands; dithered, it reads as smooth&quot;,
+  &quot;frag&quot;: &quot;banding.glsl&quot;,
+  &quot;aspect&quot;: &quot;5 / 2&quot;,
+  &quot;uniforms&quot;: { &quot;u_levels&quot;: 12 },
+  &quot;labels&quot;: [
+    { &quot;text&quot;: &quot;12 levels, rounded&quot;, &quot;x&quot;: 0.015, &quot;y&quot;: 0.1 },
+    { &quot;text&quot;: &quot;12 levels, dithered&quot;, &quot;x&quot;: 0.015, &quot;y&quot;: 0.6 }
+  ]
 }</code></pre></figure></details>
     </div>
   </section>
@@ -1099,6 +1150,7 @@ void main() {
       const src = box.querySelector('script[type="x-shader/x-fragment"]')?.textContent ?? "";
       const extra = JSON.parse(box.dataset.uniforms || "{}");
       const loop = parseFloat(box.dataset.loop) || 0;
+      const moves = /\bu_(time|phase)\b/.test(src); // a still shader draws only when something changes
       const rest = parseFloat(box.dataset.rest) || 0;
       const fail = (why) => { box.classList.add("no-gl"); if (why) console.error("shader:", why); };
       const gl = canvas.getContext("webgl", { antialias: true });
@@ -1127,8 +1179,9 @@ void main() {
       const colors = {};
       const theme = () => { for (const t of TOKENS) colors[t] = rgb(t); };
       let pointer = [-1, -1];
-      canvas.addEventListener("pointermove", (e) => { const r = canvas.getBoundingClientRect(); pointer = [(e.clientX - r.left) / r.width, 1 - (e.clientY - r.top) / r.height]; });
-      canvas.addEventListener("pointerleave", () => { pointer = [-1, -1]; });
+      const hover = /\bu_pointer\b/.test(src);
+      canvas.addEventListener("pointermove", (e) => { const r = canvas.getBoundingClientRect(); pointer = [(e.clientX - r.left) / r.width, 1 - (e.clientY - r.top) / r.height]; if (hover && !running) still(); });
+      canvas.addEventListener("pointerleave", () => { pointer = [-1, -1]; if (hover && !running) still(); });
       let last = 0;
       const draw = (ms) => {
         last = ms;
@@ -1152,7 +1205,7 @@ void main() {
       // Animate only while on screen and while motion is welcome; otherwise hold one frame.
       let visible = true, running = false;
       const tick = (ms) => { if (!visible || reduce.matches) { running = false; return; } draw(ms); requestAnimationFrame(tick); };
-      const start = () => { if (!running && visible && !reduce.matches) { running = true; requestAnimationFrame(tick); } };
+      const start = () => { if (moves && !running && visible && !reduce.matches) { running = true; requestAnimationFrame(tick); } };
       const still = () => draw(reduce.matches ? rest * 1000 : last);
       const retheme = () => { theme(); still(); };
       theme();

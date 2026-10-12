@@ -33,7 +33,7 @@ const ABOUT = {
   code: "Real code from git at a given commit, cut to the lines that make the point. Renders the whole figure.",
   term: "One command and the output lines that matter. Renders the whole figure.",
   strip: "Before/after, or a progression of up to four rounds: images, code or terminal output.",
-  shader: "A WebGL figure drawn by a fragment shader, for what boxes and lines can't show: waves, fields, light, many things at once. Follows the theme, pauses off screen, holds a still frame for reduced motion.",
+  shader: "A WebGL figure drawn by a fragment shader, for what boxes and lines can't show: many things moving at once, a field or gradient, or pixels that are themselves the subject. Follows the theme, pauses off screen, holds a still frame for reduced motion.",
 };
 const ORDER = Object.keys(ABOUT);
 // The examples shown, in order, each with what it demonstrates. A second example of a kind earns its
@@ -56,8 +56,8 @@ const EXAMPLES = {
   "term-gather.json": "Two of four output lines kept; each gap becomes \"…\".",
   "strip-rounds.json": "Three rounds of a design, as images.",
   "strip-filter.json": "Before and after, as terminal output.",
-  "shader-ripple.json": "Interference from two sources, placed with extra uniforms. It loops every 4 s on u_phase.",
-  "shader-fanout.json": "A dot grid lit by a wave from the centre; dark again by the end of each loop.",
+  "shader-jitter.json": "Many things at once: 80 clients retrying, and the load they put on the server. Loops every 5 s on u_phase; labels sit over the canvas.",
+  "shader-banding.json": "When the pixels are the subject: a rendering fix, shown on the reader's own screen. A still shader, with the level count as an extra uniform.",
 };
 
 const template = readFileSync(join(root, "assets/template.html"), "utf8");

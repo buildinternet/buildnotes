@@ -1,7 +1,0 @@
-{
-  "label": "One request fans out from the centre and reaches every server, nearest first",
-  "frag": "fanout.glsl",
-  "loop": 3,
-  "rest": 1,
-  "aspect": "2 / 1"
-}

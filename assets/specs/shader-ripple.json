@@ -1,8 +1,0 @@
-{
-  "label": "Two sources send out ripples; where crests from both meet, the water stands highest",
-  "frag": "ripple.glsl",
-  "uniforms": { "u_a": [0.36, 0.5], "u_b": [0.64, 0.5] },
-  "loop": 4,
-  "rest": 0.6,
-  "aspect": "16 / 9"
-}

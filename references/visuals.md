@@ -19,7 +19,7 @@ Every visual answers a question a chapter raises. Before making one, write its c
 | Sizes or counts | Bars, to scale | `bars` |
 | One measured change | The number before and after | `delta` |
 | A trend over time | Small line chart | `line` |
-| A field, a wave, light, or many things moving at once | WebGL figure | `shader` |
+| Many things moving at once (retries, keys, requests), or pixels that are the subject (a rendering fix) | WebGL figure | `shader` |
 
 At most one per chapter (lint warns at two). A chapter with nothing worth drawing gets a code or terminal block, or nothing. Those are evidence, not visuals: code is ≤15 shipped lines (SKILL.md rules), terminal blocks follow [evidence.md](evidence.md#terminal-blocks). Both have components too (`code`, `term`).
 
@@ -55,7 +55,7 @@ Lint lists the specs behind the page, so the fact pass can tick their numbers th
 | `matrix` | A Markdown table. Cells start with ✓, ✗ or ~ (or yes, no, partly), then an optional short note. Bold the header of the option the post is about. |
 | `code` | `file`, `lines` ("12-40"), optional `cut` (ranges shown as one `…` line each), `rev` (default `HEAD`), `repo` (relative to the spec), `lang`. Reads from git, so the excerpt is the committed code. |
 | `term` | `cmd` (one command), `out` (lines), optional `keep` ("1-3,8"; each gap becomes `…`), `dim`, `wrap`. |
-| `shader` | `label` (required), `frag` (a `.glsl` file next to the spec) or `glsl`, `loop` and `rest` (seconds), optional `aspect`, `uniforms` (extra values: a number or 2–4 numbers), `fallback`. See below. |
+| `shader` | `label` (required), `frag` (a `.glsl` file next to the spec) or `glsl`, `loop` and `rest` (seconds; leave out `loop` for a still), optional `aspect`, `uniforms` (extra values: a number or 2–4 numbers), `labels` (text over the canvas), `fallback`. See below. |
 | `strip` | `frames`: 2–4 of `{ label, src, alt, width, height }`, `{ label, code: {…} }` or `{ label, term: { out } }`. The last frame gets the accent label unless another says `hot`. |
 
 ## Diagrams
@@ -134,7 +134,12 @@ Open the page (or `post.published.html`) once at 1280×800 and once at 390×844,
 
 ## Canvas and WebGL
 
-WebGL is the tool for what boxes and lines can't show: waves and interference, a field, light, smoke, many things moving at once. Keep it in the same rules as any visual: one per chapter, and it must explain something.
+WebGL is the tool for what boxes and lines can't show. In a build story that usually means one of two things:
+
+- **Many things at once**, where the behaviour only shows in the crowd: retries piling into a spike, cache keys moving when a server joins, requests spreading over a pool, a queue backing up. Draw each thing as a dot and the total underneath.
+- **The pixels are the subject**: a rendering bug or fix (banding, aliasing, a blur, colour handling), shown on the reader's own screen where a screenshot would be recompressed or scaled.
+
+Keep it in the same rules as any visual: one per chapter, and it must explain something. A shader that only decorates is out.
 
 **Start with the `shader` component.** Write only a fragment shader; the template's script does the rest. It sizes the canvas for the screen, follows light and dark, pauses off screen, holds the `rest` frame for reduced motion, and shows the fallback text when WebGL is missing or the shader fails (check the browser console for the compile error). The shader gets these uniforms, already declared:
 
@@ -143,7 +148,7 @@ WebGL is the tool for what boxes and lines can't show: waves and interference, a
 - `vec3 u_paper, u_ink, u_muted, u_accent, u_accent_wash, u_dim, u_mark` (the page's colour tokens) and `float u_dark`. Colour only from these, so both themes work: background `u_paper`, the subject `u_accent`, the rest `u_dim` or `u_muted`.
 - `#define TAU`
 
-`assets/specs/ripple.glsl` and `fanout.glsl` are worked examples. Declare extra uniforms in the shader and set them in the spec's `uniforms`.
+`assets/specs/jitter.glsl` (retries with and without jitter, looping) and `banding.glsl` (a still before/after) are worked examples. Declare extra uniforms in the shader and set them in the spec's `uniforms`. Shaders can't draw text, so put words in the spec's `labels` (`text`, `x` and `y` from 0 to 1, top left; optional `align` and `tone`), which sit over the canvas. A shader that doesn't use `u_time` or `u_phase` is still: drop `loop` and it draws once (and again on hover if it reads `u_pointer`).
 
 For more than one fragment shader can do (geometry, several passes, 2D canvas drawing), write the canvas by hand. So that it exports and behaves:
 
