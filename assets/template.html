@@ -1,0 +1,474 @@
+<title>Build Story Template</title>
+<!--
+  Build story page template.
+  Copy to <work-dir>/post.html, replace the example content, delete components you don't use.
+  Components: masthead + stats · lede · contents · chapter · ref · code / terminal · options ·
+  heard→changed · compare · steps (flow that stacks on phones, with motion) · diagram (SVG, with motion) ·
+  shot · bars · timeline · endnotes · sources · colophon.
+  Restyle by editing the :root tokens only. Keep the light/dark structure.
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Schibsted+Grotesk:wght@500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap">
+<style>
+/* Layout: one reading column (~40rem) with figures that may break out to ~54rem; chapter numbers hang left on wide screens. */
+:root {
+  --paper: #f5f6f7;
+  --ink: #16191d;
+  --muted: #5b636e;
+  --rule: #d8dce1;
+  --wash: #eaedf0;
+  --accent: #1d5bd0;
+  --accent-wash: #dfe8fa;
+  --mark: #b0450e;
+  --term-bg: #15181c;
+  --term-fg: #e3e6ea;
+  --term-dim: #a3acb6;
+  --term-accent: #8fb2f7;
+  --font-display: "Schibsted Grotesk", "Helvetica Neue", Arial, sans-serif;
+  --font-body: "Source Serif 4", Georgia, "Times New Roman", serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --col: 40rem;
+  --wide: 54rem;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0f1215; --ink: #e3e6ea; --muted: #9aa3ad; --rule: #2a3037; --wash: #171b20;
+    --accent: #82a8f6; --accent-wash: #1a2538; --mark: #f08c4e; --term-bg: #07090b; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0f1215; --ink: #e3e6ea; --muted: #9aa3ad; --rule: #2a3037; --wash: #171b20;
+  --accent: #82a8f6; --accent-wash: #1a2538; --mark: #f08c4e; --term-bg: #07090b; color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--paper); color: var(--ink);
+  font: 400 1.0625rem/1.65 var(--font-body);
+  padding-inline: 16px; padding-block: 3rem 5rem;
+  -webkit-font-smoothing: antialiased;
+}
+.post { max-width: var(--wide); margin-inline: auto; display: grid; gap: 1.5rem; }
+.post > * { width: 100%; max-width: var(--col); margin-inline: auto; min-width: 0; }
+.post > .wide, .ch > .wide { max-width: var(--wide); }
+a { color: var(--accent); text-underline-offset: 0.18em; text-decoration-thickness: 1px; }
+a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
+p { margin: 0; }
+code, pre, kbd, samp { font-variant-ligatures: none; font-feature-settings: "liga" 0, "calt" 0; }
+code { font: 0.86em/1.5 var(--font-mono); background: var(--wash); padding: 0.1em 0.3em; border-radius: 3px; }
+em { font-style: italic; }
+
+/* ── masthead ───────────────────────────────────────── */
+.mast { display: grid; gap: 0.9rem; padding-bottom: 1.25rem; border-bottom: 1px solid var(--rule); }
+.kicker, .byline, .stats dt, .label, figcaption, .toc, .n, .tag, .end h2 {
+  font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.04em; color: var(--muted);
+}
+.kicker { text-transform: uppercase; letter-spacing: 0.08em; }
+h1 {
+  font: 700 clamp(2rem, 5vw, 3rem)/1.08 var(--font-display); letter-spacing: -0.02em; margin: 0; text-wrap: balance;
+}
+.dek { font-size: 1.25rem; line-height: 1.45; color: var(--ink); font-style: italic; text-wrap: pretty; }
+.stats { display: flex; flex-wrap: wrap; gap: 0.5rem 1.75rem; margin: 0.35rem 0 0; }
+.stats div { display: grid; gap: 0.1rem; }
+.stats dt { text-transform: uppercase; letter-spacing: 0.08em; font-size: 0.6875rem; }
+.stats dd { margin: 0; font: 600 1.25rem/1.2 var(--font-display); font-variant-numeric: tabular-nums; }
+
+.lede { font-size: 1.125rem; }
+
+/* ── contents ───────────────────────────────────────── */
+.toc ol { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr)); gap: 0.25rem 1.5rem; }
+.toc a { color: var(--ink); text-decoration: none; display: flex; gap: 0.75rem; padding: 0.2rem 0; }
+.toc a span { color: var(--muted); }
+.toc a:hover { color: var(--accent); }
+
+/* ── chapters ───────────────────────────────────────── */
+.ch { display: grid; gap: 1.1rem; padding-top: 2rem; border-top: 1px solid var(--rule); max-width: var(--wide) !important; }
+.ch > * { width: 100%; max-width: var(--col); margin-inline: auto; min-width: 0; }
+.ch h2 {
+  font: 600 1.5rem/1.2 var(--font-display); letter-spacing: -0.01em; margin-block: 0; text-wrap: balance;
+  display: flex; gap: 0.9rem; align-items: baseline;
+}
+.ch h3 { font: 600 1.0625rem/1.3 var(--font-display); margin-block: 0.5rem 0; }
+.n { font-size: 0.8125rem; color: var(--mark); font-weight: 500; }
+@media (min-width: 64rem) {
+  .ch h2 { position: relative; }
+  .ch h2 .n { position: absolute; right: calc(100% + 1.25rem); top: 0.45rem; }
+}
+.ch ul, .ch ol:not(.timeline):not(.steps) { margin-block: 0; padding-left: 1.25rem; display: grid; gap: 0.35rem; }
+
+/* ── figures (shared) ───────────────────────────────── */
+figure { margin: 0; display: grid; gap: 0.5rem; min-width: 0; }
+figcaption { line-height: 1.5; text-wrap: pretty; }
+figcaption a { color: var(--muted); }
+
+/* code + terminal */
+.code { border: 1px solid var(--rule); border-radius: 6px; overflow: hidden; gap: 0; background: var(--wash); }
+.code figcaption { display: flex; justify-content: space-between; gap: 1rem; padding: 0.45rem 0.85rem; border-bottom: 1px solid var(--rule); background: var(--paper); }
+.code pre { margin: 0; padding: 0.9rem 1rem; overflow-x: auto; font: 0.8125rem/1.6 var(--font-mono); tab-size: 2; }
+.code pre code { background: none; padding: 0; font-size: inherit; }
+.code .c { color: var(--muted); font-style: italic; }
+.code .k { color: var(--accent); }
+.code .s { color: var(--mark); }
+.code .cut { color: var(--muted); }
+.term { border-color: var(--term-bg); }
+.term pre { background: var(--term-bg); color: var(--term-fg); }
+.term .prompt { color: var(--term-accent); user-select: none; }
+.term .dim { color: var(--term-dim); }
+.term.wrap pre, .code.wrap pre { white-space: pre-wrap; overflow-wrap: anywhere; }
+
+/* heard → changed */
+.heard { display: grid; gap: 0; border-top: 1px solid var(--rule); }
+.heard .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; padding: 0.9rem 0; border-bottom: 1px solid var(--rule); }
+.heard blockquote { margin: 0; font-style: italic; color: var(--muted); }
+.heard blockquote code { font-style: normal; }
+.heard cite { display: block; margin-top: 0.3rem; font: normal 0.75rem var(--font-mono); }
+.heard .pair > p { min-width: 0; }
+.heard .head { font-family: var(--font-mono); font-size: 0.6875rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); padding-bottom: 0.4rem; border-bottom: 0; }
+@media (max-width: 34rem) { .heard .pair { grid-template-columns: 1fr; gap: 0.4rem; } .heard .head { display: none; } }
+
+/* options considered: the turn, as a table; .chosen marks the winner */
+.options { overflow-x: auto; }
+.options table { width: 100%; border-collapse: collapse; font-size: 0.9375rem; }
+.options th { text-align: left; font: 500 0.6875rem var(--font-mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); padding: 0 0.75rem 0.4rem; border-bottom: 1px solid var(--rule); }
+.options td { padding: 0.6rem 0.75rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+.options td:first-child { font-weight: 600; min-width: 9rem; }
+.options .verdict { font: 0.75rem var(--font-mono); color: var(--muted); white-space: nowrap; }
+.options tr.chosen td { background: var(--accent-wash); }
+.options tr.chosen td:first-child { box-shadow: inset 3px 0 0 var(--accent); }
+.options tr.chosen .verdict { color: var(--accent); }
+
+/* inline reference: PR / issue / commit as a quiet superscript, never in the sentence */
+.ref { font: 500 0.68em var(--font-mono); vertical-align: super; line-height: 0; margin-left: 0.15em; }
+.ref a { color: var(--muted); text-decoration: none; }
+.ref a:hover { color: var(--accent); text-decoration: underline; }
+
+/* steps: a linear flow in HTML. Row on wide screens, column on phones; .hot = this chapter's part.
+   Motion: .live steps a highlight through the boxes; off under reduced motion. */
+.steps { list-style: none; margin: 0; padding: 1rem; display: flex; gap: 0; align-items: stretch;
+  border: 1px solid var(--rule); border-radius: 6px; counter-reset: step;
+  background: radial-gradient(circle, var(--rule) 1px, transparent 1.2px) 0 0 / 16px 16px, var(--paper); }
+.steps li { flex: 1 1 0; min-width: 0; display: flex; align-items: center; }
+.steps li + li::before { content: "→"; flex: 0 0 1.75rem; text-align: center; color: var(--muted); font-family: var(--font-mono); }
+.steps .box { flex: 1; min-width: 0; border: 1.25px solid var(--ink); border-radius: 6px; background: var(--paper); padding: 0.6rem 0.7rem; display: grid; gap: 0.15rem; text-align: center; transition: background 0.4s, border-color 0.4s; }
+.steps .box b { font: 600 0.875rem/1.25 var(--font-display); }
+.steps .box small { font: 0.6875rem/1.3 var(--font-mono); color: var(--muted); overflow-wrap: anywhere; }
+.steps .hot .box { background: var(--accent-wash); border-color: var(--accent); }
+@media (max-width: 40rem) {
+  .steps { flex-direction: column; }
+  .steps li { flex-direction: column; align-items: stretch; }
+  .steps li + li::before { content: "↓"; flex-basis: 1.5rem; line-height: 1.5rem; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .steps.live li .box { animation: pulse var(--cycle, 6s) infinite; animation-delay: calc(var(--i, 0) * var(--cycle, 6s) / var(--n, 4)); }
+}
+@keyframes pulse { 0%, 30%, 100% { border-color: var(--ink); } 8%, 22% { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-wash); } }
+
+/* compare (before / after) */
+.compare .sides { display: grid; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); gap: 1rem; }
+.compare .side { display: grid; gap: 0.4rem; align-content: start; min-width: 0; }
+.tag { text-transform: uppercase; letter-spacing: 0.08em; font-size: 0.6875rem; }
+.tag.after { color: var(--accent); }
+
+/* screenshot */
+.shot img, .shot video, .compare img { display: block; width: 100%; height: auto; border: 1px solid var(--rule); border-radius: 6px; background: var(--wash); }
+/* a light screenshot glares on a dark page: dim it slightly, or ship a dark pair with <picture> */
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .shot img:not(.dark-ok), :root:not([data-theme="light"]) .compare img:not(.dark-ok) { filter: brightness(0.86) contrast(1.05); } }
+:root[data-theme="dark"] .shot img:not(.dark-ok), :root[data-theme="dark"] .compare img:not(.dark-ok) { filter: brightness(0.86) contrast(1.05); }
+
+/* diagram */
+.diagram .stage { overflow-x: auto; border: 1px solid var(--rule); border-radius: 6px; padding: 1rem; background:
+  radial-gradient(circle, var(--rule) 1px, transparent 1.2px) 0 0 / 16px 16px, var(--paper); }
+.diagram svg { display: block; min-width: 30rem; width: 100%; height: auto; }
+.diagram .box { fill: var(--paper); stroke: var(--ink); stroke-width: 1.25; }
+.diagram .box.hot { fill: var(--accent-wash); stroke: var(--accent); }
+.diagram .wire { fill: none; stroke: var(--muted); stroke-width: 1.25; }
+.diagram .flow { fill: none; stroke: var(--accent); stroke-width: 1.5; stroke-dasharray: 3 7; animation: march 1.2s linear infinite; }
+.diagram .lbl { font: 600 13px var(--font-display); fill: var(--ink); }
+.diagram .sub { font: 400 11px var(--font-mono); fill: var(--muted); }
+.diagram .edge { font: 400 10.5px var(--font-mono); fill: var(--muted); }
+.diagram .dot { fill: var(--accent); }
+.diagram .arrow { fill: var(--muted); }
+@keyframes march { to { stroke-dashoffset: -20; } }
+
+/* bars (drawn to scale: --v is value / max) */
+.bars { display: grid; gap: 0.35rem; font: 0.75rem/1.3 var(--font-mono); }
+.bars .row { display: grid; grid-template-columns: 4.5rem 1fr 4.5rem; align-items: center; gap: 0.75rem; }
+.bars .row i { display: block; height: 0.7rem; width: calc(var(--v) * 100%); min-width: 2px; background: var(--accent); border-radius: 1px; }
+.bars .row b { font-weight: 400; color: var(--muted); text-align: right; font-variant-numeric: tabular-nums; }
+
+/* timeline */
+.timeline { list-style: none; margin-block: 0; padding: 0; display: grid; gap: 0; font-size: 0.9375rem; }
+.timeline li { display: grid; grid-template-columns: 5.5rem 1rem 1fr; gap: 0.6rem; align-items: start; position: relative; padding-bottom: 0.65rem; }
+.timeline time { font: 0.75rem/1.9 var(--font-mono); color: var(--muted); font-variant-numeric: tabular-nums; }
+.timeline li::before { content: ""; grid-column: 2; grid-row: 1; width: 9px; height: 9px; margin: 0.45rem auto 0; border-radius: 50%; border: 1.5px solid var(--muted); background: var(--paper); z-index: 1; }
+.timeline li.merged::before { background: var(--accent); border-color: var(--accent); }
+.timeline li::after { content: ""; position: absolute; left: calc(5.5rem + 0.6rem + 0.5rem - 0.5px); top: 0.9rem; bottom: -0.45rem; width: 1px; background: var(--rule); }
+.timeline li:last-child::after { display: none; }
+.timeline .ev { grid-column: 3; grid-row: 1; min-width: 0; }
+.timeline .ev small { font: 0.75rem var(--font-mono); color: var(--muted); }
+
+/* notes */
+.fn { font: 500 0.7em var(--font-mono); vertical-align: super; line-height: 0; }
+.fn a { text-decoration: none; color: var(--mark); padding-inline: 0.1em; }
+
+/* opt-in modules (references/modules.md): an appendix after the last chapter */
+.module { display: grid; gap: 0.85rem; padding: 1.25rem 1.25rem 1.4rem; border: 1px solid var(--rule); border-radius: 6px; background: var(--wash); font-size: 0.9375rem; }
+.module h2 { font: 600 1.0625rem/1.3 var(--font-display); margin: 0; }
+.module .note { font: 0.75rem/1.5 var(--font-mono); color: var(--muted); }
+.ledger { overflow-x: auto; }
+.ledger table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+.ledger th { text-align: left; font: 500 0.6875rem var(--font-mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); padding: 0 0.6rem 0.4rem 0; border-bottom: 1px solid var(--rule); }
+.ledger td { padding: 0.45rem 0.6rem 0.45rem 0; border-bottom: 1px solid var(--rule); vertical-align: top; }
+.ledger td:first-child { font: 0.75rem/1.9 var(--font-mono); color: var(--muted); white-space: nowrap; }
+.ledger .num { font: 0.75rem/1.9 var(--font-mono); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.ledger code { font-size: 0.75rem; background: var(--paper); }
+
+/* end matter */
+.end { display: grid; gap: 1.75rem; padding-top: 2rem; border-top: 1px solid var(--rule); font-size: 0.9375rem; }
+.end h2 { text-transform: uppercase; letter-spacing: 0.08em; margin: 0 0 0.5rem; font-weight: 500; }
+.end ol { margin: 0; padding-left: 1.4rem; display: grid; gap: 0.45rem; }
+.end li::marker { font: 0.75rem var(--font-mono); color: var(--muted); }
+.colophon { color: var(--muted); font-style: italic; }
+
+@media (prefers-reduced-motion: reduce) {
+  .diagram .flow, .steps .box { animation: none !important; }
+  html { scroll-behavior: auto; }
+}
+@media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+</style>
+
+<article class="post">
+
+  <!-- ── MASTHEAD ── Stats are off by default; delete the <dl> unless a number is the headline.
+       Keep a stat only if a stranger understands it cold, before reading the post, and would care
+       ("3× faster cold start", "0 config to publish"). Never process (PRs, lines, days) and never
+       a count that needs the post to explain it ("Write paths: 1"). Release stories skip them. -->
+  <header class="mast">
+    <h1>Turning a pile of PRs into a story</h1>
+    <p class="dek">The record of a feature is long and mostly noise. This template is the shape we pour the useful part into.</p>
+    <p class="byline">By Author Name · October 2026 · counted 12 October 2026</p>
+    <!-- <dl class="stats">
+      <div><dt>Cold start</dt><dd>3× faster</dd></div>
+      <div><dt>Config to publish</dt><dd>none</dd></div>
+    </dl> -->
+  </header>
+
+  <!-- ── LEDE ── problem in the reader's terms, what was built, what the page will show -->
+  <p class="lede">A feature leaves behind issues, pull requests, commits and review threads. Read in order, they make a changelog. This page is the template a build story is written into. Each component below shows a decision instead of listing what happened. Every number on a real post comes from the dossier, a file, or a command run for it.</p>
+
+  <nav class="toc" aria-label="Chapters">
+    <ol>
+      <li><a href="#c1"><span>01</span>From record to dossier</a></li>
+      <li><a href="#c2"><span>02</span>Feedback that changed things</a></li>
+      <li><a href="#c3"><span>03</span>Showing the change</a></li>
+      <li><a href="#c4"><span>04</span>Keeping it at altitude</a></li>
+    </ol>
+  </nav>
+
+  <!-- ── CHAPTER ── situation → options → choice and why → evidence → cost / what's open -->
+  <section class="ch" id="c1">
+    <h2><span class="n">01</span>From record to dossier</h2>
+    <p>The first step reads the whole record so the writing step doesn't have to. A script pulls every issue, pull request, branch commit and review thread for the feature and writes one digest with the counts already made.<sup class="fn"><a href="#n1" id="r1">1</a></sup> The writer reads that digest to understand the work, and almost none of its detail reaches the page.</p>
+    <!-- REF (deep dives in public repos only): name the idea in prose, then a quiet link beside it, e.g.
+         …the change that moved the parser into the shared package.<span class="ref"><a href="https://github.com/OWNER/REPO/pull/0">#0</a></span> -->
+
+    <!-- OPTIONS: the turn as a table. One row per option the record shows; mark the winner .chosen. -->
+    <figure class="options">
+      <table>
+        <thead><tr><th>Option</th><th>Verdict</th><th>Why</th></tr></thead>
+        <tbody>
+          <tr><td>Read every diff</td><td class="verdict">rejected</td><td>Hours of reading for a dozen usable facts.</td></tr>
+          <tr class="chosen"><td>Digest first, then dig</td><td class="verdict">chosen</td><td>One file with the counts done; the writer opens code only for chosen beats.</td></tr>
+          <tr><td>Summarize with a model</td><td class="verdict">rejected</td><td>Summaries lose the exact numbers and quotes the post needs.</td></tr>
+        </tbody>
+      </table>
+    </figure>
+
+    <!-- STEPS: prefer this for any linear flow (it stacks on phones). --i = index, --n = count for the moving highlight. -->
+    <figure class="wide">
+      <ol class="steps live" style="--n:4" aria-label="From record to page">
+        <li style="--i:0"><div class="box"><b>Issues &amp; PRs</b><small>git + gh</small></div></li>
+        <li style="--i:1" class="hot"><div class="box"><b>Dossier</b><small>gather.mjs</small></div></li>
+        <li style="--i:2"><div class="box"><b>Story plan</b><small>plan.md</small></div></li>
+        <li style="--i:3"><div class="box"><b>Page</b><small>post.html</small></div></li>
+      </ol>
+      <figcaption>Fig. 1a. The same pipeline as an HTML step flow. Use this form when the flow is a straight line.</figcaption>
+    </figure>
+
+    <!-- DIAGRAM (SVG) with motion: for branches, loops and anything that isn't a straight line.
+         Boxes/labels/paths are hand-placed; .hot marks the part this chapter is about. Scrolls sideways under 30rem. -->
+    <figure class="diagram wide">
+      <div class="stage">
+        <svg viewBox="0 0 720 150" role="img" aria-labelledby="d1t d1d">
+          <title id="d1t">Pipeline from repository record to published page</title>
+          <desc id="d1d">Issues and pull requests feed a gather script, which writes a dossier; a story plan is written from the dossier, and the page is written from the plan.</desc>
+          <defs><marker id="ah" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path class="arrow" d="M0,0 L8,4 L0,8 z"/></marker></defs>
+          <!-- the moving dot is drawn first, so boxes cover it: it travels the wires and disappears into each step -->
+          <!-- moving dot: one trip every 3 s, resting at the start under reduced motion.
+               Keep cx="0" cy="0": animateMotion ADDS its path to the circle's position, so any other cx/cy shifts the whole trip.
+               Build the motion path from the exact vertices of the drawn wires, or the dot drifts off the lines. lint.mjs checks both. -->
+          <circle class="dot" r="4" cx="0" cy="0">
+            <animateMotion dur="3s" repeatCount="indefinite" keyPoints="0;1;1" keyTimes="0;0.5;1" calcMode="linear" path="M140,75 L200,75 L330,75 L390,75 L520,75 L580,75"/>
+          </circle>
+          <rect class="box" x="10" y="45" width="130" height="60" rx="6"/>
+          <text class="lbl" x="75" y="72" text-anchor="middle">Issues &amp; PRs</text>
+          <text class="sub" x="75" y="90" text-anchor="middle">git + gh</text>
+          <rect class="box hot" x="200" y="45" width="130" height="60" rx="6"/>
+          <text class="lbl" x="265" y="72" text-anchor="middle">gather.mjs</text>
+          <text class="sub" x="265" y="90" text-anchor="middle">dossier.md</text>
+          <rect class="box" x="390" y="45" width="130" height="60" rx="6"/>
+          <text class="lbl" x="455" y="72" text-anchor="middle">Story plan</text>
+          <text class="sub" x="455" y="90" text-anchor="middle">plan.md</text>
+          <rect class="box" x="580" y="45" width="130" height="60" rx="6"/>
+          <text class="lbl" x="645" y="72" text-anchor="middle">Page</text>
+          <text class="sub" x="645" y="90" text-anchor="middle">post.html</text>
+          <path id="p1" class="flow" d="M140,75 L200,75"/>
+          <path class="wire" d="M330,75 L390,75" marker-end="url(#ah)"/>
+          <path class="wire" d="M520,75 L580,75" marker-end="url(#ah)"/>
+          <text class="edge" x="170" y="64" text-anchor="middle">fetch</text>
+          <text class="edge" x="360" y="64" text-anchor="middle">read</text>
+          <text class="edge" x="550" y="64" text-anchor="middle">write</text>
+        </svg>
+      </div>
+      <figcaption>Fig. 1. The dossier is the only step that touches GitHub. Everything after it reads files.</figcaption>
+    </figure>
+
+    <p>The digest is long on purpose. Choosing what to leave out happens in the plan, where each cut is written down with its reason.</p>
+
+    <!-- CODE: ≤15 real lines from the shipped commit; label with path; mark cuts with … -->
+    <figure class="code">
+      <figcaption><span>scripts/gather.mjs</span></figcaption>
+<pre><code><span class="c">// Release-automation PRs (version bumps) carry no story.</span>
+<span class="k">const</span> isBotPr = (p) =&gt;
+  /^app\/|\[bot\]$/.test(p.author?.login ?? <span class="s">""</span>) ||
+  /^chore(\(release\))?: (version packages|release)/i.test(p.title);
+<span class="cut">…</span>
+<span class="k">if</span> (isBotPr(p) &amp;&amp; !args[<span class="s">"keep-bot-prs"</span>]) <span class="k">return</span>;</code></pre>
+    </figure>
+
+    <!-- TERMINAL: one command you ran for this post, as a reader would type it; only the output lines
+         that make the point (mark cuts with a "…" line); bare caption, run details stay in plan.md.
+         Add .wrap when a line is long prose (an error message); leave it off for tables and JSON. -->
+    <figure class="code term">
+      <figcaption><span>Terminal</span></figcaption>
+<pre><code><span class="prompt">$ </span>node scripts/gather.mjs --issue 2290 --out evidence
+<span class="dim">dossier: 15 issues · 16 PRs · 0 loose commits · 6 images → evidence/dossier.md</span></code></pre>
+    </figure>
+  </section>
+
+  <section class="ch" id="c2">
+    <h2><span class="n">02</span>Feedback that changed things</h2>
+    <p>Sometimes a piece of feedback explains a design better than any summary. A user report, a test run or a review can say why something works the way it does. This list is for those cases only.</p>
+
+    <!-- HEARD → CHANGED (optional, use rarely): only when the feedback explains a design the reader would
+         otherwise find odd. Never as a log of reviews, and the source can be generic ("a user", "first test run"). -->
+    <div class="heard">
+      <div class="pair head"><span>What we heard</span><span>What changed</span></div>
+      <div class="pair">
+        <blockquote>“The image list is all ‘Open in Cursor’ buttons.”<cite>first test run</cite></blockquote>
+        <p>Button and badge images are filtered out, so the list only holds screenshots someone took on purpose.</p>
+      </div>
+      <div class="pair">
+        <blockquote>“Version-bump PRs show up as part of the feature.”<cite>first test run</cite></blockquote>
+        <p>PRs from release bots are dropped unless <code>--keep-bot-prs</code> is passed.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="ch" id="c3">
+    <h2><span class="n">03</span>Showing the change</h2>
+    <p>A before/after pair takes any content: two screenshots, two code blocks, two terminal runs. Label each side with its date or commit.</p>
+
+    <!-- COMPARE: two .side blocks; put <img src="assets/…"> or a .code figure in each -->
+    <figure class="compare wide">
+      <div class="sides">
+        <div class="side">
+          <span class="tag">Before · first run</span>
+          <figure class="code term"><pre><code>Images:
+- …/open-in-web-dark.png
+- …/open-in-cursor-dark.png</code></pre></figure>
+        </div>
+        <div class="side">
+          <span class="tag after">After · with the filter</span>
+          <figure class="code term"><pre><code>Images:
+<span class="dim">(none: this feature has no screenshots,
+ so the post captures fresh ones)</span></code></pre></figure>
+        </div>
+      </div>
+      <figcaption>Fig. 2. The same dossier section before and after the image filter.</figcaption>
+    </figure>
+
+    <!-- SCREENSHOT (uncomment, keep the file in assets/; inline-assets.mjs embeds it)
+    <figure class="shot wide">
+      <img src="assets/panel.png" alt="Describe what the screenshot shows" width="1600" height="900">
+      <figcaption>Fig. 3. What it shows, and where it came from (PR #, or "captured 12 Oct").</figcaption>
+    </figure>
+    -->
+  </section>
+
+  <section class="ch" id="c4">
+    <h2><span class="n">04</span>Keeping it at altitude</h2>
+    <p>The first test draft was accurate and too close to the ground. It gave minute-by-minute timestamps and cited an issue in nearly every paragraph. The linter now counts that kind of detail against a budget for each flavor.</p>
+
+    <!-- BARS: --v = value ÷ largest value, so bars are to scale. Chart product or idea numbers, not the process. -->
+    <figure>
+      <div class="bars" role="img" aria-label="Sentences about process: budget by flavor, and the first test draft">
+        <div class="row" style="--v:0.037"><span>Release</span><i></i><b>1</b></div>
+        <div class="row" style="--v:0.148"><span>Build</span><i></i><b>4</b></div>
+        <div class="row" style="--v:0.370"><span>Deep dive</span><i></i><b>10</b></div>
+        <div class="row" style="--v:1"><span>Draft 1</span><i></i><b>27</b></div>
+      </div>
+      <figcaption>Fig. 4. Sentences about reviews, merges and PRs that each flavor allows, against the first test draft (a build story). Counted by lint.mjs.</figcaption>
+    </figure>
+
+    <!-- TIMELINE (rare): only when the timing itself is the point. Days, never clock times. -->
+
+    <!-- TIMELINE: from dossier.json "timeline"; .merged = filled dot. Keep it to the beats, not every event. -->
+    <figure>
+    <ol class="timeline">
+      <li><time datetime="2026-10-12">12 Oct</time><span class="ev">First version of the skill <small>gatherer, template, rules</small></span></li>
+      <li class="merged"><time datetime="2026-10-12">12 Oct</time><span class="ev">First test post written from a real feature</span></li>
+      <li class="merged"><time datetime="2026-10-12">12 Oct</time><span class="ev">Flavors and altitude budget added after reading it</span></li>
+    </ol>
+      <figcaption>Fig. 5. Only use a timeline when the pace is part of the story, and give days, not times.</figcaption>
+    </figure>
+  </section>
+
+  <!-- ── MODULES (opt-in, off by default) ── appendix asides go here, after the last chapter.
+       Generate with scripts/module.mjs (build-log, numbers, timeline) or write by hand (review-notes,
+       how-made, sources). See references/modules.md. Example:
+  <aside class="module" data-module="numbers" aria-labelledby="m-numbers">
+    <h2 id="m-numbers">By the numbers</h2>
+    <dl class="stats">…</dl>
+    <p class="note">Counted from the repository on 12 Oct.</p>
+  </aside>
+  -->
+
+  <!-- ── END MATTER ── -->
+  <footer class="end">
+    <section>
+      <h2>Notes</h2>
+      <ol>
+        <li id="n1">The script needs only <code>git</code> and an authenticated <code>gh</code>, so it runs in any GitHub repository. <a href="#r1" aria-label="Back to text">↩</a></li>
+      </ol>
+    </section>
+    <!-- FURTHER READING: links a reader can open and would want (docs, the product, a public repo or design doc).
+         Release story: docs only. Private project: nothing internal. Omit the section if there's nothing worth linking. -->
+    <section>
+      <h2>Further reading</h2>
+      <ol>
+        <li><a href="https://example.com/docs/feature">Feature docs</a>: how to set it up.</li>
+      </ol>
+    </section>
+    <!-- COLOPHON (optional) -->
+    <p class="colophon">Written from the project's issues, pull requests and design docs. Code excerpts are from the shipped commits.</p>
+  </footer>
+</article>
+
+<script>
+  // Stop SVG (SMIL) motion for readers who ask for less; the resting frame still explains the diagram.
+  if (window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    document.querySelectorAll("svg").forEach((s) => s.pauseAnimations && s.pauseAnimations());
+  }
+</script>
