@@ -1,0 +1,13 @@
+{
+  "label": "A fifth server joins four. With hash mod N, 46 of 60 keys move to a different server; with a hash ring, only the 10 keys next to the new server move",
+  "frag": "rehash.glsl",
+  "loop": 5,
+  "rest": 4.4,
+  "aspect": "2 / 1",
+  "labels": [
+    { "text": "hash mod N", "x": 0.02, "y": 0.07 },
+    { "text": "Hash ring", "x": 0.52, "y": 0.07 },
+    { "text": "46 of 60 keys move", "x": 0.25, "y": 0.91, "align": "center" },
+    { "text": "10 of 60 keys move", "x": 0.75, "y": 0.91, "align": "center" }
+  ]
+}

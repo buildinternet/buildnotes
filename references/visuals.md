@@ -148,7 +148,7 @@ Keep it in the same rules as any visual: one per chapter, and it must explain so
 - `vec3 u_paper, u_ink, u_muted, u_accent, u_accent_wash, u_dim, u_mark` (the page's colour tokens) and `float u_dark`. Colour only from these, so both themes work: background `u_paper`, the subject `u_accent`, the rest `u_dim` or `u_muted`.
 - `#define TAU`
 
-`assets/specs/jitter.glsl` (retries with and without jitter, looping) and `banding.glsl` (a still before/after) are worked examples. Declare extra uniforms in the shader and set them in the spec's `uniforms`. Shaders can't draw text, so put words in the spec's `labels` (`text`, `x` and `y` from 0 to 1, top left; optional `align` and `tone`), which sit over the canvas. A shader that doesn't use `u_time` or `u_phase` is still: drop `loop` and it draws once (and again on hover if it reads `u_pointer`).
+`assets/specs/jitter.glsl` (retries with and without jitter, looping), `rehash.glsl` (keys that move when a server joins: hash mod N against a hash ring) and `banding.glsl` (a still before/after) are worked examples. Declare extra uniforms in the shader and set them in the spec's `uniforms`. Shaders can't draw text, so put words in the spec's `labels` (`text`, `x` and `y` from 0 to 1, top left; optional `align` and `tone`), which sit over the canvas. A shader that doesn't use `u_time` or `u_phase` is still: drop `loop` and it draws once (and again on hover if it reads `u_pointer`).
 
 For more than one fragment shader can do (geometry, several passes, 2D canvas drawing), write the canvas by hand. So that it exports and behaves:
 

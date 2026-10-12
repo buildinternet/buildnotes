@@ -57,6 +57,7 @@ const EXAMPLES = {
   "strip-rounds.json": "Three rounds of a design, as images.",
   "strip-filter.json": "Before and after, as terminal output.",
   "shader-jitter.json": "Many things at once: 80 clients retrying, and the load they put on the server. Loops every 5 s on u_phase; labels sit over the canvas.",
+  "shader-rehash.json": "The mechanism behind a number: which keys move when a server joins, and why the ring moves so few. Loops every 5 s.",
   "shader-banding.json": "When the pixels are the subject: a rendering fix, shown on the reader's own screen. A still shader, with the level count as an extra uniform.",
 };
 
