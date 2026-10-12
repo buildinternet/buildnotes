@@ -382,15 +382,20 @@ function nearbyWork() {
   const from = daysBefore(times[0], days);
   const to = daysBefore(times.at(-1), -days);
   const have = new Set(dossier.prs.filter((p) => p.repo === repo).map((p) => p.number));
-  const hits = ghJsonSafe(["pr", "list", "-R", repo, "--state", "merged", "--limit", "200", "--search", `merged:${from}..${to}`, "--json", "number,title,mergedAt,author"]) ?? [];
+  const hits = ghJsonSafe(["pr", "list", "-R", repo, "--state", "merged", "--limit", "200", "--search", `merged:${from}..${to}`, "--json", "number,title,mergedAt,author,files"]) ?? [];
+  // Files the selected work touched: a nearby PR that shares them is likely the same idea.
+  const mine = new Set(dossier.prs.filter((p) => p.repo === repo).flatMap((p) => p.files.map((f) => f.path)));
   const groups = new Map();
   for (const h of hits) {
     if (have.has(h.number) || isBotPr(h) || /^changelog: \d{4}-/i.test(h.title)) continue;
     const area = h.title.match(/^\w+\(([^)]+)\)!?:/)?.[1]?.toLowerCase() ?? h.title.match(/^(\w+)!?:/)?.[1]?.toLowerCase() ?? "other";
     if (!groups.has(area)) groups.set(area, []);
-    groups.get(area).push({ number: h.number, title: h.title, date: h.mergedAt?.slice(0, 10) });
+    const shared = (h.files ?? []).filter((f) => mine.has(f.path)).length;
+    groups.get(area).push({ number: h.number, title: h.title, date: h.mergedAt?.slice(0, 10), shared });
   }
-  return { from, to, groups: [...groups].sort((a, b) => b[1].length - a[1].length).map(([area, prs]) => ({ area, prs })) };
+  for (const list of groups.values()) list.sort((a, b) => b.shared - a.shared);
+  const score = (prs) => prs.reduce((n, p) => n + p.shared * 3, 0) + prs.length;
+  return { from, to, groups: [...groups].sort((a, b) => score(b[1]) - score(a[1])).map(([area, prs]) => ({ area, prs })) };
 }
 
 function daysBefore(iso, n) { return new Date(Date.parse(iso) - n * 86400000).toISOString().slice(0, 10); }
@@ -576,8 +581,8 @@ function renderMarkdown() {
 
   const nw = dossier.nearbyWork;
   if (nw.groups.length) {
-    L.push("## Nearby work", "", `Other merged PRs from ${nw.from} to ${nw.to}, grouped by area. The selected PRs are a starting point, not the boundary: if something here serves the same idea for users, pull it in (\`--pr\`) and tell the story of the idea.`, "");
-    for (const g of nw.groups.slice(0, 12)) L.push(`- **${esc(g.area)}** (${g.prs.length}): ${g.prs.slice(0, 6).map((p) => `#${p.number} ${esc(oneLine(p.title.replace(/^\w+(\([^)]+\))?!?:\s*/, ""), 70))}`).join(" · ")}${g.prs.length > 6 ? " · …" : ""}`);
+    L.push("## Nearby work", "", `Other merged PRs from ${nw.from} to ${nw.to}, grouped by area; ★n marks a PR that shares n files with the selected work (a few shared hub files mean little; many mean the same idea). The selected PRs are a starting point, not the boundary: if something here serves the same idea for users, pull it in (\`--pr\`) and tell the story of the idea.`, "");
+    for (const g of nw.groups.slice(0, 12)) L.push(`- **${esc(g.area)}** (${g.prs.length}): ${g.prs.slice(0, 6).map((p) => `${p.shared ? `★${p.shared} ` : ""}#${p.number} ${esc(oneLine(p.title.replace(/^\w+(\([^)]+\))?!?:\s*/, ""), 70))}`).join(" · ")}${g.prs.length > 6 ? " · …" : ""}`);
     L.push("");
   }
   const pw = dossier.priorWork;

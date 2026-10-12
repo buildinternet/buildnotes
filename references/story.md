@@ -143,4 +143,4 @@ These read as generated or as marketing. Rewrite on sight.
 
 Words count prose only, not code, terminals, captions, diagrams or end matter (`lint.mjs` counts this way). Code and terminal blocks are evidence, not visuals.
 
-If the draft runs long, cut beats, not sentences. Three ideas told well beat seven told thinly.
+The ranges are guides, not floors. A post that lands short after cutting the weeds is finished; never pad to reach a number. If the draft runs long, cut beats, not sentences. Three ideas told well beat seven told thinly.
