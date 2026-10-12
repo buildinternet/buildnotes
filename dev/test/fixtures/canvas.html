@@ -1,0 +1,46 @@
+<!doctype html>
+<!-- Test page for export.mjs: a 2D canvas and a WebGL canvas, each looping every 2 s from the
+     requestAnimationFrame clock. A dot circles in the first; a triangle turns in the second. -->
+<meta charset="utf-8">
+<style>body { margin: 0; padding: 24px; background: #f5f6f7; } figure { margin: 0 0 24px; } canvas { display: block; }</style>
+<figure data-loop="2"><canvas id="c2d" width="160" height="160"></canvas><figcaption>2D</figcaption></figure>
+<figure data-loop="2"><canvas id="cgl" width="160" height="160"></canvas><figcaption>WebGL</figcaption></figure>
+<figure><canvas id="free" width="80" height="80"></canvas><figcaption>no loop declared</figcaption></figure>
+<figure data-loop="1"><canvas id="click" width="80" height="80"></canvas><button id="go" type="button">Run</button><figcaption>starts on click</figcaption></figure>
+<script>
+  const PERIOD = 2000;
+  const ctx = document.getElementById("c2d").getContext("2d");
+  const gl = document.getElementById("cgl").getContext("webgl");
+  const shader = (type, src) => { const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s); return s; };
+  const prog = gl.createProgram();
+  gl.attachShader(prog, shader(gl.VERTEX_SHADER, "attribute vec2 p; uniform float a; void main() { mat2 r = mat2(cos(a), sin(a), -sin(a), cos(a)); gl_Position = vec4(r * p, 0.0, 1.0); }"));
+  gl.attachShader(prog, shader(gl.FRAGMENT_SHADER, "precision mediump float; void main() { gl_FragColor = vec4(0.11, 0.36, 0.82, 1.0); }"));
+  gl.linkProgram(prog);
+  gl.useProgram(prog);
+  gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0, 0.8, -0.7, -0.5, 0.7, -0.5]), gl.STATIC_DRAW);
+  const loc = gl.getAttribLocation(prog, "p");
+  gl.enableVertexAttribArray(loc);
+  gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+  const angle = gl.getUniformLocation(prog, "a");
+  const draw = (t) => {
+    const a = ((t % PERIOD) / PERIOD) * Math.PI * 2;
+    ctx.fillStyle = "#f5f6f7"; ctx.fillRect(0, 0, 160, 160);
+    ctx.fillStyle = "#1d5bd0"; ctx.beginPath(); ctx.arc(80 + 50 * Math.cos(a), 80 + 50 * Math.sin(a), 12, 0, Math.PI * 2); ctx.fill();
+    gl.clearColor(0.96, 0.96, 0.97, 1); gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.uniform1f(angle, a); gl.drawArrays(gl.TRIANGLES, 0, 3);
+    requestAnimationFrame(draw);
+  };
+  requestAnimationFrame(draw);
+  // Fourth figure: blank until "Run" is clicked, then a square grows over 1 s (frame time clamped, like a game loop).
+  const cx = document.getElementById("click").getContext("2d");
+  let grown = 0, last = 0, running = false;
+  const grow = (t) => {
+    const dt = Math.min(t - last, 50); last = t;
+    if (running) grown = Math.min(1, grown + dt / 1000);
+    cx.clearRect(0, 0, 80, 80); cx.fillStyle = "#b0450e"; cx.fillRect(0, 0, 80 * grown, 80);
+    requestAnimationFrame(grow);
+  };
+  requestAnimationFrame(grow);
+  document.getElementById("go").addEventListener("click", () => { running = true; });
+</script>

@@ -49,7 +49,8 @@ function portOf(chrome) {
   });
 }
 
-export async function openPage(url, { width = 1280, height = 800, scale = 2, theme, reduced = false } = {}) {
+// init: a script that runs in the page before any of its own (Page.addScriptToEvaluateOnNewDocument).
+export async function openPage(url, { width = 1280, height = 800, scale = 2, theme, reduced = false, init } = {}) {
   const binary = chromePath();
   if (!binary) throw new Error("no Chrome found; set CHROME_PATH to a Chrome or Chromium binary");
   const profile = mkdtempSync(join(tmpdir(), "build-story-chrome-"));
@@ -57,6 +58,8 @@ export async function openPage(url, { width = 1280, height = 800, scale = 2, the
     "--headless=new", ...(process.platform === "linux" ? ["--no-sandbox"] : []),
     "--remote-debugging-port=0", `--user-data-dir=${profile}`,
     "--no-first-run", "--no-default-browser-check", "--hide-scrollbars", "--allow-file-access-from-files",
+    // WebGL in headless Chrome: software rendering, allowed on any GPU.
+    "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist",
     "about:blank",
   ]);
   const close = () => {
@@ -93,6 +96,7 @@ export async function openPage(url, { width = 1280, height = 800, scale = 2, the
     if (reduced) features.push({ name: "prefers-reduced-motion", value: "reduce" });
     if (features.length) await send("Emulation.setEmulatedMedia", { features });
     await send("Emulation.setDeviceMetricsOverride", { width, height, deviceScaleFactor: scale, mobile: false }); // mobile emulation would lay a page with no viewport meta out at 980px
+    if (init) await send("Page.addScriptToEvaluateOnNewDocument", { source: init });
     const loaded = new Promise((done) => {
       const prev = socket.onmessage;
       socket.onmessage = (m) => { prev(m); if (JSON.parse(m.data).method === "Page.loadEventFired") done(); };

@@ -18,14 +18,20 @@
 //   --fps <n>           frames per second for GIF and video; default 30 (20 for GIFs)
 //   --seconds <s>       length of the loop; default: found from the figure's own animations
 //   --at <s>            for --png: the moment to freeze; default 0
+//   --from <s>          for GIF and video: start the loop this far in (after a figure settles); default 0
+//   --click <css>       click this element first, as a reader would (a "Run" or "Ignite" button);
+//                       repeat it for several clicks, in order
 //   --caption           include the figure's caption
 //   --pad <px>          page background around the figure; default 16
 //   --transparent       for --svg: no background rectangle
 //   --frames            for GIF and video: keep the PNG frames next to the output
 //
-// GIF and video need ffmpeg. Frames are stepped, not recorded: motion is paused and moved to each
-// frame's time, so frames are even and the loop closes without a jump. Needs Chrome (set CHROME_PATH
-// if it isn't found).
+// GIF and video need ffmpeg. Frames are stepped, not recorded: SVG and CSS motion is paused and moved
+// to each frame's time, and the page's scripts run on a virtual clock (requestAnimationFrame,
+// performance.now, Date, timers) that only moves when the exporter moves it, so canvas and WebGL
+// animations step the same way. Frames are even and the loop closes without a jump. A canvas can't
+// report its loop length: declare it with data-loop="<seconds>" on the figure or canvas, or pass
+// --seconds. Needs Chrome (set CHROME_PATH if it isn't found).
 
 import { spawnSync } from "node:child_process";
 import { mkdirSync, writeFileSync, mkdtempSync, rmSync, existsSync, renameSync } from "node:fs";
@@ -51,12 +57,17 @@ const fps = Number(opt("fps") ?? (gif ? 20 : 30));
 const pad = Number(opt("pad") ?? 16);
 const theme = opt("theme") ?? "light";
 const figure = Number(opt("figure") ?? 1);
+const clicks = argv.flatMap((a, i) => (a === "--click" && argv[i + 1] ? [argv[i + 1]] : []));
+const from = Number(opt("from") ?? 0);
 
 // In the page: the visual figures in order (not code or terminal blocks, not figures nested in another).
 const FIGURES = `[...document.querySelectorAll("figure")].filter((f) => !f.parentElement.closest("figure") && !f.classList.contains("code") && !f.closest("details"))`;
 const KIND = `(f) => { const el = f.querySelector(".flow, .steps, .bars, .delta, .line-box, .options, .matrix, .strip-box, .diagram, .timeline, img, video"); return !el ? "figure" : el.matches("img, video") ? "image" : el.classList[0].replace("-box", ""); }`;
 
-const page = await openPage(pathToFileURL(resolve(file)).href, { width, height: 900, scale, theme });
+// Frames (PNG, GIF, video) run the page on a virtual clock, so script-driven motion (canvas, WebGL)
+// steps exactly like SVG and CSS motion.
+const frameFormat = ["png", "gif", "mp4", "webm"].includes(format);
+const page = await openPage(pathToFileURL(resolve(file)).href, { width, height: 900, scale, theme, init: frameFormat ? `(${virtualClock})()` : undefined });
 const done = async (code, msg) => { if (msg) console.error(msg); await page.close(); process.exit(code); };
 
 try {
@@ -89,8 +100,18 @@ try {
   await page.evaluate(`window.__seek = (t) => {
     document.querySelectorAll("svg").forEach((s) => { s.pauseAnimations?.(); s.setCurrentTime?.(t); });
     document.getAnimations().forEach((a) => { a.pause(); a.currentTime = t * 1000; });
-    return new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(() => r(true))));
+    // Walk the clock there in 60 fps steps: a page that clamps the time between frames (most game
+    // loops do) would barely move on one big jump.
+    if (window.__clock) { while (t * 1000 - window.__clock.now > 1000 / 60) window.__clock.to(window.__clock.now + 1000 / 60); window.__clock.to(t * 1000); }
+    // Two real frames, so the compositor paints what the page just drew (WebGL included).
+    const raf = window.__clock?.realRAF ?? requestAnimationFrame;
+    return new Promise((r) => raf(() => raf(() => r(true))));
   }; true`);
+  // Clicks happen at time 0, before any frame, so what they start plays out on the virtual clock.
+  for (const sel of clicks) {
+    const ok = await page.evaluate(`(() => { const el = document.querySelector(${JSON.stringify(sel)}); if (!el) return false; el.click(); return true; })()`);
+    if (!ok) await done(1, `--click: nothing matches ${sel}`);
+  }
   // Show only the exported element: its neighbours (a caption, the next paragraph) keep their space
   // but don't paint into the margin. The page background still shows.
   await page.evaluate(`document.body.style.visibility = "hidden"; window.__target.style.visibility = "visible"; true`);
@@ -104,24 +125,32 @@ try {
   }
 
   // One loop: the least common multiple of the figure's animation lengths (to 0.1 s), capped at 12 s.
+  // A canvas can't report its loop: the page declares it with data-loop="<seconds>" on the figure,
+  // the canvas or anything inside, or --seconds sets it.
   const durs = await page.evaluate(`[
+    ...[window.__target.closest("[data-loop]"), ...window.__target.querySelectorAll("[data-loop]")].filter(Boolean).map((e) => parseFloat(e.dataset.loop)),
     ...[...window.__target.querySelectorAll("animate, animateMotion, animateTransform")].map((a) => parseFloat(a.getAttribute("dur"))),
     ...window.__target.getAnimations({ subtree: true }).map((a) => a.effect.getTiming().duration / 1000),
   ].filter((d) => d > 0)`);
   let seconds = Number(opt("seconds") ?? 0);
   if (!seconds) {
-    if (!durs.length) await done(1, "nothing in this figure moves; export it with --png");
+    if (!durs.length) {
+      const canvas = await page.evaluate(`window.__target.matches("canvas") || !!window.__target.querySelector("canvas")`);
+      await done(1, canvas ? 'this figure draws on a canvas, which can\'t report its loop length: set data-loop="<seconds>" on it, or pass --seconds' : "nothing in this figure moves; export it with --png");
+    }
     const gcd = (a, b) => (b ? gcd(b, a % b) : a);
     const tenths = [...new Set(durs.map((d) => Math.round(d * 10)))];
     const lcm = tenths.reduce((a, b) => (a * b) / gcd(a, b));
     seconds = lcm <= 120 ? lcm / 10 : Math.max(...tenths) / 10;
   }
   const count = Math.max(2, Math.round(seconds * fps));
+  const missed = await page.evaluate(`[...(window.__clock?.missed ?? []), ...(window.__target.querySelector("video") ? ["a <video>"] : [])]`);
+  if (missed.length) console.error(`! this page uses ${missed.join(" and ")}, which runs on real time; those parts may step unevenly`);
   if (spawnSync("ffmpeg", ["-version"]).status !== 0) await done(1, "GIF and video need ffmpeg (brew install ffmpeg); --png works without it");
 
   const frames = mkdtempSync(join(tmpdir(), "build-story-frames-"));
   for (let k = 0; k < count; k++) {
-    await page.evaluate(`window.__seek(${(k / fps).toFixed(4)})`);
+    await page.evaluate(`window.__seek(${(from + k / fps).toFixed(4)})`);
     writeFileSync(join(frames, `frame-${String(k).padStart(4, "0")}.png`), await page.screenshot(clip));
   }
   const input = ["-framerate", String(fps), "-i", join(frames, "frame-%04d.png")];
@@ -141,6 +170,61 @@ try {
   await done(0, `wrote ${out} (${count} frames, ${seconds} s at ${fps} fps, ${Math.round(clip.width * scale)}×${Math.round(clip.height * scale)})`);
 } catch (err) {
   await done(1, `export.mjs: ${err.message}`);
+}
+
+// Runs in the page before its own scripts: time stands still until the exporter moves it.
+// requestAnimationFrame, performance.now, Date and timers all read this clock; __clock.to(ms) runs the
+// timers that fall due, in order, then one round of animation frames. Workers, OffscreenCanvas and
+// <video> keep real time; the clock records the first two in __clock.missed so the exporter can warn.
+function virtualClock() {
+  const realRAF = window.requestAnimationFrame.bind(window);
+  const RealDate = Date;
+  const epoch = RealDate.now();
+  let now = 0;
+  let rafs = new Map();
+  let rafId = 0;
+  const timers = new Map();
+  let timerId = 0;
+  window.requestAnimationFrame = (cb) => { rafs.set(++rafId, cb); return rafId; };
+  window.cancelAnimationFrame = (id) => { rafs.delete(id); };
+  performance.now = () => now;
+  function VirtualDate(...a) {
+    if (!new.target) return new RealDate(epoch + now).toString();
+    return a.length ? new RealDate(...a) : new RealDate(epoch + now);
+  }
+  VirtualDate.prototype = RealDate.prototype;
+  VirtualDate.now = () => epoch + now;
+  VirtualDate.parse = RealDate.parse;
+  VirtualDate.UTC = RealDate.UTC;
+  window.Date = VirtualDate;
+  window.setTimeout = (cb, ms = 0, ...args) => { timers.set(++timerId, { cb, args, at: now + Math.max(0, Number(ms) || 0), every: 0 }); return timerId; };
+  window.setInterval = (cb, ms = 0, ...args) => { const every = Math.max(1, Number(ms) || 0); timers.set(++timerId, { cb, args, at: now + every, every }); return timerId; };
+  window.clearTimeout = window.clearInterval = (id) => { timers.delete(id); };
+  const missed = new Set();
+  if (window.Worker) window.Worker = new Proxy(window.Worker, { construct(T, a) { missed.add("a Web Worker"); return new T(...a); } });
+  const transfer = HTMLCanvasElement.prototype.transferControlToOffscreen;
+  if (transfer) HTMLCanvasElement.prototype.transferControlToOffscreen = function () { missed.add("an OffscreenCanvas"); return transfer.call(this); };
+  const call = (fn, ...a) => { try { if (typeof fn === "function") fn(...a); } catch (err) { console.error(err); } };
+  window.__clock = {
+    realRAF,
+    missed,
+    get now() { return now; },
+    to(t) {
+      for (let guard = 0; guard < 10000; guard++) {
+        let next = null;
+        for (const [id, x] of timers) if (x.at <= t && (!next || x.at < next[1].at)) next = [id, x];
+        if (!next) break;
+        const [id, x] = next;
+        now = Math.max(now, x.at);
+        if (x.every) x.at += x.every; else timers.delete(id);
+        call(x.cb, ...x.args);
+      }
+      now = Math.max(now, t);
+      const due = rafs;
+      rafs = new Map();
+      for (const cb of due.values()) call(cb, now);
+    },
+  };
 }
 
 // Runs in the page: the visible <svg> inside el, cloned with its computed styles written onto each

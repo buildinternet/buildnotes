@@ -130,6 +130,17 @@ One idea per chart, drawn to scale, labelled directly. Chart product numbers, no
 
 Open the page (or `post.published.html`) once at 1280×800 and once at 390×844, in light and dark. Check: nothing scrolls the page sideways (`document.documentElement.scrollWidth === innerWidth`), the stacked flow and the table cards read on the phone, terminals don't clip long lines (`term` sets `wrap` for long prose lines; set it yourself if needed), screenshots read in dark mode. With agent-browser: `set viewport`, `set media dark`, `open file://…`, `eval` the scrollWidth check, `screenshot --full`. Don't loop: one look per width, one round of fixes.
 
+## Canvas and WebGL
+
+Hand-written `<canvas>` figures are welcome, 2D or WebGL (a shader for light, smoke, a field, a process too fluid for boxes). Keep them in the same rules: one per chapter, explains something, works in light and dark, a resting frame for reduced motion. So that they export and behave:
+
+- **Drive motion from the animation-frame time** (`requestAnimationFrame((t) => …)` or `performance.now()`), not from a frame counter. Clamping the time between frames is fine.
+- **Declare the loop**: `data-loop="<seconds>"` on the figure or the canvas, for anything that repeats.
+- **Read colours from the page tokens** (`getComputedStyle(document.documentElement).getPropertyValue("--accent")`), and redraw when `prefers-color-scheme` changes.
+- **Reduced motion**: check `matchMedia("(prefers-reduced-motion: reduce)")` and draw one frame that explains the idea.
+- **Keep it on the main thread.** A Web Worker, an OffscreenCanvas or a `<video>` runs on real time; export warns, and those parts may step unevenly.
+- Size the canvas for the device pixel ratio, and give it a text alternative (`role="img"` and `aria-label`, or a caption that says what it shows).
+
 ## Exporting a figure
 
 For slides, a social post or another blog, export one figure as a still, a loop or an SVG. Run `--list` first to number the figures (code and terminal blocks aren't counted):
@@ -142,7 +153,7 @@ node <skill-dir>/scripts/export.mjs <work-dir>/post.html --figure 2 --mp4 --them
 node <skill-dir>/scripts/export.mjs <work-dir>/post.html --figure 2 --svg --width 390  # the stacked drawing, standalone
 ```
 
-Files land in `<work-dir>/export/`. `--width 390` gives the phone layout, `--theme dark` the dark one. The loop length comes from the figure's own animations, and frames are stepped rather than recorded, so a loop closes without a jump. GIF and video need `ffmpeg`; every format needs Chrome (`CHROME_PATH` if it isn't found). `--svg` works for flows and hand-drawn SVG; it inlines the styles, so the file renders on its own, in the system font unless the fonts are installed.
+Files land in `<work-dir>/export/`. `--width 390` gives the phone layout, `--theme dark` the dark one. Frames are stepped rather than recorded: SVG and CSS motion is moved to each frame's time, and the page's scripts run on a virtual clock (animation frames, `performance.now`, `Date`, timers) that only moves when the exporter moves it. So canvas and WebGL figures export as cleanly as SVG ones, and a loop closes without a jump. The loop length comes from the figure's own animations; a canvas can't report one, so declare it (see below) or pass `--seconds`. For a figure that starts on a button, `--click "<css>"` presses it first and `--from <s>` starts the loop once it has settled. GIF and video need `ffmpeg`; every format needs Chrome (`CHROME_PATH` if it isn't found). `--svg` works for flows and hand-drawn SVG; it inlines the styles, so the file renders on its own, in the system font unless the fonts are installed.
 
 ## Getting assets into the page
 

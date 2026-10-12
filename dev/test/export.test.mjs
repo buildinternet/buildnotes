@@ -48,3 +48,30 @@ test("--gif loops the figure's own animation", { skip: noChrome || (spawnSync("f
 test("a still figure says so instead of making a video", { skip: noChrome }, () => {
   assert.throws(() => run("--figure", "5", "--gif"), /nothing in this figure moves/);
 });
+
+// Canvas and WebGL on the virtual clock (dev/test/fixtures/canvas.html: both loop every 2 s).
+const fixture = join(root, "dev/test/fixtures/canvas.html");
+const shoot = (n, at, ...more) => {
+  const f = join(out, `c${n}-${at}-${more.length}.png`);
+  execFileSync("node", [join(root, "scripts/export.mjs"), fixture, "--figure", String(n), "--png", "--scale", "1", "--at", String(at), "--out", f, ...more], { stdio: "ignore" });
+  return readFileSync(f);
+};
+
+for (const [n, kind] of [[1, "2D canvas"], [2, "WebGL"]]) {
+  test(`${kind}: frames are exact, and the loop closes`, { skip: noChrome }, () => {
+    assert.ok(shoot(n, 0).equals(shoot(n, 2)), "t=0 and t=2 s are the same frame");
+    assert.ok(!shoot(n, 0).equals(shoot(n, 0.5)), "t=0.5 s differs");
+  });
+}
+
+test("a canvas with no declared loop asks for one", { skip: noChrome }, () => {
+  assert.throws(() => execFileSync("node", [join(root, "scripts/export.mjs"), fixture, "--figure", "3", "--gif"], { stdio: "pipe" }), /data-loop/);
+});
+
+test("--click starts the figure, and a clamped game loop still reaches its end state", { skip: noChrome }, () => {
+  const before = shoot(4, 3);
+  const after = shoot(4, 3, "--click", "#go");
+  const later = shoot(4, 5, "--click", "#go");
+  assert.ok(!before.equals(after), "clicking changes the frame");
+  assert.ok(after.equals(later), "the square has finished growing by 3 s, despite the 50 ms clamp");
+});
