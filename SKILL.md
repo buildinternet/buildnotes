@@ -74,6 +74,7 @@ node <skill-dir>/scripts/gather.mjs --out <work-dir>/evidence --issue 2290
 node <skill-dir>/scripts/gather.mjs --out <work-dir>/evidence --pr 120,131,140 --download
 node <skill-dir>/scripts/gather.mjs --out <work-dir>/evidence --search "rate limit" --also-repo acme/cli
 node <skill-dir>/scripts/gather.mjs --out <work-dir>/evidence --since 2026-09-01 --path src/limits   # git only, no GitHub
+node <skill-dir>/scripts/gather.mjs --out <work-dir>/evidence --issue 2290 --prior "rate limit"     # also list earlier work in the area
 ```
 
 It writes `dossier.md` (a skimmable digest) and `dossier.json` (everything, unabridged). The digest opens with totals and **Story candidates** (decision sections in issue and PR bodies, decision language in comments, bursts of work, follow-up clusters, reverts). Issues that the selected PRs close are pulled in automatically, then feedback signals, hot files, cross-repo references, a timeline, and each issue and PR with bot scaffolding stripped. The dossier is detailed so you can find the story. Almost none of that detail goes in the post.

@@ -24,7 +24,7 @@ Warning signs the headline is at the wrong altitude:
 
 **3. Endpoint.** What's true now, from the user's side. The post's thesis is the line from starting point to endpoint: "Reviewing a change used to mean pulling the branch and running it yourself; now every pull request gets a live link."
 
-**4. Prior context.** Is this new, or an iteration on something that has been in the product for months or years? List the earlier releases in this area and what has already been announced or explained (changelog entries, docs pages, earlier posts). Covered ground gets one sentence and a link, not a chapter. Sources: the dossier's **Prior work** section, the project's CHANGELOG or release notes, its docs, its blog, and `git log --before=<start> -- <hot files>`.
+**4. Prior context.** Is this new, or an iteration on something that has been in the product for months or years? List the earlier releases in this area and what has already been announced or explained (changelog entries, docs pages, earlier posts). Covered ground gets one sentence and a link, not a chapter. Sources: the dossier's **Prior work** section (earlier changes to the files this feature modified, plus the changelog files to read), the project's docs and blog, and an explicit search when that list is thin: rerun the gatherer with `--prior "<area terms>"` to list earlier merged PRs in the area. Write each prior-context item with where you found it ("GitHub sources, polled, since spring: CHANGELOG 0.40"), so the author can check it.
 
 **5. Audience.** Technical (developers who will integrate or extend it) or not (users and customers following the product). This sets the flavor and how far down into mechanics the post goes. A non-technical audience gets the mechanism in a sentence, if at all.
 
@@ -46,6 +46,10 @@ Ask about these only when the evidence is thin or ambiguous:
 Don't ask what you can find: names, dates, numbers, what shipped.
 
 If the author says to go ahead without questions, or can't be asked, use your proposals, mark each one *assumed* in `plan.md`, and list them with the draft so the author can correct the frame before the prose.
+
+## Notes for the author
+
+While framing you'll find things the author should know that aren't questions: a docs page that says a shipped feature is "coming soon", an issue still open for merged work. Put them under **Notes for the author** in `plan.md` (see *When sources disagree* in [evidence.md](evidence.md)) and include them with the questions; don't spend a question on them.
 
 ## In plan.md
 

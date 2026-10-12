@@ -22,6 +22,7 @@
 //   --download          download images found in PR/issue bodies into <out>/assets/
 //   --body-chars 2500   cap each PR/issue body in the markdown dossier
 //   --keep-bot-prs      keep release-automation PRs (dropped by default)
+//   --prior "github action"  merged PRs matching these terms from before the feature (prior context)
 //
 // Writes <out>/dossier.json (everything, full cleaned text) and <out>/dossier.md (a skimmable digest).
 
@@ -309,44 +310,66 @@ function summarize() {
 // iteration on something users already know? Feeds the brief's prior-context field.
 function priorWork() {
   const start = [...dossier.issues.map((i) => i.createdAt), ...dossier.prs.map((p) => p.createdAt), ...dossier.commits.map((c) => c.date)].filter(Boolean).sort()[0];
-  if (!start) return { before: null, files: [], changes: [] };
+  const before = start?.slice(0, 10) ?? null;
+  // Where earlier releases were announced: changelogs and release-notes files in the repo.
+  const notes = [...headFiles].filter((f) => /(^|\/)(CHANGELOG|CHANGES|HISTORY|RELEASES|RELEASE[-_]NOTES)\.(md|mdx)$/i.test(f) && !/node_modules|vendor\/|dist\/|\/npm\/|(^|\/)(packages|apps)\/[^/]+\/CHANGELOG/i.test(f)).sort((x, y) => x.split("/").length - y.split("/").length).slice(0, 6);
+  const out = { before, files: [], changes: [], prs: [], notes };
+  if (!start) return out;
+
+  // Explicit search for earlier work in the area (--prior "terms").
+  if (args.prior) {
+    const hits = ghJsonSafe(["pr", "list", "-R", repo, "--state", "merged", "--limit", "15", "--search", `${args.prior} merged:<${before}`, "--json", "number,title,mergedAt"]) ?? [];
+    out.prs = hits.filter((h) => !/^chore(\(release\))?: (version packages|release)|^changelog: \d{4}-/i.test(h.title)).map((h) => ({ number: h.number, title: h.title, date: h.mergedAt?.slice(0, 10) }));
+  }
+
   let rev = "";
   try { rev = sh("git", ["rev-list", "-1", `--before=${start}`, "HEAD"]).trim(); } catch { /* no history */ }
-  if (!rev) return { before: start.slice(0, 10), files: [], changes: [] };
+  if (!rev) return out;
   // New files have no past; the files the feature *changed* show what it builds on. Paths are
-  // current, so map each back through renames to its name at that time.
+  // current, so map each back through renames to its name at that time. Skip hub files that
+  // everything touches (auth, routing): their history is noise, not prior context.
   const oldName = new Map();
   for (const [from, to] of renames) if (!oldName.has(to)) oldName.set(to, from);
   const existed = (f) => { try { sh("git", ["cat-file", "-e", `${rev}:${f}`]); return true; } catch { return false; } };
-  const files = [];
-  for (const [f] of dossier.summary.hotFiles.length ? topAll() : []) {
+  const busy = (f) => { try { return sh("git", ["rev-list", "--count", `--since=${daysBefore(start, 120)}`, rev, "--", f]).trim() > 25; } catch { return false; } };
+  const m = new Map();
+  for (const p of dossier.prs) for (const f of p.files) bump(m, fileKey(p.repo, f.path), f.additions + f.deletions);
+  for (const [f] of [...m].sort((x, y) => y[1] - x[1]).slice(0, 60)) {
     if (f.includes(":") || /(^|\/)(CHANGELOG|package)\.(md|json)$|\.lock$|test/.test(f)) continue;
     const then = existed(f) ? f : oldName.has(f) && existed(oldName.get(f)) ? oldName.get(f) : null;
-    if (then) files.push(then);
-    if (files.length >= 8) break;
+    if (then && !busy(then)) out.files.push(then);
+    if (out.files.length >= 10) break;
   }
-  if (!files.length) return { before: start.slice(0, 10), files, changes: [] };
+  if (!out.files.length) return out;
+
+  // Rank earlier commits by how many of those files they touched together.
   let log = "";
-  try { log = sh("git", ["log", rev, "-n", "400", "--format=%h%x1f%ad%x1f%s", "--date=short", "--", ...files]); } catch { /* ignore */ }
-  const changes = [];
+  try { log = sh("git", ["log", rev, "-n", "600", "--name-status", "-M", "--format=@@%h%x1f%ad%x1f%s", "--date=short", "--", ...out.files]); } catch { /* ignore */ }
+  const set = new Set(out.files);
+  const cands = [];
+  for (const chunk of log.split("@@").filter(Boolean)) {
+    const [head, ...paths] = chunk.split("\n").filter(Boolean);
+    const [sha, date, subject] = head.split("\x1f");
+    if (/^chore(\(release\))?: (version packages|release)|^Merge (branch|pull request)|^chore\(deps\)/i.test(subject)) continue;
+    // name-status lines: "M\tpath" or "R100\told\tnew". A commit that mostly moves files is a
+    // reorganization, not prior work.
+    const rows = paths.map((l) => l.split("\t"));
+    if (rows.filter((r) => /^R/.test(r[0])).length * 2 >= rows.length || /^(move|rename|group|reorgani[sz]e|restructure|relocate)\b/i.test(subject)) continue;
+    cands.push({ sha, date, subject, overlap: rows.filter((r) => set.has(r.at(-1)) || set.has(r[1])).length });
+  }
+  const min = cands.some((c) => c.overlap >= 2) ? 2 : 1;
   const seen = new Set();
-  for (const line of log.split("\n").filter(Boolean)) {
-    const [sha, date, subject] = line.split("\x1f");
-    if (/^chore(\(release\))?: (version packages|release)|^Merge (branch|pull request)/i.test(subject)) continue;
-    const key = subject.match(/\(#(\d+)\)\s*$/)?.[1] ?? sha;
+  for (const c of cands.filter((c) => c.overlap >= min).sort((a, b) => b.overlap - a.overlap || b.date.localeCompare(a.date))) {
+    const key = c.subject.match(/\(#(\d+)\)\s*$/)?.[1] ?? c.sha;
     if (seen.has(key)) continue;
     seen.add(key);
-    changes.push({ sha, date, subject });
-    if (changes.length >= 15) break;
+    out.changes.push(c);
+    if (out.changes.length >= 12) break;
   }
-  return { before: start.slice(0, 10), files, changes };
-
-  function topAll() {
-    const m = new Map();
-    for (const p of dossier.prs) for (const f of p.files) bump(m, fileKey(p.repo, f.path), f.additions + f.deletions);
-    return [...m].sort((x, y) => y[1] - x[1]).slice(0, 60);
-  }
+  return out;
 }
+
+function daysBefore(iso, n) { return new Date(Date.parse(iso) - n * 86400000).toISOString().slice(0, 10); }
 
 function timeline() {
   const ev = [];
@@ -528,10 +551,11 @@ function renderMarkdown() {
   L.push("");
 
   const pw = dossier.priorWork;
-  L.push("## Prior work", "", `Earlier changes to existing files this feature modified, before ${pw.before ?? "the feature"}, newest first. Use them for the brief's prior context: is this new, or an iteration on something users already know? Then check what was already announced (changelog, docs, earlier posts).`, "");
-  if (pw.changes.length) for (const c of pw.changes) L.push(`- ${c.date} \`${c.sha}\` ${esc(oneLine(c.subject, 110))}`);
-  else L.push("- none found (new files, or history not available)");
-  L.push("");
+  L.push("## Prior work", "", `Leads for the brief's prior context (is this new, or an iteration on something users already know?), from before ${pw.before ?? "the feature"}. Confirm in the changelog, docs and earlier posts what was already announced.`, "");
+  if (pw.notes.length) L.push("Where releases were announced (read the entries from before the feature): " + pw.notes.map((f) => `\`${f}\``).join(", "), "");
+  if (pw.prs.length) { L.push(`Earlier PRs matching \`--prior ${esc(args.prior)}\`:`, ""); for (const p of pw.prs) L.push(`- ${p.date} #${p.number} ${esc(oneLine(p.title, 110))}`); L.push(""); }
+  if (pw.changes.length) { L.push("Earlier changes to files this feature modified (most shared files first; busy hub files skipped):", ""); for (const c of pw.changes) L.push(`- ${c.date} \`${c.sha}\` (${c.overlap} files) ${esc(oneLine(c.subject, 100))}`); L.push(""); }
+  if (!pw.notes.length && !pw.prs.length && !pw.changes.length) L.push("- none found. Try `--prior \"<terms>\"`.", "");
 
   if (dossier.feedbackSignals.length) {
     const fs = dossier.feedbackSignals;
