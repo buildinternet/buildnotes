@@ -1,0 +1,6 @@
+{
+  "frames": [
+    { "label": "Before · first run", "term": { "out": ["Images:", "- …/open-in-web-dark.png", "- …/open-in-cursor-dark.png"] } },
+    { "label": "After · with the filter", "term": { "out": ["Images:", "(none: this feature has no screenshots,", " so the post captures fresh ones)"] } }
+  ]
+}

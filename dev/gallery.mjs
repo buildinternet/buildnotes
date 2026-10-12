@@ -5,7 +5,7 @@
 // Usage: node dev/gallery.mjs [--only flow] [--out runs/components/gallery.html]
 // Each spec sits in its own chapter-width figure, the way a post would hold it.
 
-import { readFileSync, readdirSync, writeFileSync, mkdirSync } from "node:fs";
+import { readFileSync, readdirSync, writeFileSync, mkdirSync, cpSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { renderKind } from "../scripts/viz.mjs";
@@ -28,18 +28,21 @@ let warned = 0;
 for (const f of specs) {
   const kind = f.split("-")[0];
   const id = f.replace(/\.\w+$/, "");
-  const frag = renderKind(kind, readFileSync(join(root, "assets/specs", f), "utf8"), { id });
+  const frag = renderKind(kind, readFileSync(join(root, "assets/specs", f), "utf8"), { id, base: join(root, "assets/specs") });
   for (const w of takeWarnings()) { warned++; console.error(`! ${f}: ${w}`); }
   sections.push(`  <section class="ch" id="${id}">
     <h2><span class="n">${kind}</span>${esc(id)}</h2>
-    <figure class="wide">
+${/^(code|term)$/.test(kind) ? `    ${frag}
+    <p class="label">${esc(f)}</p>` : `    <figure class="wide">
 ${frag}
       <figcaption>${esc(f)}</figcaption>
-    </figure>
+    </figure>`}
   </section>`);
 }
 
 mkdirSync(dirname(out), { recursive: true });
+// Specs point at images relative to themselves; the gallery page needs them beside it.
+cpSync(join(root, "assets/specs/img"), join(dirname(out), "img"), { recursive: true });
 writeFileSync(out, `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Component gallery</title>

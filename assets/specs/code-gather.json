@@ -1,0 +1,7 @@
+{
+  "file": "scripts/gather.mjs",
+  "repo": "../..",
+  "rev": "2cddb0c",
+  "lines": "159-168",
+  "cut": "160-166"
+}

@@ -1,0 +1,6 @@
+{
+  "cmd": "node scripts/gather.mjs --issue 412 --out evidence",
+  "out": ["issue 412: 1 issue, 9 PRs", "pr 120 … pr 140", "images: 4 downloaded", "dossier: 6 issues · 9 PRs · 0 loose commits · 4 images → evidence/dossier.md"],
+  "keep": "1,4",
+  "dim": true
+}

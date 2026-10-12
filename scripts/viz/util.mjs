@@ -52,3 +52,42 @@ export function niceTicks(lo, hi, count = 4) {
 
 // The number a printed value starts with ("1,240 ms" → 1240), for to-scale checks.
 export const numberIn = (s) => { const m = String(s).replace(/,/g, "").match(/-?\d+(?:\.\d+)?/); return m ? Number(m[0]) : NaN; };
+
+// Inline Markdown for table cells and labels: `code`, **bold**, *em*, [text](url). Everything else is escaped.
+export function inline(s) {
+  const parts = [];
+  const re = /`([^`]+)`|\*\*([^*]+)\*\*|\*([^*]+)\*|\[([^\]]+)\]\(([^)\s]+)\)/g;
+  let last = 0, m;
+  while ((m = re.exec(s))) {
+    parts.push(esc(s.slice(last, m.index)));
+    if (m[1] !== undefined) parts.push(`<code>${esc(m[1])}</code>`);
+    else if (m[2] !== undefined) parts.push(`<strong>${inline(m[2])}</strong>`);
+    else if (m[3] !== undefined) parts.push(`<em>${inline(m[3])}</em>`);
+    else parts.push(`<a href="${esc(m[5])}">${inline(m[4])}</a>`);
+    last = re.lastIndex;
+  }
+  parts.push(esc(s.slice(last)));
+  return parts.join("");
+}
+
+// A Markdown pipe table → { head: [cells], rows: [[cells]] }. Text outside the table is ignored.
+export function mdTable(text) {
+  const split = (line) => line.trim().replace(/^\||\|$/g, "").split(/(?<!\\)\|/).map((c) => c.trim().replace(/\\\|/g, "|"));
+  const lines = text.split("\n").filter((l) => l.trim().startsWith("|"));
+  const sep = lines.findIndex((l) => /^\s*\|?\s*:?-{2,}/.test(l));
+  if (sep < 1) throw new Error("expected a Markdown table: a header row, a |---| row, then rows");
+  const head = split(lines[sep - 1]);
+  const rows = lines.slice(sep + 1).map(split);
+  for (const r of rows) if (r.length !== head.length) throw new Error(`table row "${r[0]}" has ${r.length} cells for ${head.length} columns`);
+  return { head, rows };
+}
+
+// "**x**" → { text: "x", bold: true }
+export const unbold = (s) => { const m = String(s).match(/^\*\*(.+)\*\*$/); return m ? { text: m[1], bold: true } : { text: String(s), bold: false }; };
+
+// "1-3,8" → [1, 2, 3, 8]
+export const ranges = (s) => String(s).split(",").flatMap((part) => {
+  const [a, b] = part.trim().split("-").map(Number);
+  if (!Number.isInteger(a)) throw new Error(`bad line range "${s}"`);
+  return Array.from({ length: (b || a) - a + 1 }, (_, k) => a + k);
+});

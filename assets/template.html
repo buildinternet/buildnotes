@@ -128,7 +128,7 @@ figcaption a { color: var(--muted); }
 .heard .head { font-family: var(--font-mono); font-size: 0.6875rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); padding-bottom: 0.4rem; border-bottom: 0; }
 @media (max-width: 34rem) { .heard .pair { grid-template-columns: 1fr; gap: 0.4rem; } .heard .head { display: none; } }
 
-/* options considered: the turn, as a table; .chosen marks the winner */
+/* ── component: options (viz.mjs options) ── the turn, as a table; .chosen marks the winner */
 .options { overflow-x: auto; }
 .options table { width: 100%; border-collapse: collapse; font-size: 0.9375rem; }
 .options th { text-align: left; font: 500 0.6875rem var(--font-mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); padding: 0 0.75rem 0.4rem; border-bottom: 1px solid var(--rule); }
@@ -138,6 +138,47 @@ figcaption a { color: var(--muted); }
 .options tr.chosen td { background: var(--accent-wash); }
 .options tr.chosen td:first-child { box-shadow: inset 3px 0 0 var(--accent); }
 .options tr.chosen .verdict { color: var(--accent); }
+
+/* ── component: matrix (viz.mjs matrix) ── things down the side, options across; .hot = the option built */
+.matrix table { width: 100%; border-collapse: collapse; font-size: 0.9375rem; }
+.matrix thead th { text-align: left; font: 500 0.6875rem var(--font-mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); padding: 0 0.75rem 0.4rem; border-bottom: 1px solid var(--rule); vertical-align: bottom; }
+.matrix thead th.hot { color: var(--accent); }
+.matrix tbody th { text-align: left; font-weight: 600; padding: 0.6rem 0.75rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+.matrix td { padding: 0.6rem 0.75rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+.matrix td.hot { background: var(--accent-wash); }
+.matrix .mk { font: 600 0.9375rem/1 var(--font-mono); }
+.matrix .mk.yes { color: var(--accent); }
+.matrix .mk.no { color: var(--muted); }
+.matrix .mk.part { color: var(--mark); }
+.matrix .note { color: var(--muted); font-size: 0.875rem; }
+
+/* options and matrix become one card per row in a narrow box; each cell is labelled by its column */
+.vtable { container-type: inline-size; }
+@container (max-width: 32rem) {
+  .vtable table, .vtable tbody, .vtable tr, .vtable td, .vtable tbody th { display: block; }
+  .vtable thead { display: none; }
+  .vtable tr { padding: 0.55rem 0; border-bottom: 1px solid var(--rule); }
+  .vtable td, .vtable tbody th { border: 0; padding: 0.15rem 0.75rem; min-width: 0 !important; }
+  .vtable td::before { content: attr(data-label); font: 500 0.6875rem/1.9 var(--font-mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+  .options td::before { display: block; }
+  .options td:first-child::before { content: none; }
+  .options tr.chosen { background: var(--accent-wash); box-shadow: inset 3px 0 0 var(--accent); }
+  .options tr.chosen td { background: none; box-shadow: none; }
+  .matrix td { display: grid; grid-template-columns: minmax(0, 9rem) minmax(0, 1fr); gap: 0.5rem; align-items: baseline; }
+  .matrix td.hot { background: none; }
+  .matrix td.hot::before { color: var(--accent); }
+}
+
+/* ── component: strip (viz.mjs strip) ── 2–4 frames in order with arrows; stacked in a narrow box */
+.strip-box { container-type: inline-size; }
+.strip { display: grid; grid-template-columns: repeat(var(--n), minmax(0, 1fr)); gap: 1rem 2rem; }
+.strip .frame { position: relative; display: grid; gap: 0.4rem; align-content: start; min-width: 0; }
+.strip .frame + .frame::before { content: "→"; position: absolute; left: -1.4rem; top: 50%; transform: translateY(-50%); font: 1rem var(--font-mono); color: var(--muted); }
+.strip img { display: block; width: 100%; height: auto; border: 1px solid var(--rule); border-radius: 6px; background: var(--wash); }
+@container (max-width: 34rem) {
+  .strip { grid-template-columns: minmax(0, 1fr); gap: 1.75rem; }
+  .strip .frame + .frame::before { content: "↓"; left: 0; top: -1.45rem; transform: none; }
+}
 
 /* inline reference: PR / issue / commit as a quiet superscript, never in the sentence */
 .ref { font: 500 0.68em var(--font-mono); vertical-align: super; line-height: 0; margin-left: 0.15em; }
@@ -174,8 +215,8 @@ figcaption a { color: var(--muted); }
 /* screenshot */
 .shot img, .shot video, .compare img { display: block; width: 100%; height: auto; border: 1px solid var(--rule); border-radius: 6px; background: var(--wash); }
 /* a light screenshot glares on a dark page: dim it slightly, or ship a dark pair with <picture> */
-@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .shot img:not(.dark-ok), :root:not([data-theme="light"]) .compare img:not(.dark-ok) { filter: brightness(0.86) contrast(1.05); } }
-:root[data-theme="dark"] .shot img:not(.dark-ok), :root[data-theme="dark"] .compare img:not(.dark-ok) { filter: brightness(0.86) contrast(1.05); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .shot img:not(.dark-ok), :root:not([data-theme="light"]) .compare img:not(.dark-ok), :root:not([data-theme="light"]) .strip img:not(.dark-ok) { filter: brightness(0.86) contrast(1.05); } }
+:root[data-theme="dark"] .shot img:not(.dark-ok), :root[data-theme="dark"] .compare img:not(.dark-ok), :root[data-theme="dark"] .strip img:not(.dark-ok) { filter: brightness(0.86) contrast(1.05); }
 
 /* diagram */
 .diagram .stage { overflow-x: auto; border: 1px solid var(--rule); border-radius: 6px; padding: 1rem; background:

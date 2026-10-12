@@ -1,0 +1,7 @@
+{
+  "frames": [
+    { "label": "Round one", "src": "img/round-1.svg", "alt": "A plain list of releases, mostly small fixes, with one big launch buried in the middle.", "width": 800, "height": 450 },
+    { "label": "Round two", "src": "img/round-2.svg", "alt": "Tiles sized by release count: the product with six fix releases gets the biggest tile.", "width": 800, "height": 450 },
+    { "label": "As it ships", "src": "img/round-3.svg", "alt": "Tiles sized by impact: the product with the new default model gets the biggest tile.", "width": 800, "height": 450 }
+  ]
+}
