@@ -50,7 +50,7 @@ Pull these from `dossier.json` and from runs of your own, and keep each with its
 
 - Process (mostly for you): span in days, PR count, lines added/removed, files touched, review threads.
 - Size of the core idea: lines in the key module, number of routes, tables, states, flags.
-- Before/after measurements, only when a run you made or a log in the record shows them. Re-run a benchmark or a test command if it is cheap, and show the real output in a terminal block.
+- Before/after measurements, only when a run you made or a log in the record shows them. Measure real addresses: take them from the code's routes, the sitemap or the live site's own links, and confirm each returns 200 before timing it. A guessed address measures an error page. Re-run a benchmark or a test command if it is cheap, and show the real output in a terminal block.
 - Tests for the feature: run them and quote the runner's own count, with the date. Grep counts are wrong (skipped, parameterized and nested tests), and a PR body's count is the count at merge, not today.
 
 ## Terminal blocks

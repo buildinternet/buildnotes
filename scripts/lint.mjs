@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // lint.mjs — the mechanical half of the Check step for a build-story page.
 //
-// Usage: node lint.mjs post.html [--flavor note|release|build|deep] [--avoid "a,b"] [--private] [--ste]
+// Usage: node lint.mjs post.html [--flavor note|release|build|deep] [--avoid "a,b"] [--private] [--ste] [--offline]
 //
 // Prints, per chapter: prose word count (code, terminals, SVG, captions, modules and end matter
 // excluded), banned phrasing and avoided house terms, mannered constructions, process detail
@@ -18,8 +18,10 @@
 // its numbers come from the specs, which are listed for the fact pass.
 // --ste: full Simplified Technical English limits (20-word sentences) instead of STE-lite (25).
 // --private: any link to GitHub issues, pull requests or commits is a hard failure.
+// Every http(s) link is opened; one that doesn't answer 2xx/3xx is a hard failure (--offline skips this).
 // Exit 1 on a hard failure (banned word, avoided term, leftover template text, private link,
-// moving dot with non-zero cx/cy, a viz marker still pointing at the template's example specs).
+// moving dot with non-zero cx/cy, a viz marker still pointing at the template's example specs, a
+// link that doesn't open).
 
 import { readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
@@ -29,7 +31,7 @@ import { NAMES_COMMIT, numberIn } from "./viz/util.mjs";
 const argv = process.argv.slice(2);
 const file = argv.find((a, i) => !a.startsWith("--") && !argv[i - 1]?.startsWith("--"));
 if (!file) {
-  console.error('usage: lint.mjs <post.html> [--flavor note|release|build|deep] [--avoid "a,b"] [--private] [--ste]');
+  console.error('usage: lint.mjs <post.html> [--flavor note|release|build|deep] [--avoid "a,b"] [--private] [--ste] [--offline]');
   process.exit(2);
 }
 const opt = (k) => { const i = argv.indexOf(`--${k}`); return i >= 0 ? argv[i + 1] : undefined; };
@@ -285,6 +287,23 @@ if (uniqSafety.length) {
   say("Safety scan (read each; a hit is not always a leak):");
   for (const s of uniqSafety.slice(0, 40)) say(`  ? ${s}`);
   say();
+} else say("Safety scan: no hits.");
+
+// Links: every address in the post must open. A guessed address (a made-up slug) fails here.
+if (!argv.includes("--offline")) {
+  const links = [...new Set([...html.matchAll(/<a\b[^>]*\bhref="(https?:\/\/[^"#]+)/g)].map((m) => m[1].replace(/&amp;/g, "&")))];
+  const status = async (url) => {
+    for (const method of ["HEAD", "GET"]) {
+      try {
+        const r = await fetch(url, { method, redirect: "follow", signal: AbortSignal.timeout(10000), headers: { "user-agent": "build-story-lint" } });
+        if (r.ok || method === "GET") return r.status;
+      } catch (err) { if (method === "GET") return err.name === "TimeoutError" ? "timeout" : "no answer"; }
+    }
+  };
+  const results = await Promise.all(links.map(async (url) => [url, await status(url)]));
+  const broken = results.filter(([, s]) => !(s >= 200 && s < 400));
+  if (broken.length) { hard++; for (const [url, s] of broken) say(`✗ link doesn't open (${s}): ${url}`); }
+  else if (links.length) say(`Links: all ${links.length} open.`);
 }
 const imgs = (raw.replace(/<!--[\s\S]*?-->/g, "").match(/<img\b|<source\b[^>]*\bsrcset=/g) ?? []).length;
 if (imgs) say(`Images: ${imgs}. The scan cannot see inside them; open each one and look for names, emails, tokens and internal URLs.`);
