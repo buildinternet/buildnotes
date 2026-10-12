@@ -23,6 +23,7 @@
 //   --body-chars 2500   cap each PR/issue body in the markdown dossier
 //   --keep-bot-prs      keep release-automation PRs (dropped by default)
 //   --prior "github action"  merged PRs matching these terms from before the feature (prior context)
+//   --window 2          days around the feature's span to list other merged PRs as "Nearby work" (0 = off)
 //
 // Writes <out>/dossier.json (everything, full cleaned text) and <out>/dossier.md (a skimmable digest).
 
@@ -91,6 +92,7 @@ dossier.feedbackSignals = feedbackSignals();
 dossier.crossRepo = crossRepoRefs();
 dossier.storyCandidates = storyCandidates();
 dossier.priorWork = priorWork();
+dossier.nearbyWork = nearbyWork();
 
 mkdirSync(args.out, { recursive: true });
 if (args.download) await downloadImages();
@@ -371,6 +373,26 @@ function priorWork() {
   return out;
 }
 
+// Other merged PRs around the same time, grouped by area. A PR is a breadcrumb, not the story:
+// related work landing alongside it often belongs in the same post.
+function nearbyWork() {
+  const days = Number(args.window ?? 2);
+  const times = [...dossier.prs.flatMap((p) => [p.createdAt, p.mergedAt]), ...dossier.issues.map((i) => i.createdAt)].filter(Boolean).sort();
+  if (!days || !times.length) return { from: null, to: null, groups: [] };
+  const from = daysBefore(times[0], days);
+  const to = daysBefore(times.at(-1), -days);
+  const have = new Set(dossier.prs.filter((p) => p.repo === repo).map((p) => p.number));
+  const hits = ghJsonSafe(["pr", "list", "-R", repo, "--state", "merged", "--limit", "200", "--search", `merged:${from}..${to}`, "--json", "number,title,mergedAt,author"]) ?? [];
+  const groups = new Map();
+  for (const h of hits) {
+    if (have.has(h.number) || isBotPr(h) || /^changelog: \d{4}-/i.test(h.title)) continue;
+    const area = h.title.match(/^\w+\(([^)]+)\)!?:/)?.[1]?.toLowerCase() ?? h.title.match(/^(\w+)!?:/)?.[1]?.toLowerCase() ?? "other";
+    if (!groups.has(area)) groups.set(area, []);
+    groups.get(area).push({ number: h.number, title: h.title, date: h.mergedAt?.slice(0, 10) });
+  }
+  return { from, to, groups: [...groups].sort((a, b) => b[1].length - a[1].length).map(([area, prs]) => ({ area, prs })) };
+}
+
 function daysBefore(iso, n) { return new Date(Date.parse(iso) - n * 86400000).toISOString().slice(0, 10); }
 
 function timeline() {
@@ -552,6 +574,12 @@ function renderMarkdown() {
   if (!any) L.push("- none detected");
   L.push("");
 
+  const nw = dossier.nearbyWork;
+  if (nw.groups.length) {
+    L.push("## Nearby work", "", `Other merged PRs from ${nw.from} to ${nw.to}, grouped by area. The selected PRs are a starting point, not the boundary: if something here serves the same idea for users, pull it in (\`--pr\`) and tell the story of the idea.`, "");
+    for (const g of nw.groups.slice(0, 12)) L.push(`- **${esc(g.area)}** (${g.prs.length}): ${g.prs.slice(0, 6).map((p) => `#${p.number} ${esc(oneLine(p.title.replace(/^\w+(\([^)]+\))?!?:\s*/, ""), 70))}`).join(" · ")}${g.prs.length > 6 ? " · …" : ""}`);
+    L.push("");
+  }
   const pw = dossier.priorWork;
   L.push("## Prior work", "", `Leads for the brief's prior context (is this new, or an iteration on something users already know?), from before ${pw.before ?? "the feature"}. Confirm in the changelog, docs and earlier posts what was already announced.`, "");
   if (pw.notes.length) L.push("Where releases were announced (read the entries from before the feature): " + pw.notes.map((f) => `\`${f}\``).join(", "), "");

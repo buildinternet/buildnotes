@@ -140,6 +140,10 @@ for (const p of parts) {
   }
   const inPara = [...p.html.matchAll(/<p\b[^>]*>([\s\S]*?)<\/p>/g)].reduce((n, m) => n + (m[1].match(/<(strong|b)\b/g) ?? []).length, 0);
   if (inPara > 2) say(`  ! ${inPara} bold phrases in paragraphs; keep about one per chapter (list lead-ins don't count)`);
+  // Identifiers in running text (inline <code> in paragraphs and list items, not code blocks).
+  const idents = [...p.html.matchAll(/<(p|li)\b[^>]*>([\s\S]*?)<\/\1>/g)].reduce((n, m) => n + (m[2].match(/<code\b/g) ?? []).length, 0);
+  const identMax = flavor === "deep" ? 12 : flavor === "release" ? 2 : 4;
+  if (idents > identMax && !/try it|get started|how to use/i.test(title)) say(`  ! ${idents} code identifiers in the prose (aim ≤${identMax}); say what each thing does, save names for the try-it section and code blocks`);
   scan.push({ id: p.id, bold: (p.html.match(/<(strong|b)\b/g) ?? []).length, inPara, lists: (p.html.match(/<(ul|ol)\b(?![^>]*class="(timeline|steps)")/g) ?? []).length });
 
   const openers = prose.filter((b) => b.tag === "p").map((b) => sentences(b.t)[0]).filter(Boolean);

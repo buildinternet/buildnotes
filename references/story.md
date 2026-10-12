@@ -95,6 +95,14 @@ Beyond the mechanics:
 - Say what was hard and what is still imperfect. Readers trust a post that admits a limit.
 - When the author's own words explain a choice better than yours (an answer to your questions, a line from a design doc), quote them. Quote the record only for its reasoning, never as proof of process.
 
+### Name ideas, not identifiers
+
+Code names leak into prose easily, because they are what the record is written in. In the story, describe what a thing does for the reader; put the identifier in the try-it section or a code block, where they'll type it. One identifier in a chapter, glossed, is fine; a chapter strung between them has dropped to the wrong altitude. `lint.mjs` counts inline code in each chapter's paragraphs.
+
+| In the weeds | At altitude |
+|---|---|
+| Call `render_view` with `view: "wall"` and a `wallId` after `render_plan` returns no `layoutCheck` problems. | When the plan looks clean, the agent looks straight at each wall to check heights a plan can't show. |
+
 ### Sound like a person, not a writer
 
 Say what an engineer would say out loud. Words from writing about writing don't belong in the post: "prose", "narrative", "piece", "beat", "this post covers", "the reader" (say "you"). Neither does this skill's own vocabulary, which leaks in easily: "altitude", "flavor", "dossier", "chapter" in the running text. Prefer the plain word: "text" or "the write-up" over "prose", "what shipped" over "the record".
