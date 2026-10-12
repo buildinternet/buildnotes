@@ -23,3 +23,14 @@ Requires `git`, an authenticated `gh`, and Node 18+. The scripts have no depende
 - `scripts/module.mjs`: builds the opt-in appendix modules (build log, numbers, timeline).
 - `scripts/inline-assets.mjs`: embeds images so the page is one self-contained file.
 - `assets/template.html`: the page template and its components.
+
+## Run history
+
+`runs/` keeps a local, git-ignored history of test runs: each run's self-contained page (`post.html`), its plan, notes, author message, lint output and dossier, plus a `meta.json` with the skill commit and artifact link. Runs can hold private-repo content, which is why they stay out of git.
+
+```bash
+node dev/save-run.mjs <work-dir> --note "what this run tested" --artifact <url>
+open runs/index.html
+```
+
+To keep a public run as a committed example, copy its folder into `examples/` by hand after checking it.
