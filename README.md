@@ -17,7 +17,7 @@ Requires `git`, an authenticated `gh`, and Node 18+. The scripts have no depende
 ## Layout
 
 - `SKILL.md`: the workflow (scope, gather, frame the story, plan, visuals, write, check, publish) and the rules.
-- `references/`: how to shape the story and voice, read the evidence, make visuals, and add opt-in modules.
+- `references/`: how to frame the story, shape it and its voice, read the evidence, make visuals, and add opt-in modules.
 - `scripts/gather.mjs`: collects issues, PRs, commits, review threads and prior work in the same area into a dossier.
 - `scripts/lint.mjs`: checks length, banned phrasing, process detail, plain English, scannability and safety.
 - `scripts/module.mjs`: builds the opt-in appendix modules (build log, numbers, timeline).

@@ -17,7 +17,7 @@ const file = process.argv.slice(2).find((a) => !a.startsWith("--"));
 const standalone = process.argv.includes("--standalone");
 const keepComments = process.argv.includes("--keep-comments");
 if (!file) {
-  console.error("usage: inline-assets.mjs <post.html>");
+  console.error("usage: inline-assets.mjs <post.html> [--standalone] [--keep-comments]");
   process.exit(2);
 }
 const base = dirname(resolve(file));

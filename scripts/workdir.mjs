@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 // workdir.mjs: make a work dir for a build story, outside any repo so it survives worktrees.
 //
-// Usage: node workdir.mjs <slug>   → prints e.g. ~/.build-stories/releases/2026-10-12-weekly-digests
+// Usage: node workdir.mjs <slug>   → makes and prints e.g. ~/.build-stories/<repo>/2026-10-12-preview-links
+// A slug that already starts with a date is used as is.
 //
 // The root is $BUILD_STORY_DIR, or ~/.build-stories by default. Runs are grouped by repo name
 // (the main checkout's folder name, so every worktree of a repo shares one folder).

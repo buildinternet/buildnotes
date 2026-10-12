@@ -7,13 +7,14 @@
 //   node gather.mjs --out <dir> [selectors…] [options]
 //
 // Selectors (combine freely; everything found is merged and de-duplicated):
-//   --issue 2290,2291      issues: body, comments, sub-issues, and PRs that reference them
-//   --pr 2378,2379         pull requests: body, branch commits, files, review threads
-//   --search "publish token"  merged PRs whose title/body match (gh search syntax)
+//   --issue 412,413        issues: body, comments, sub-issues, and merged PRs that reference them
+//   --pr 120,131           pull requests: body, branch commits, files, review threads
+//                          (issues these PRs close are pulled in too)
+//   --search "rate limit"  merged PRs whose title/body match (gh search syntax, up to 50)
 //   --range v1.2.0..v1.3.0    commits in a git range
-//   --path apps/api/src/auth  limit --range/--since commits to a path
-//   --since 2026-09-01        commits since a date (with --path or --grep)
-//   --grep "publish"          commits whose message matches
+//   --path src/limits         limit --range/--since/--grep commits to a path
+//   --since 2026-09-01        commits since a date
+//   --grep "limit"            commits whose message matches
 //
 // Options:
 //   --repo owner/name   default: the current checkout's GitHub repo
@@ -33,7 +34,13 @@ import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join, extname } from "node:path";
 
 const args = parseArgs(process.argv.slice(2));
-if (args.help || args.h) { process.stdout.write(readFileSync(new URL(import.meta.url), "utf8").split("\n").filter((l) => l.startsWith("//")).map((l) => l.replace(/^\/\/ ?/, "")).join("\n") + "\n"); process.exit(0); }
+if (args.help || args.h) {
+  // The header comment block is the usage text.
+  const lines = readFileSync(new URL(import.meta.url), "utf8").split("\n").slice(1);
+  const end = lines.findIndex((l) => !l.startsWith("//"));
+  process.stdout.write(lines.slice(0, end < 0 ? lines.length : end).map((l) => l.replace(/^\/\/ ?/, "")).join("\n") + "\n");
+  process.exit(0);
+}
 if (!args.out) die("missing --out <dir> (see --help)");
 const BODY_CHARS = Number(args["body-chars"] ?? 2500);
 const repo = args.repo ?? sh("gh", ["repo", "view", "--json", "nameWithOwner", "-q", ".nameWithOwner"]).trim();

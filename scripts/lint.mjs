@@ -3,23 +3,26 @@
 //
 // Usage: node lint.mjs post.html [--flavor note|release|build|deep] [--avoid "a,b"] [--private] [--ste]
 //
-// Prints, per chapter: prose word count (code, terminals, SVG and end matter excluded),
-// banned phrasing, mannered constructions, process detail (clock times, dates, issue/PR
-// references, review/merge talk, tool names) against the flavor's budget, every sentence
-// that carries a number (the fact ledger), the opening of each paragraph (altitude),
-// leftover template text, plain-English metrics (sentence length, passive voice), terminal
-// blocks that run long or stack commands, masthead stats to justify, and a safety scan of
-// the HTML with data: URIs stripped.
+// Prints, per chapter: prose word count (code, terminals, SVG, captions, modules and end matter
+// excluded), banned phrasing and avoided house terms, mannered constructions, process detail
+// (clock times, dates, issue/PR references, review/merge talk, tool names), writerly words, a
+// count with no list after it, bold and inline-code counts, the opening of each paragraph, and
+// every sentence that carries a number (the fact ledger).
+// Then, for the page: process detail against the flavor's budget, plain-English metrics
+// (sentence length, passive voice), scan aids, masthead stats to justify, code captions with side
+// notes, terminal blocks that run long or stack commands, animated SVG dots that drift or sit
+// off-origin, leftover template text, a safety scan (data: URIs stripped), and the total length.
 // --ste: full Simplified Technical English limits (20-word sentences) instead of STE-lite (25).
 // --private: any link to GitHub issues, pull requests or commits is a hard failure.
-// Exit 1 on a hard failure (banned word, avoided term, leftover template text, private link).
+// Exit 1 on a hard failure (banned word, avoided term, leftover template text, private link,
+// moving dot with non-zero cx/cy).
 
 import { readFileSync } from "node:fs";
 
 const argv = process.argv.slice(2);
 const file = argv.find((a, i) => !a.startsWith("--") && !argv[i - 1]?.startsWith("--"));
 if (!file) {
-  console.error('usage: lint.mjs <post.html> [--flavor note|release|build|deep] [--avoid "a,b"] [--private]');
+  console.error('usage: lint.mjs <post.html> [--flavor note|release|build|deep] [--avoid "a,b"] [--private] [--ste]');
   process.exit(2);
 }
 const opt = (k) => { const i = argv.indexOf(`--${k}`); return i >= 0 ? argv[i + 1] : undefined; };
