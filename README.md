@@ -23,6 +23,7 @@ Requires `git`, an authenticated `gh`, and Node 18+. The scripts have no depende
 - `scripts/module.mjs`: builds the opt-in appendix modules (build log, numbers, timeline).
 - `scripts/workdir.mjs`: makes a work dir under `$BUILD_STORY_DIR` (default `~/.build-stories/<repo>/`), outside any repo so runs survive worktrees.
 - `scripts/viz.mjs`: renders the visual components (flows, steps, charts, tables, strips, code and terminal blocks) from small specs.
+- `scripts/export.mjs`: exports one figure as a PNG, GIF, video or standalone SVG (`--list` to number them; GIF and video need ffmpeg).
 - `scripts/inline-assets.mjs`: embeds images so the page is one self-contained file.
 - `assets/template.html`: the page template and its components.
 - `assets/components.html`: a preview of every component with its spec (open it in a browser). The example specs are in `assets/specs/`.

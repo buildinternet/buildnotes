@@ -144,6 +144,7 @@ Publish `post.published.html` as a private Artifact (title = the post's name) an
 - `scripts/lint.mjs`: the mechanical half of the Check step
 - `scripts/module.mjs`: an opt-in module (build log, numbers, timeline) from the dossier
 - `scripts/viz.mjs`: visual components rendered from small specs (`scripts/viz/`, one file per kind)
+- `scripts/export.mjs`: one figure as PNG, GIF, MP4/WebM or standalone SVG, for slides or another blog ([visuals.md](references/visuals.md#exporting-a-figure))
 - `scripts/inline-assets.mjs`: embed local images and video (`src`, `poster`, `srcset`) as data URIs and drop authoring comments
 - `assets/template.html`: page template and component toolbox
 - `assets/components.html`: every component with its spec; the specs are in `assets/specs/`

@@ -130,6 +130,20 @@ One idea per chart, drawn to scale, labelled directly. Chart product numbers, no
 
 Open the page (or `post.published.html`) once at 1280×800 and once at 390×844, in light and dark. Check: nothing scrolls the page sideways (`document.documentElement.scrollWidth === innerWidth`), the stacked flow and the table cards read on the phone, terminals don't clip long lines (`term` sets `wrap` for long prose lines; set it yourself if needed), screenshots read in dark mode. With agent-browser: `set viewport`, `set media dark`, `open file://…`, `eval` the scrollWidth check, `screenshot --full`. Don't loop: one look per width, one round of fixes.
 
+## Exporting a figure
+
+For slides, a social post or another blog, export one figure as a still, a loop or an SVG. Run `--list` first to number the figures (code and terminal blocks aren't counted):
+
+```bash
+node <skill-dir>/scripts/export.mjs <work-dir>/post.html --list
+node <skill-dir>/scripts/export.mjs <work-dir>/post.html --figure 2 --png              # the resting frame
+node <skill-dir>/scripts/export.mjs <work-dir>/post.html --figure 2 --gif              # one full loop
+node <skill-dir>/scripts/export.mjs <work-dir>/post.html --figure 2 --mp4 --theme dark
+node <skill-dir>/scripts/export.mjs <work-dir>/post.html --figure 2 --svg --width 390  # the stacked drawing, standalone
+```
+
+Files land in `<work-dir>/export/`. `--width 390` gives the phone layout, `--theme dark` the dark one. The loop length comes from the figure's own animations, and frames are stepped rather than recorded, so a loop closes without a jump. GIF and video need `ffmpeg`; every format needs Chrome (`CHROME_PATH` if it isn't found). `--svg` works for flows and hand-drawn SVG; it inlines the styles, so the file renders on its own, in the system font unless the fonts are installed.
+
 ## Getting assets into the page
 
 An artifact page can only show images that ship with it: other hosts are blocked. Reference local files as `src="assets/name.png"` while drafting (in a `strip` spec, paths are relative to the post, like everything else in it), then run `scripts/inline-assets.mjs` to embed them as data URIs before publishing. Keep the total under a few MB: resize screenshots to 2× their display width and prefer WebP or optimized PNG (`sips -Z 1600 file.png` on macOS, or `magick` elsewhere).
