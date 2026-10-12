@@ -67,7 +67,7 @@ The brief's fields are what *you* need confidence in, not a form for the author.
 
 > Leading with *every pull request gets a live preview link*, for reviewers and the developers who set it up. Leaving out the scheduler internals. Say if you'd rather lead with the per-preview databases.
 
-**After the draft.** Deliver the open questions with the draft as a short list of what would make it stronger ("if you can share why this shipped now, the opening gets a better first line"), not as questions blocking the work.
+**After the draft.** Deliver at most three open questions with the draft, the ones that would change a claim, as a short list of what would make it stronger ("if you can share why this shipped now, the opening gets a better first line"), not as questions blocking the work.
 
 **Using the answers.** Write the author's answers in the team's voice, as part of the story. Don't quote them back ("As we put it, the goal was…"). Quote the author only when they give you a line meant to be quoted.
 

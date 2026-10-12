@@ -23,6 +23,7 @@ Each rule carries the fault that taught it, and links to the reference that hold
 
 - **Earn every detail.** Keep a date, number, quote, tool name, review comment or code excerpt only if the reader would understand the feature less without it. Nothing in the record is owed a place. *(Fault: an adversarial-review quote that added color and no understanding.)*
 - **Lead with what people can do.** The headline is the capability users see, not the mechanism behind it. The mechanism leads only in a deep dive, when the author asks, or when it *is* what users touch. [brief.md](references/brief.md#the-six-fields) *(Fault: a post about one-click preview links whose centerpiece was how the scheduler pools build machines.)*
+- **Don't name yourself in the title.** The title and chapter headings are about what the reader gets; the product and company name stay out of them, and the prose names the product once where a newcomer needs it. In a feed where every title names its own company, the name stops meaning anything. [craft.md](references/craft.md) *(Fault: "Tell Releases what you care about".)*
 - **Ideas, not chronology.** Chapters are concepts, challenges or parts of the system, never days or PRs. Mention timing only when it is the point, and then in days. Iteration labels ("round one", "as it ships") are fine; clock times and commit-by-commit narration are not. [story.md](references/story.md#altitude) *(Fault: "At 14:56 UTC the decision went the other way; the API half merged at 15:33.")*
 - **Show the turn, briefly.** A chapter that matters names the decision, the alternative that lost, and why, in a few sentences. *(Fault: "we added per-branch databases" with no word on why not one shared database with a schema per branch.)*
 - **Process detail is optional.** Review comments, PR counts, timelines, and which tools or agents did the work are never required. Include one only when it changes the reader's picture: a review that found a flaw they would wonder about, a reversal that explains an odd-looking design. If coding agents or automated reviewers did part of the work, say nothing about it by default and don't ask; the `how-made` module is there if the author wants it. *(Fault: three review quotes in a row, each crediting a reviewer, none needed to understand the design.)*
@@ -63,7 +64,7 @@ Settle these from the request, the repo and the defaults. Don't ask about scope 
 - **Subject.** The idea the post is about. Whatever the author points at (an issue, a few PRs, a search phrase, a commit range, a path) is a breadcrumb, not a boundary. Related work landing around the same time (the dossier's **Nearby work**) often belongs to the same idea, and some of what was pointed at may not. Draw the boundary around the idea.
 - **Flavor and size.** Default: build story for a real feature, a note or "not worth a post" for a thin one.
 - **Visibility.** `gh repo view --json visibility -q .visibility` (the gatherer records it too). Private or unknown means nothing internal is linked.
-- **House style.** The product's exact name and terms to use or avoid. For a private repo, add names that must not appear (customers, partners, internal codenames). Pass the avoid-list to `lint.mjs --avoid`; paraphrase around an avoided term, never inside a quotation.
+- **House style.** The product's exact name (pass it to `lint.mjs --product`) and terms to use or avoid. For a private repo, add names that must not appear (customers, partners, internal codenames). Pass the avoid-list to `lint.mjs --avoid`; paraphrase around an avoided term, never inside a quotation.
 - **Modules.** Opt-in appendix extras (build log, process numbers, by-day timeline, review notes, how-made, sources), all off by default. Include the ones the author asks for; offer one in a single line only when the evidence makes it unusually good. [modules.md](references/modules.md)
 - **Other repos.** If part of the feature shipped elsewhere (a CLI, an SDK), repeat the search there with `--search … --also-repo owner/name`.
 
@@ -102,8 +103,8 @@ Under the brief in `plan.md`:
 1. **Thesis.** One sentence from the brief's starting point to its endpoint.
 2. **Beats.** One per chapter, each with the idea, the decision and the alternative if there is one, the evidence, and the **takeaway** (what the reader understands after it). A beat with no takeaway is cut.
 3. **Cuts.** What you're leaving out and why. Most of the dossier lands here.
-4. **Open questions.** Gaps only the author can fill, each with the claim you left out because of it.
-5. **Notes for the author.** Things they should know that aren't questions, such as docs that lag the code. [evidence.md](references/evidence.md#when-sources-disagree)
+4. **Open questions.** At most three: gaps only the author can fill whose answer would change a claim, ordered by impact, each with the claim you left out because of it. A gap that wouldn't change the post isn't a question; it stays in Cuts. [craft.md](references/craft.md#5-the-hand-off)
+5. **Notes for the author.** At most two, and only things they would act on, such as docs that contradict the shipped feature. [evidence.md](references/evidence.md#when-sources-disagree)
 
 Don't stop to ask unless an answer would change the headline or a chapter; both lists go with the draft. Shapes, beats and length: [story.md](references/story.md).
 
@@ -118,12 +119,13 @@ Copy [assets/template.html](assets/template.html) to `<work-dir>/post.html` and 
 ### 7. Check
 
 ```bash
-node <skill-dir>/scripts/lint.mjs <work-dir>/post.html --flavor build --avoid "term one,term two" [--private] [--ste] [--offline]
+node <skill-dir>/scripts/lint.mjs <work-dir>/post.html --flavor build --product "Name" --avoid "term one,term two" [--private] [--ste] [--offline]
 ```
 
-The linter reports words per chapter, banned and writerly phrasing, process detail against the flavor's budget, every sentence with a number, sentence length and passive voice, scan aids, identifiers in the text, masthead stats, terminal blocks, animated-dot faults, rendered components (stale markers, bars off scale, more than one visual in a chapter), leftover template text, a safety scan and a link check (it opens every link; `--offline` skips it). It exits 1 on a hard failure; with `--private`, any link to the repo's issues, PRs or commits is one. Then do the half it can't:
+The linter reports words per chapter, banned and writerly phrasing, process detail against the flavor's budget, every sentence with a number, sentence length and passive voice, scan aids, identifiers in the text, masthead stats, terminal blocks, animated-dot faults, rendered components (stale markers, bars off scale, more than one visual in a chapter), the product name in the title or headings (`--product`), leftover template text, a safety scan and a link check (it opens every link; `--offline` skips it). It exits 1 on a hard failure; with `--private`, any link to the repo's issues, PRs or commits is one. Then do the half it can't:
 
 - **Detail pass.** Apply *earn every detail* to each paragraph. A linter flag is a prompt to cut, not a count to hit.
+- **Craft pass.** Read the title, the dek and the headings alone, against [craft.md](references/craft.md): about the reader, no self-naming, concrete. Then cut the open questions to the three that would change the post.
 - **Fact pass.** Tick each number against the dossier, a file or your own run. Test counts come from running the tests, never from grep. Check every shipped/live claim against the code, the release and the docs; record any gap under Notes for the author.
 - **Safety pass.** Read every safety hit, reread each code and terminal block, and open every image.
 - **Render pass.** Desktop and phone width, light and dark, once each. [visuals.md](references/visuals.md#checking-the-render)
@@ -136,7 +138,7 @@ An artifact page can't load images from other hosts, so embed them first:
 node <skill-dir>/scripts/inline-assets.mjs <work-dir>/post.html > <work-dir>/post.published.html
 ```
 
-Publish `post.published.html` as a private Artifact (title = the post's name) and give the author the link with the open questions and notes. For their own site, add `--standalone` (doctype and viewport meta) or hand over `post.html` plus `assets/`. The chapters convert cleanly to Markdown/MDX on request.
+Publish `post.published.html` as a private Artifact (title = the post's name) and give the author the link with the open questions and notes: three questions and two notes at most, one line each. The rest stays in `plan.md`. For their own site, add `--standalone` (doctype and viewport meta) or hand over `post.html` plus `assets/`. The chapters convert cleanly to Markdown/MDX on request.
 
 ## Files
 
@@ -154,3 +156,4 @@ Publish `post.published.html` as a private Artifact (title = the post's name) an
 - `references/story.md`: shapes, beats, altitude, references, voice, length
 - `references/visuals.md`: diagram, motion, screenshot and chart patterns
 - `references/modules.md`: the opt-in module menu and placement rules
+- `references/craft.md`: what makes a post read as crafted: titles, naming the product, anti-patterns, the hand-off

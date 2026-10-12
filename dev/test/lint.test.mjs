@@ -47,3 +47,15 @@ test("a link that doesn't open is a hard failure", async () => {
   assert.match(bad.out, /✗ link doesn't open \(404\): .*\/collections\/guessed/);
   assert.equal(bad.code, 1);
 });
+
+test("--product flags self-naming in the title and headings", () => {
+  const dir = mkdtempSync(join(tmpdir(), "lint-product-"));
+  const page = (h1, h2) => `<article class="post"><header class="mast"><h1>${h1}</h1><p class="dek">Acme now writes to you when a release matches.</p></header><section class="ch" id="c1"><h2><span class="n">01</span>${h2}</h2><p>Acme reads each release. It sends one alert.</p></section></article>`;
+  writeFileSync(join(dir, "self.html"), page("Tell Acme what you care about", "How Acme matches"));
+  writeFileSync(join(dir, "clean.html"), page("Write a sentence, get the releases that match it", "One call per release"));
+  const self = lint(join(dir, "self.html"), "--product", "Acme", "--offline");
+  assert.match(self, /! "Acme" in the title or a heading: "Tell Acme what you care about" · "How Acme matches"/);
+  const clean = lint(join(dir, "clean.html"), "--product", "Acme", "--offline");
+  assert.match(clean, /Product name "Acme": 2 in the prose, none in the title or headings\./);
+  assert.doesNotMatch(clean, /in the title or a heading:/);
+});

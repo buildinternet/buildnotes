@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // lint.mjs — the mechanical half of the Check step for a build-story page.
 //
-// Usage: node lint.mjs post.html [--flavor note|release|build|deep] [--avoid "a,b"] [--private] [--ste] [--offline]
+// Usage: node lint.mjs post.html [--flavor note|release|build|deep] [--avoid "a,b"] [--product "Name"] [--private] [--ste] [--offline]
 //
 // Prints, per chapter: prose word count (code, terminals, SVG, captions, modules and end matter
 // excluded), banned phrasing and avoided house terms, mannered constructions, process detail
@@ -17,6 +17,8 @@
 // and the total length. Text inside viz markers is left out of the word counts and the fact ledger;
 // its numbers come from the specs, which are listed for the fact pass.
 // --ste: full Simplified Technical English limits (20-word sentences) instead of STE-lite (25).
+// --product "Name": warns when the product name is in the title or a chapter heading, and counts it in
+// the prose (references/craft.md: name it once where a newcomer needs it). Case-sensitive.
 // --private: any link to GitHub issues, pull requests or commits is a hard failure.
 // Every http(s) link is opened; one that doesn't answer 2xx/3xx is a hard failure (--offline skips this).
 // Exit 1 on a hard failure (banned word, avoided term, leftover template text, private link,
@@ -31,7 +33,7 @@ import { NAMES_COMMIT, numberIn } from "./viz/util.mjs";
 const argv = process.argv.slice(2);
 const file = argv.find((a, i) => !a.startsWith("--") && !argv[i - 1]?.startsWith("--"));
 if (!file) {
-  console.error('usage: lint.mjs <post.html> [--flavor note|release|build|deep] [--avoid "a,b"] [--private] [--ste] [--offline]');
+  console.error('usage: lint.mjs <post.html> [--flavor note|release|build|deep] [--avoid "a,b"] [--product "Name"] [--private] [--ste] [--offline]');
   process.exit(2);
 }
 const opt = (k) => { const i = argv.indexOf(`--${k}`); return i >= 0 ? argv[i + 1] : undefined; };
@@ -182,6 +184,20 @@ say(`Process detail (${flavor} budget): clock times ${totals.clock}/0 · dates $
 const over = [totals.clock > 0 && "clock times", totals.dates > BUDGET.dates && "dates", totals.refs > BUDGET.refs && "references", totals.talk > BUDGET.talk && "process talk"].filter(Boolean);
 if (over.length) say(`! over budget: ${over.join(", ")}. Ask of each: would the reader miss it? Organize by idea, not chronology.`);
 say();
+
+// Self-naming: the product in the title or a heading, and how often the prose says it.
+const product = opt("product");
+if (product) {
+  const re = new RegExp(`(?<![\\w-])${product.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(?![\\w-])`, "g");
+  const heads = [...html.replace(/<!--[\s\S]*?-->/g, "").matchAll(/<(h1|h2)\b[^>]*>([\s\S]*?)<\/\1>/g)]
+    .map((m) => text(m[2].replace(/<span class="n">[^<]*<\/span>/, ""))).filter((h) => h.match(re));
+  const prose = text(body.replace(/<footer[\s\S]*?<\/footer>/g, " ").replace(/<h[12]\b[\s\S]*?<\/h[12]>/g, " "));
+  const n = prose.match(re)?.length ?? 0;
+  say(`Product name "${product}": ${n} in the prose${heads.length ? "" : ", none in the title or headings"}.`);
+  if (heads.length) say(`! "${product}" in the title or a heading: ${heads.map((h) => `"${h}"`).join(" · ")}. Write it about what the reader gets (craft.md).`);
+  if (n > Math.max(3, words(prose) / 250)) say(`! named often; once where a newcomer needs it, then "it", "we" or the feature's name (craft.md).`);
+  say();
+}
 
 if (isPrivate) {
   const internal = [...new Set(html.match(/https?:\/\/github\.com\/[\w.-]+\/[\w.-]+\/(issues|pull|commit|blob|tree|actions|discussions)\b[^"'\s<)]*/g) ?? [])];
