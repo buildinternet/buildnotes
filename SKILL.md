@@ -60,9 +60,9 @@ Settle these from the request, the repo and the defaults below. Don't ask about 
 - **Flavor.** Release story, build story or deep dive. Default: build story.
 - **Visibility.** Is the repo public? `gh repo view --json visibility -q .visibility` (the gatherer records it too). If it's private or unknown, the post links nothing internal and keeps no sources list of issues and PRs.
 - **Voice.** "I" or "we". Default: "we", in plain English (STE-lite: short sentences, active voice, one term per thing). Strict Simplified Technical English only if the author asks. See [references/story.md](references/story.md#voice).
-- **House style.** The product's exact name, terms to use and avoid, anything the project's docs fix. Pass the avoid-list to `lint.mjs --avoid`. Paraphrase around an avoided term; never edit inside a quotation.
+- **House style.** The product's exact name, terms to use and avoid, anything the project's docs fix. For a private repo, also add names that must not appear: customers, partners, suppliers, internal codenames you find in the record. Pass the avoid-list to `lint.mjs --avoid`. Paraphrase around an avoided term; never edit inside a quotation.
 - **Modules.** Standard opt-in extras that sit after the story as an appendix: a PR-by-PR build log, process numbers, a by-day timeline, review notes, a how-it-was-made note, a sources list. All off by default. Include the ones the author asks for. Offer one in a single line only when the evidence makes it unusually good. Menu and how to add each: [references/modules.md](references/modules.md).
-- **Disclosure.** If the record shows coding agents or automated reviewers did part of the work, ask whether the post should say so. Default: say nothing unless a specific review is part of the story; an author who wants it gets the `how-made` module.
+- **Disclosure.** If the record shows coding agents or automated reviewers did part of the work, say nothing about it by default (don't ask). Mention a specific review only when it is part of the story; an author who wants more gets the `how-made` module.
 - **Other repos.** If part of the feature shipped elsewhere (a CLI, an SDK), add it with `--also-repo`.
 
 ### 2. Gather the evidence
