@@ -5,9 +5,9 @@ description: Turn the real history of a feature (its issues, PRs, commits, revie
 
 # Build story
 
-A build story explains a feature to someone who knows what the product does but wasn't in the room: what problem it solves, how it works, and the two or three challenges that shaped it. It is written for people outside the team, from evidence inside the repo.
+A build story explains a feature to someone who knows what the product does but wasn't in the room: what problem it solves, how it works, and the two or three challenges that shaped it. It is written for people outside the team. The repo supplies the evidence; the story comes from understanding what the work means for the people who use the product.
 
-The record is the source, not the story. Issues, PRs, commits and reviews tell you what happened and in what order; the post tells the reader what was built and why it is the way it is. Organize by idea, not by date.
+The record is the source, not the story. Issues, PRs, commits and reviews tell you what happened and in what order, and they are a small sliver of the picture. Zoom out: read the product the way its users meet it, and find the angle a product marketer would, meaning what changed for users and why it's worth their attention. The post tells the reader what was built, why it matters, and why it is the way it is. Organize by idea, not by date.
 
 Three failures this skill exists to prevent:
 
@@ -30,7 +30,7 @@ Each rule carries the fault that taught it.
 - **Every number has a source, and earns its place.** A count, a size or a duration comes from the dossier, a file, or a command you ran for this post. Prefer numbers about the product and its users ("a preview is ready about 40 seconds after you push", "links expire after 30 days") over numbers about the process (lines changed, PRs merged). A number in the masthead must make sense before the reader has read anything; most posts have none. *(Fault: "cut latency by ~40%" with no measurement anywhere; a masthead reading "Write paths: 1".)*
 - **Real code, only where the code is the idea.** An excerpt is copied from the shipped commit, at most about 15 lines, labelled with its file name and nothing else, with cuts marked `…`. Release stories rarely need code beyond a usage example; deep dives can carry several. Never write illustrative code and present it as the real thing. *(Fault: a tidy snippet that matches nothing in the repo.)*
 - **One visual per chapter, at most, and it must explain.** A flow, a before/after, a screenshot of what the reader will see, a motion that shows something moving. Decoration goes. *(Fault: a diagram that restates the heading.)*
-- **Don't invent the why.** When the record doesn't say why, ask the author or leave the claim out. *(Fault: a plausible but fictional origin story.)*
+- **Infer the angle; don't invent the facts.** Implications, context and hooks the record never states are yours to find and propose. Motives, quotes, events and numbers are not: when the record doesn't say why, ask the author or leave the claim out. *(Faults: a post that only restates the PRs; a plausible but fictional origin story.)*
 - **Safe to publish.** No secrets, tokens, internal hostnames, customer names, personal paths or emails, internal links, or unreleased plans unless the author clears them. *(Fault: a terminal excerpt with a live API key in it.)*
 
 ## Flavors
@@ -83,7 +83,7 @@ Read in this order and stop when you have the story: `dossier.md` → the design
 
 ### 3. Frame the story with the author
 
-Before planning beats, decide which story this is. Draft a **brief** from the evidence: the headline (what people can do now), the starting point and endpoint from the user's side, prior context (is this new, or an iteration on something people already know?), the audience (technical or not), and the supporting cast versus what's out of frame. Then confirm it with the author in one message of up to five questions, each carrying your proposed answer. Always confirm the headline and the audience. If you can't ask, mark your proposals *assumed*. Fields, examples and how to ask: [references/brief.md](references/brief.md).
+Before planning beats, decide which story this is. Zoom out first: look at the product as users meet it, earlier releases in the area and how other tools handle the same job, and draft two or three **angles** (a hook, who it speaks to, what it rests on). Then draft a **brief** around the one you recommend: the headline (what people can do now), the starting point and endpoint from the user's side, prior context (is this new, or an iteration on something people already know?), the audience (technical or not), and the supporting cast versus what's out of frame. Then confirm it with the author in one message of up to five questions, each carrying your proposed answer. Always confirm the headline (offer the angles as the options) and the audience. If you can't ask, mark your proposals *assumed*. Fields, examples and how to ask: [references/brief.md](references/brief.md).
 
 ### 4. Plan the beats
 
