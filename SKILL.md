@@ -2,7 +2,7 @@
 name: build-story
 description: Turn the real history of a feature (its issues, PRs, commits, reviews, design docs and screenshots) into a public-facing post about how it was built and why, with diagrams, simple motion, before/after visuals and code where it helps, published as a page. Three flavors, from a release-notes-style launch story to a technical deep dive. Use when asked to write up how a feature was built, the thinking or design behind a change, a technical blog post, devlog, case study, launch post or behind-the-scenes piece about work in a git repo, even when the request never says "blog".
 license: MIT
-compatibility: Written for Claude Code; also runs in OpenCode and Codex. Needs Node.js, git and an authenticated gh, and Chrome or Chromium for the render pass.
+compatibility: Written for Claude Code; also runs in OpenCode and Codex. Needs Node.js 22, git and an authenticated gh, and Chrome or Chromium for the render pass.
 metadata:
   opencode/slash: "true"
 ---

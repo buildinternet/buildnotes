@@ -1,0 +1,93 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+
+      - uses: browser-actions/setup-chrome@v2
+        id: chrome
+
+      # chrome.mjs only searches a fixed path list, plus CHROME_PATH.
+      - name: Tests
+        env:
+          CHROME_PATH: ${{ steps.chrome.outputs.chrome-path }}
+        run: |
+          test -x "$CHROME_PATH"
+          "$CHROME_PATH" --version
+          node --test dev/test/
+
+  check:
+    name: Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+
+      - name: Syntax
+        run: |
+          shopt -s globstar
+          fail=0
+          for f in scripts/**/*.mjs dev/**/*.mjs; do
+            node --check "$f" || fail=1
+          done
+          exit "$fail"
+
+      - name: Skill frontmatter
+        run: |
+          node --input-type=module <<'EOF'
+          import { readFileSync } from "node:fs";
+
+          const text = readFileSync("SKILL.md", "utf8");
+          if (!text.startsWith("---\n")) {
+            console.error("SKILL.md must open with frontmatter");
+            process.exit(1);
+          }
+          const end = text.indexOf("\n---\n", 4);
+          if (end < 0) {
+            console.error("SKILL.md frontmatter is unclosed");
+            process.exit(1);
+          }
+          const fields = {};
+          for (const line of text.slice(4, end).split("\n")) {
+            if (!line || line.startsWith(" ") || line.startsWith("\t")) continue;
+            const i = line.indexOf(":");
+            if (i < 1) continue;
+            fields[line.slice(0, i)] = line.slice(i + 1).trim();
+          }
+          for (const key of ["name", "description", "license"]) {
+            if (!fields[key]) {
+              console.error(`SKILL.md frontmatter missing ${key}`);
+              process.exit(1);
+            }
+          }
+          if (fields.description.length > 1024) {
+            console.error(`description is ${fields.description.length} characters (max 1024)`);
+            process.exit(1);
+          }
+          console.log(`${fields.name}: description ${fields.description.length} chars, license ${fields.license}`);
+          EOF
