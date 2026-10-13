@@ -38,7 +38,7 @@ The cure is the same for all three: find the few ideas and decisions that made t
 ## Quick start
 
 ```bash
-git clone https://github.com/buildinternet/buildnotes.git ~/.claude/skills/build-story
+npx skills add buildinternet/buildnotes -g -a claude-code
 ```
 
 Then, in Claude Code, inside the repo the feature lives in:
@@ -161,19 +161,22 @@ Every rule in `SKILL.md` names the fault that taught it, for example a tidy code
 
 ## Install
 
-build-story is a standard Agent Skill: a folder with a `SKILL.md` at its root. Put the folder (or a link to it) in your skills directory so that `SKILL.md` ends up at `~/.claude/skills/build-story/SKILL.md`.
+build-story is a standard [Agent Skill](https://agentskills.io): a folder with a `SKILL.md` at its root. This repository is that folder. Pick one way in:
 
-```bash
-git clone https://github.com/buildinternet/buildnotes.git ~/.claude/skills/build-story
-```
+| | Command | Installs to |
+|---|---|---|
+| **skills CLI**, for you | `npx skills add buildinternet/buildnotes -g -a claude-code` | `~/.claude/skills/build-story` |
+| **skills CLI**, for one project | `npx skills add buildinternet/buildnotes -a claude-code` | `.claude/skills/build-story` |
+| **git**, for you | `git clone https://github.com/buildinternet/buildnotes.git ~/.claude/skills/build-story` | `~/.claude/skills/build-story` |
+| **git**, for one project | `git clone https://github.com/buildinternet/buildnotes.git .claude/skills/build-story` | `.claude/skills/build-story` |
 
-Update with `git pull` in that folder. If you already keep a checkout elsewhere, link it in instead, so the skill stays in step with that checkout:
+The [`skills`](https://github.com/vercel-labs/skills) CLI finds the `SKILL.md` at the root of this repository and installs it as `build-story`. `-g` installs it for your user rather than the current project, and `-a claude-code` sets up Claude Code only.
+
+With git, update by running `git pull` in that folder. If you already keep a checkout elsewhere, link it in instead, so the skill stays in step with that checkout:
 
 ```bash
 ln -s /path/to/buildnotes ~/.claude/skills/build-story
 ```
-
-For one project only, use `.claude/skills/build-story` in that repo instead.
 
 ### Requirements
 
