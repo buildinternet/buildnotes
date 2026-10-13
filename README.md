@@ -245,3 +245,7 @@ To keep a public run as a committed example, check it, then copy its page, plan 
 - **Private repos link nothing internal.** The linter fails a `--private` post that links the repo's issues, PRs or commits.
 - **No sign-ins for screenshots.** If a screen sits behind a sign-in the skill shouldn't use, it falls back to the PR's own images, a diagram or a terminal run.
 - **One example so far.** `examples/` holds a single public run.
+
+## License
+
+MIT. See [LICENSE](LICENSE), which also carries the notice for the capture script adapted from [anatomy](https://github.com/wheresryan22/anatomy).
