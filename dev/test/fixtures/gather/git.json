@@ -1,0 +1,26 @@
+{
+  "lsFiles": "CHANGELOG.md\npackages/app/CHANGELOG.md\ndocs/limits.md\nsrc/limits/budget.js\nsrc/limits/budget.test.js\nREADME.md\n",
+  "renames": "M\tREADME.md\nR100\tsrc/quota/budget.js\tsrc/limits/budget.js\nR090\tREADME.md\tREADME-old.md\n",
+  "lsTree": "CHANGELOG.md\nREADME.md\ndocs\npackages\nsrc\n",
+  "commits": "\u001eab12cd34\u001f2026-09-12\u001fErin\u001fRevert the limit bump\u001fThe limit was too low.\n1\t2\tsrc/limits/budget.js\n-\t-\tbin.dat\n\u001eef56ab78\u001f2026-09-03\u001fErin\u001ffeat: already in the PR (#120)\u001f\n3\t0\tsrc/limits/budget.js\n",
+  "rev": "deadbeef\n",
+  "catExists": [
+    "deadbeef:src/quota/budget.js",
+    "deadbeef:docs/limits.md"
+  ],
+  "catMissing": [
+    "deadbeef:src/limits/budget.js",
+    "deadbeef:bin.dat"
+  ],
+  "busy": {
+    "src/quota/budget.js": "3\n",
+    "docs/limits.md": "1\n"
+  },
+  "priorLog": "@@eee5555\u001f2026-07-20\u001ffeat: share the limit across both files\nM\tsrc/quota/budget.js\nM\tdocs/limits.md\n@@ddd4444\u001f2026-07-15\u001ffeat: tweak budget (#40)\nM\tsrc/quota/budget.js\n@@bbb2222\u001f2026-06-01\u001fchore(release): version packages\nM\tsrc/quota/budget.js\nM\tdocs/limits.md\n@@ccc3333\u001f2026-05-01\u001fmove the budget module\nR100\tsrc/old/budget.js\tsrc/quota/budget.js\n@@aaa1111\u001f2026-04-01\u001ffeat: first budget\nM\tsrc/quota/budget.js\n",
+  "last": {
+    "src/limits/budget.js": "a1b2c3d4\u001f2026-09-12\u001fcap the burst\n",
+    "src/limits/budget.test.js": "b2c3d4e5\u001f2026-09-11\u001fcover the burst\n",
+    "docs/limits.md": "c3d4e5f6\u001f2026-09-10\u001fexplain the bucket\n",
+    "CHANGELOG.md": "d4e5f6a7\u001f2026-09-10\u001fnote the limit\n"
+  }
+}

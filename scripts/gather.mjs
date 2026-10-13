@@ -30,24 +30,18 @@
 // Writes <out>/dossier.json (everything, full cleaned text) and <out>/dossier.md (a skimmable digest).
 
 import { execFileSync } from "node:child_process";
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, realpathSync, writeFileSync } from "node:fs";
 import { join, extname } from "node:path";
+import { pathToFileURL } from "node:url";
 
-const args = parseArgs(process.argv.slice(2));
-if (args.help || args.h) {
-  // The header comment block is the usage text.
-  const lines = readFileSync(new URL(import.meta.url), "utf8").split("\n").slice(1);
-  const end = lines.findIndex((l) => !l.startsWith("//"));
-  process.stdout.write(lines.slice(0, end < 0 ? lines.length : end).map((l) => l.replace(/^\/\/ ?/, "")).join("\n") + "\n");
-  process.exit(0);
+// Tests pass `{ command }` and skip the real git and gh binaries. The CLI keeps execFileSync.
+let command = realCommand;
+function realCommand(cmd, a) {
+  return execFileSync(cmd, a, { encoding: "utf8", maxBuffer: 256 * 1024 * 1024, stdio: ["ignore", "pipe", "pipe"] });
 }
-if (!args.out) die("missing --out <dir> (see --help)");
-const BODY_CHARS = Number(args["body-chars"] ?? 2500);
-const repo = args.repo ?? sh("gh", ["repo", "view", "--json", "nameWithOwner", "-q", ".nameWithOwner"]).trim();
-const TZ = typeof args.tz === "string" ? args.tz : null;
-if (TZ) {
-  try { new Intl.DateTimeFormat("en-US", { timeZone: TZ }); } catch { die(`unknown time zone ${TZ}`); }
-}
+function sh(cmd, a) { return command(cmd, a); }
+
+let args, BODY_CHARS, repo, TZ, visibility, dossier, seenPr, seenIssue, renames, headFiles;
 
 // Bots whose top-level comments are boilerplate. Their inline review comments are kept,
 // because automated reviewers sometimes raise the point that changed the design.
@@ -71,49 +65,6 @@ const AGENT_PATTERNS = [
   ["Copilot", /Co-authored-by:\s*Copilot|copilot-swe-agent|Generated with (GitHub )?Copilot|Copilot (coding )?agent/i],
   ["Devin", /devin\.ai|devin-ai-integration|Co-authored-by:\s*Devin|Generated with Devin/i],
 ];
-
-const visibility = (() => { try { return sh("gh", ["repo", "view", repo, "--json", "visibility", "-q", ".visibility"]).trim().toLowerCase() || "unknown"; } catch { return "unknown"; } })();
-const dossier = { repo, visibility, generatedAt: new Date().toISOString(), selectors: args, issues: [], prs: [], commits: [], crossRepo: [] };
-const seenPr = new Set();
-const seenIssue = new Set();
-const { renames, headFiles } = loadRenames();
-
-for (const n of list(args.issue)) await addIssue(n, 0);
-for (const n of list(args.pr)) addPr(n);
-// Issues a selected PR closes, or says it is part of ("Part of #12", "Refs #12"), often hold the
-// plan, the problem statement and its numbers. Pull their bodies, without widening the search to
-// every PR that mentions them. A number that turns out to be a PR is skipped.
-for (const p of [...dossier.prs]) if (p.repo === repo) for (const n of [...p.closes, ...p.partOf]) {
-  try { await addIssue(n, 1, { follow: false }); } catch { seenIssue.delete(Number(n)); }
-}
-if (args.search) {
-  const found = ghJson(["pr", "list", "-R", repo, "--state", "merged", "--limit", "50", "--search", args.search, "--json", "number"]);
-  for (const { number } of found) addPr(number);
-  for (const other of list(args["also-repo"])) {
-    const hits = ghJsonSafe(["pr", "list", "-R", other, "--state", "merged", "--limit", "50", "--search", args.search, "--json", "number"]);
-    if (!hits) { console.error(`also-repo ${other}: search failed, skipped`); continue; }
-    for (const { number } of hits) addPr(number, other);
-  }
-}
-if (args.range || args.since || args.grep || args.path) addCommits();
-
-dossier.prs.sort((a, b) => (a.mergedAt ?? a.createdAt).localeCompare(b.mergedAt ?? b.createdAt));
-dossier.summary = summarize();
-dossier.timeline = timeline();
-dossier.feedbackSignals = feedbackSignals();
-dossier.crossRepo = crossRepoRefs();
-dossier.storyCandidates = storyCandidates();
-dossier.priorWork = priorWork();
-dossier.nearbyWork = nearbyWork();
-
-mkdirSync(args.out, { recursive: true });
-if (args.download) await downloadImages();
-writeFileSync(join(args.out, "dossier.json"), JSON.stringify(dossier, null, 2));
-writeFileSync(join(args.out, "dossier.md"), renderMarkdown());
-console.error(
-  `dossier: ${dossier.issues.length} issues · ${dossier.prs.length} PRs · ${dossier.commits.length} loose commits · ` +
-    `${dossier.summary.images} images → ${join(args.out, "dossier.md")}`,
-);
 
 // ---------------------------------------------------------------- collectors
 
@@ -838,7 +789,6 @@ function priorQuery(v) {
 function list(v) { return v && v !== true ? String(v).split(",").map((s) => s.trim()).filter(Boolean) : []; }
 function guessExt(u) { const e = extname(new URL(u).pathname).toLowerCase(); return /^\.(png|jpe?g|gif|webp|svg|mp4|webm)$/.test(e) ? e : ".bin"; }
 function extFromType(t = "") { return { "image/png": ".png", "image/jpeg": ".jpg", "image/gif": ".gif", "image/webp": ".webp", "image/svg+xml": ".svg", "video/mp4": ".mp4", "video/webm": ".webm" }[t?.split(";")[0]]; }
-function sh(cmd, a) { return execFileSync(cmd, a, { encoding: "utf8", maxBuffer: 256 * 1024 * 1024, stdio: ["ignore", "pipe", "pipe"] }); }
 function ghJson(a) { return JSON.parse(sh("gh", a)); }
 // Issues a PR body names as its parent: "Part of #12", "Refs #12", "Related to #12", "Follow-up to #12",
 // "Tracking: #12". Same-repo numbers only; closing keywords are GitHub's own list (closes).
@@ -870,3 +820,82 @@ function parseArgs(argv) {
   }
   return o;
 }
+
+async function run(argv) {
+  args = parseArgs(argv);
+  if (args.help || args.h) {
+    // The header comment block is the usage text.
+    const lines = readFileSync(new URL(import.meta.url), "utf8").split("\n").slice(1);
+    const end = lines.findIndex((l) => !l.startsWith("//"));
+    process.stdout.write(lines.slice(0, end < 0 ? lines.length : end).map((l) => l.replace(/^\/\/ ?/, "")).join("\n") + "\n");
+    process.exit(0);
+  }
+  if (!args.out) die("missing --out <dir> (see --help)");
+  BODY_CHARS = Number(args["body-chars"] ?? 2500);
+  repo = args.repo ?? sh("gh", ["repo", "view", "--json", "nameWithOwner", "-q", ".nameWithOwner"]).trim();
+  TZ = typeof args.tz === "string" ? args.tz : null;
+  if (TZ) {
+    try { new Intl.DateTimeFormat("en-US", { timeZone: TZ }); } catch { die(`unknown time zone ${TZ}`); }
+  }
+  visibility = (() => { try { return sh("gh", ["repo", "view", repo, "--json", "visibility", "-q", ".visibility"]).trim().toLowerCase() || "unknown"; } catch { return "unknown"; } })();
+  dossier = { repo, visibility, generatedAt: new Date().toISOString(), selectors: args, issues: [], prs: [], commits: [], crossRepo: [] };
+  seenPr = new Set();
+  seenIssue = new Set();
+  ({ renames, headFiles } = loadRenames());
+
+  for (const n of list(args.issue)) await addIssue(n, 0);
+  for (const n of list(args.pr)) addPr(n);
+  // Issues a selected PR closes, or says it is part of ("Part of #12", "Refs #12"), often hold the
+  // plan, the problem statement and its numbers. Pull their bodies, without widening the search to
+  // every PR that mentions them. A number that turns out to be a PR is skipped.
+  for (const p of [...dossier.prs]) if (p.repo === repo) for (const n of [...p.closes, ...p.partOf]) {
+    try { await addIssue(n, 1, { follow: false }); } catch { seenIssue.delete(Number(n)); }
+  }
+  if (args.search) {
+    const found = ghJson(["pr", "list", "-R", repo, "--state", "merged", "--limit", "50", "--search", args.search, "--json", "number"]);
+    for (const { number } of found) addPr(number);
+    for (const other of list(args["also-repo"])) {
+      const hits = ghJsonSafe(["pr", "list", "-R", other, "--state", "merged", "--limit", "50", "--search", args.search, "--json", "number"]);
+      if (!hits) { console.error(`also-repo ${other}: search failed, skipped`); continue; }
+      for (const { number } of hits) addPr(number, other);
+    }
+  }
+  if (args.range || args.since || args.grep || args.path) addCommits();
+
+  dossier.prs.sort((a, b) => (a.mergedAt ?? a.createdAt).localeCompare(b.mergedAt ?? b.createdAt));
+  dossier.summary = summarize();
+  dossier.timeline = timeline();
+  dossier.feedbackSignals = feedbackSignals();
+  dossier.crossRepo = crossRepoRefs();
+  dossier.storyCandidates = storyCandidates();
+  dossier.priorWork = priorWork();
+  dossier.nearbyWork = nearbyWork();
+
+  mkdirSync(args.out, { recursive: true });
+  if (args.download) await downloadImages();
+  writeFileSync(join(args.out, "dossier.json"), JSON.stringify(dossier, null, 2));
+  writeFileSync(join(args.out, "dossier.md"), renderMarkdown());
+  console.error(
+    `dossier: ${dossier.issues.length} issues · ${dossier.prs.length} PRs · ${dossier.commits.length} loose commits · ` +
+      `${dossier.summary.images} images → ${join(args.out, "dossier.md")}`,
+  );
+  return dossier;
+}
+
+export async function gather(argv = process.argv.slice(2), options = {}) {
+  const previous = command;
+  command = options.command ?? realCommand;
+  try {
+    return await run(argv);
+  } finally {
+    command = previous;
+  }
+}
+
+function invokedAsCli() {
+  const entry = process.argv[1];
+  if (!entry) return false;
+  try { return import.meta.url === pathToFileURL(realpathSync(entry)).href; } catch { return false; }
+}
+
+if (invokedAsCli()) await gather();

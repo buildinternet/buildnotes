@@ -1,0 +1,550 @@
+{
+  "visibility": "Public\n",
+  "issues": {
+    "412": {
+      "number": 412,
+      "title": "Cap the burst",
+      "body": "The bucket should cap a burst.\n\nwidgets/lib#4 has the shared limiter.\nsrc/limits#3 is in this repo's tree, and docs/guide#2 is too.",
+      "url": "https://github.com/acme/app/issues/412",
+      "state": "CLOSED",
+      "createdAt": "2026-09-01T15:00:00Z",
+      "closedAt": "2026-09-10T18:00:00Z",
+      "author": {
+        "login": "alice"
+      },
+      "labels": [
+        {
+          "name": "feature"
+        }
+      ],
+      "comments": [
+        {
+          "author": {
+            "login": "vercel[bot]"
+          },
+          "createdAt": "2026-09-01T16:00:00Z",
+          "body": "deployed"
+        },
+        {
+          "author": {
+            "login": "alice"
+          },
+          "createdAt": "2026-09-02T12:00:00Z",
+          "body": "The reviewer found a race in the refill."
+        }
+      ]
+    },
+    "413": {
+      "number": 413,
+      "title": "Count the leftovers",
+      "body": "",
+      "url": "https://github.com/acme/app/issues/413",
+      "state": "OPEN",
+      "createdAt": "2026-09-01T15:04:00Z",
+      "closedAt": null,
+      "author": {
+        "login": "alice"
+      },
+      "labels": [],
+      "comments": [
+        {
+          "author": {
+            "login": "cursor"
+          },
+          "createdAt": "2026-09-01T15:05:00Z",
+          "body": "ship it"
+        }
+      ]
+    },
+    "414": {
+      "number": 414,
+      "title": "Name the bucket",
+      "body": "Opened with the others.",
+      "url": "https://github.com/acme/app/issues/414",
+      "state": "OPEN",
+      "createdAt": "2026-09-01T15:09:00Z",
+      "closedAt": null,
+      "author": {
+        "login": "alice"
+      },
+      "labels": [],
+      "comments": []
+    },
+    "415": {
+      "number": 415,
+      "title": "The fixed window was the first plan",
+      "body": "The plan was a fixed window.\n\nAlso nope/thing#1.",
+      "url": "https://github.com/acme/app/issues/415",
+      "state": "CLOSED",
+      "createdAt": "2026-08-01T12:00:00Z",
+      "closedAt": "2026-09-10T15:00:00Z",
+      "author": {
+        "login": "bob"
+      },
+      "labels": [],
+      "comments": []
+    }
+  },
+  "subIssues": {
+    "412": "[{\"number\":413,\"title\":\"child\"}]\n[{\"number\":414,\"title\":\"other\"}]"
+  },
+  "prs": {
+    "acme/app#120": {
+      "number": 120,
+      "title": "feat(limits): cap the burst",
+      "body": "Cap the burst before the bucket runs dry.\n\n<!-- Generated with Claude Code -->\n\n## Summary by CodeRabbit\nThis is a bot summary that must go.\n\n## What changed\nThe bucket refills once a second.\n\n- [ ] update the docs\n- [x] run the tests\n\n- [ ] part of #412\n- [ ] see https://github.com/acme/app/issues/415\n\n<details><summary>logs <details>inner</details></summary>\nsecret log\n</details>\n\n<a href=\"https://cursor.com/agents/abc\">Open in Cursor</a>\n\n![diagram](https://github.com/user-attachments/assets/abc-123)\n![badge](https://img.shields.io/badge/build-passing)\n<img src=\"https://example.com/shot.png\" alt=\"the shot\">\n\nhttps://github.com/user-attachments/assets/bare-one\n\nThe reviewer found a race in the refill path.\n\nThe reviewer found a race in the refill path.\n\nSee https://github.com/acme/app/pull/120 and widgets/lib#4.\nsrc/limits#3 is a path, and docs/guide#2 is a top-level directory.\n\nPart of #412. Refs #999. Part of #120.\n\n## Decisions\n\nWe went with a token bucket instead of a fixed window.\n\n## Open questions\n\nShould the burst reset at midnight?\n",
+      "url": "https://github.com/acme/app/pull/120",
+      "state": "MERGED",
+      "author": {
+        "login": "alice"
+      },
+      "createdAt": "2026-09-05T15:00:00Z",
+      "mergedAt": "2026-09-10T15:00:00Z",
+      "closedAt": "2026-09-10T15:00:00Z",
+      "additions": 100,
+      "deletions": 40,
+      "changedFiles": 4,
+      "files": [
+        {
+          "path": "src/quota/budget.js",
+          "additions": 80,
+          "deletions": 10
+        },
+        {
+          "path": "docs/limits.md",
+          "additions": 20,
+          "deletions": 2
+        },
+        {
+          "path": "CHANGELOG.md",
+          "additions": 5,
+          "deletions": 1
+        },
+        {
+          "path": "src/limits/budget.test.js",
+          "additions": 30,
+          "deletions": 0
+        }
+      ],
+      "commits": [
+        {
+          "oid": "0123456789abcdef",
+          "committedDate": "2026-09-09T12:00:00Z",
+          "messageHeadline": "Try a fixed window",
+          "messageBody": "Co-authored-by: Copilot <copilot@users.noreply.github.com>\nCo-authored-by: Dana <dana@example.com>\n",
+          "authors": [
+            {
+              "login": "alice"
+            },
+            {
+              "name": "Dana"
+            }
+          ]
+        },
+        {
+          "oid": "abcdef1234567890",
+          "committedDate": "2026-09-09T18:00:00Z",
+          "messageHeadline": "Revert the token bucket",
+          "messageBody": "",
+          "authors": [
+            {
+              "login": "alice"
+            }
+          ]
+        }
+      ],
+      "comments": [
+        {
+          "author": {
+            "login": "vercel[bot]"
+          },
+          "createdAt": "2026-09-05T16:00:00Z",
+          "body": "deployed to preview"
+        },
+        {
+          "author": {
+            "login": "coderabbitai"
+          },
+          "createdAt": "2026-09-05T17:00:00Z",
+          "body": "Summary of changes that should be dropped."
+        },
+        {
+          "author": {
+            "login": "erin"
+          },
+          "createdAt": "2026-09-05T18:00:00Z",
+          "body": "@alice review please look"
+        },
+        {
+          "author": {
+            "login": "bob"
+          },
+          "createdAt": "2026-09-06T12:00:00Z",
+          "body": "<details><summary>x</summary>hidden</details>"
+        },
+        {
+          "author": {
+            "login": "carol"
+          },
+          "createdAt": "2026-09-06T13:00:00Z",
+          "body": "I caught a bug when the bucket is empty."
+        },
+        {
+          "author": {
+            "login": "alice"
+          },
+          "createdAt": "2026-09-06T14:00:00Z",
+          "body": "We will ship the token bucket."
+        }
+      ],
+      "reviews": [
+        {
+          "author": {
+            "login": "dana"
+          },
+          "state": "COMMENTED",
+          "submittedAt": "2026-09-07T12:00:00Z",
+          "body": "Looks good.\n\n| bug | column |\n> quoted bug should not count as its own signal here\n\n```\nif (bug) refill();\n```\n\nWe decided to reject the fixed window. The race is reason enough.\n"
+        },
+        {
+          "author": {
+            "login": "vercel[bot]"
+          },
+          "state": "APPROVED",
+          "submittedAt": "2026-09-07T13:00:00Z",
+          "body": "LGTM from the bot that is long enough to be substantive but noise."
+        },
+        {
+          "author": {
+            "login": "bob"
+          },
+          "state": "COMMENTED",
+          "submittedAt": "2026-09-07T14:00:00Z",
+          "body": "   "
+        },
+        {
+          "author": {
+            "login": "alice"
+          },
+          "state": "APPROVED",
+          "submittedAt": "2026-09-07T15:00:00Z",
+          "body": "Yes."
+        }
+      ],
+      "labels": [
+        {
+          "name": "feature"
+        }
+      ],
+      "closingIssuesReferences": [
+        {
+          "number": 415
+        }
+      ],
+      "headRefName": "cursor/rate-limit",
+      "mergeCommit": {
+        "oid": "fedcba9876543210"
+      }
+    },
+    "acme/app#121": {
+      "number": 121,
+      "title": "chore(release): version packages",
+      "body": "",
+      "url": "https://github.com/acme/app/pull/121",
+      "state": "MERGED",
+      "author": {
+        "login": "alice"
+      },
+      "createdAt": "2026-09-08T12:00:00Z",
+      "mergedAt": "2026-09-08T13:00:00Z",
+      "closedAt": "2026-09-08T13:00:00Z",
+      "additions": 1,
+      "deletions": 1,
+      "changedFiles": 1,
+      "files": [],
+      "commits": [],
+      "comments": [],
+      "reviews": [],
+      "labels": [],
+      "closingIssuesReferences": [],
+      "headRefName": "changeset-release/main",
+      "mergeCommit": null
+    },
+    "acme/app#130": {
+      "number": 130,
+      "title": "feat(limits): count the leftovers",
+      "body": "",
+      "url": "https://github.com/acme/app/pull/130",
+      "state": "MERGED",
+      "author": {
+        "login": "bob"
+      },
+      "createdAt": "2026-09-06T15:00:00Z",
+      "mergedAt": "2026-09-10T16:00:00Z",
+      "closedAt": "2026-09-10T16:00:00Z",
+      "additions": 8,
+      "deletions": 1,
+      "changedFiles": 0,
+      "files": [],
+      "commits": [],
+      "comments": [],
+      "reviews": [],
+      "labels": [],
+      "closingIssuesReferences": [],
+      "headRefName": "bob/leftovers",
+      "mergeCommit": null
+    },
+    "acme/app#131": {
+      "number": 131,
+      "title": "fix(limits): stop the double refill",
+      "body": "",
+      "url": "https://github.com/acme/app/pull/131",
+      "state": "MERGED",
+      "author": {
+        "login": "carol"
+      },
+      "createdAt": "2026-09-07T15:00:00Z",
+      "mergedAt": "2026-09-10T17:00:00Z",
+      "closedAt": "2026-09-10T17:00:00Z",
+      "additions": 2,
+      "deletions": 0,
+      "changedFiles": 0,
+      "files": [],
+      "commits": [],
+      "comments": [],
+      "reviews": [],
+      "labels": [],
+      "closingIssuesReferences": [],
+      "headRefName": "carol/refill",
+      "mergeCommit": null
+    },
+    "other/cli#7": {
+      "number": 7,
+      "title": "feat(cli): share the limit",
+      "body": "The CLI half of the limit.\n\nSee https://github.com/elsewhere/docs/issues/9 for the write-up.",
+      "url": "https://github.com/other/cli/pull/7",
+      "state": "MERGED",
+      "author": {
+        "login": "dave"
+      },
+      "createdAt": "2026-09-09T15:00:00Z",
+      "mergedAt": "2026-09-11T15:00:00Z",
+      "closedAt": "2026-09-11T15:00:00Z",
+      "additions": 10,
+      "deletions": 1,
+      "changedFiles": 1,
+      "files": [
+        {
+          "path": "cli/limit.js",
+          "additions": 10,
+          "deletions": 1
+        }
+      ],
+      "commits": [],
+      "comments": [],
+      "reviews": [],
+      "labels": [],
+      "closingIssuesReferences": [],
+      "headRefName": "dave/share-limit",
+      "mergeCommit": {
+        "oid": "1111222233334444"
+      }
+    }
+  },
+  "comments": {
+    "acme/app#120": [
+      {
+        "id": 1,
+        "path": "src/quota/budget.js",
+        "line": null,
+        "original_line": 42,
+        "html_url": "https://github.com/acme/app/pull/120#discussion_r1",
+        "body": "This overflows when the burst is zero.\n",
+        "user": {
+          "login": "bob",
+          "type": "User"
+        },
+        "created_at": "2026-09-06T15:00:00Z"
+      },
+      {
+        "id": 2,
+        "in_reply_to_id": 1,
+        "path": "src/quota/budget.js",
+        "line": 42,
+        "html_url": "https://github.com/acme/app/pull/120#discussion_r2",
+        "body": "Fixed in the next commit.",
+        "user": {
+          "login": "alice",
+          "type": "User"
+        },
+        "created_at": "2026-09-06T16:00:00Z"
+      },
+      {
+        "id": 3,
+        "path": "src/quota/budget.js",
+        "line": 7,
+        "html_url": "https://github.com/acme/app/pull/120#discussion_r3",
+        "body": "Consider renaming the helper.",
+        "user": {
+          "login": "coderabbitai[bot]",
+          "type": "Bot"
+        },
+        "created_at": "2026-09-06T17:00:00Z"
+      },
+      {
+        "id": 4,
+        "path": "src/quota/budget.js",
+        "line": 8,
+        "html_url": "https://github.com/acme/app/pull/120#discussion_r4",
+        "body": "   ",
+        "user": {
+          "login": "bob",
+          "type": "User"
+        },
+        "created_at": "2026-09-06T18:00:00Z"
+      }
+    ],
+    "acme/app#121": [],
+    "acme/app#130": [],
+    "acme/app#131": [],
+    "other/cli#7": []
+  },
+  "lists": {
+    "acme/app|412 in:body|number,body": [
+      {
+        "number": 120,
+        "body": "Part of #412\n"
+      },
+      {
+        "number": 998,
+        "body": "see 412 without a hash"
+      }
+    ],
+    "acme/app|413 in:body|number,body": [],
+    "acme/app|414 in:body|number,body": [],
+    "acme/app|rate limit|number": [
+      {
+        "number": 120
+      },
+      {
+        "number": 130
+      },
+      {
+        "number": 131
+      }
+    ],
+    "other/cli|rate limit|number": [
+      {
+        "number": 7
+      },
+      {
+        "number": 8
+      }
+    ]
+  },
+  "prior": [
+    {
+      "number": 40,
+      "title": "feat(limits): first token bucket",
+      "mergedAt": "2026-07-15T00:00:00Z"
+    },
+    {
+      "number": 41,
+      "title": "chore(release): version packages",
+      "mergedAt": "2026-07-01T00:00:00Z"
+    },
+    {
+      "number": 42,
+      "title": "changelog: 2026-07-01",
+      "mergedAt": "2026-07-01T00:00:00Z"
+    }
+  ],
+  "nearby": [
+    {
+      "number": 120,
+      "title": "feat(limits): cap the burst",
+      "mergedAt": "2026-09-10T15:00:00Z",
+      "author": {
+        "login": "alice"
+      },
+      "files": [
+        {
+          "path": "src/quota/budget.js"
+        }
+      ]
+    },
+    {
+      "number": 200,
+      "title": "feat(limits): export the bucket",
+      "mergedAt": "2026-09-10T18:00:00Z",
+      "author": {
+        "login": "erin"
+      },
+      "files": [
+        {
+          "path": "src/quota/budget.js"
+        },
+        {
+          "path": "docs/limits.md"
+        }
+      ]
+    },
+    {
+      "number": 201,
+      "title": "chore(release): version packages",
+      "mergedAt": "2026-09-10T18:00:00Z",
+      "author": {
+        "login": "alice"
+      },
+      "files": []
+    },
+    {
+      "number": 202,
+      "title": "changelog: 2026-09-10 weekly",
+      "mergedAt": "2026-09-10T18:00:00Z",
+      "author": {
+        "login": "alice"
+      },
+      "files": []
+    },
+    {
+      "number": 203,
+      "title": "docs: fix a typo",
+      "mergedAt": "2026-09-09T18:00:00Z",
+      "author": {
+        "login": "erin"
+      },
+      "files": [
+        {
+          "path": "README.md"
+        }
+      ]
+    },
+    {
+      "number": 204,
+      "title": "Fix the header layout",
+      "mergedAt": "2026-09-09T12:00:00Z",
+      "author": {
+        "login": "erin"
+      },
+      "files": []
+    }
+  ],
+  "cross": {
+    "widgets/lib#4": {
+      "title": "Share the limiter",
+      "state": "closed",
+      "html_url": "https://github.com/widgets/lib/pull/4",
+      "closed_at": "2026-07-02T00:00:00Z",
+      "pull_request": {
+        "merged_at": "2026-07-02T00:00:00Z"
+      }
+    },
+    "elsewhere/docs#9": {
+      "title": "Document the bucket",
+      "state": "open",
+      "html_url": "https://github.com/elsewhere/docs/issues/9",
+      "closed_at": null
+    }
+  }
+}
