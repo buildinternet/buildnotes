@@ -1,0 +1,124 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Check scripts and skill metadata
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+
+      - name: Syntax
+        run: |
+          shopt -s globstar
+          for f in scripts/**/*.mjs dev/**/*.mjs; do
+            node --check "$f"
+          done
+
+      - name: Skill frontmatter
+        run: |
+          node --input-type=module <<'EOF'
+          import { readFileSync } from "node:fs";
+
+          const text = readFileSync("SKILL.md", "utf8");
+          if (!text.startsWith("---\n")) {
+            console.error("SKILL.md frontmatter must start with ---");
+            process.exit(1);
+          }
+          const end = text.indexOf("\n---\n", 4);
+          if (end === -1) {
+            console.error("SKILL.md frontmatter is not closed");
+            process.exit(1);
+          }
+
+          const fields = {};
+          let key = null;
+          for (const line of text.slice(4, end).split("\n")) {
+            if (key && (/^\s/.test(line) || line === "")) {
+              if (line.trim()) fields[key] = `${fields[key]} ${line.trim()}`.trim();
+              continue;
+            }
+            const i = line.indexOf(":");
+            if (i === -1) continue;
+            key = line.slice(0, i).trim();
+            let value = line.slice(i + 1).trim();
+            if (value === ">" || value === "|" || value === ">-" || value === "|-") value = "";
+            else if (
+              (value.startsWith('"') && value.endsWith('"') && value.length >= 2) ||
+              (value.startsWith("'") && value.endsWith("'") && value.length >= 2)
+            ) value = value.slice(1, -1);
+            fields[key] = value;
+          }
+
+          for (const required of ["name", "description", "license"]) {
+            if (!fields[required]) {
+              console.error(`SKILL.md frontmatter missing ${required}`);
+              process.exit(1);
+            }
+          }
+          if (fields.description.length > 1024) {
+            console.error(`SKILL.md description is ${fields.description.length} characters (max 1024)`);
+            process.exit(1);
+          }
+          console.log(`skill ${fields.name}: description ${fields.description.length} chars, license ${fields.license}`);
+          EOF
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # One test reads scripts/gather.mjs at 2cddb0c. A shallow clone does not have it.
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+
+      - name: ffmpeg
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
+
+      - name: Find Chrome
+        id: chrome
+        run: |
+          bin="$(command -v google-chrome || command -v google-chrome-stable || true)"
+          echo "path=$bin" >> "$GITHUB_OUTPUT"
+
+      # Chrome for Testing lands outside the paths scripts/chrome.mjs searches, so export CHROME_PATH.
+      - uses: browser-actions/setup-chrome@v2
+        id: setup-chrome
+        if: steps.chrome.outputs.path == ''
+
+      - name: Point the scripts at Chrome
+        run: |
+          bin="${{ steps.chrome.outputs.path }}"
+          if [ -z "$bin" ]; then bin="${{ steps.setup-chrome.outputs.chrome-path }}"; fi
+          if [ -z "$bin" ] || [ ! -x "$bin" ]; then
+            echo "Chrome was not found" >&2
+            exit 1
+          fi
+          echo "CHROME_PATH=$bin" >> "$GITHUB_ENV"
+          "$bin" --version
+
+      # Node 22 treats a directory argument as a test file. The glob is the same suite Node 20 runs for dev/test/.
+      - name: Tests
+        run: node --test dev/test/*.test.mjs

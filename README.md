@@ -49,7 +49,7 @@ Then, in Claude Code, inside the repo the feature lives in:
 /build-story write up how we built the weekly digests (#412)
 ```
 
-You need `git`, an authenticated `gh`, Node 18 or later, and Chrome for the render pass and figure export. The scripts use only Node's built-in modules: there is nothing to `npm install`.
+You need `git`, an authenticated `gh`, Node 22 or later, and Chrome for the render pass and figure export. The scripts use only Node's built-in modules: there is nothing to `npm install`.
 
 ## Example
 
