@@ -35,7 +35,8 @@ jobs:
         run: |
           test -x "$CHROME_PATH"
           "$CHROME_PATH" --version
-          node --test dev/test/
+          # A directory argument fails on Node 22 (MODULE_NOT_FOUND); the shell glob is the suite.
+          node --test dev/test/*.test.mjs
 
   check:
     name: Check
