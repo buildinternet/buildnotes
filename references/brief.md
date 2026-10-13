@@ -69,7 +69,7 @@ The brief's fields are what *you* need confidence in, not a form for the author.
 - **A guess that only changes a sentence: don't ask.** Write around it (leave the claim out, or state only what the evidence shows) and put it on the open questions.
 - **Motive** (why now, why this approach) is never worth blocking on. Use it if the author offers it; otherwise describe the problem the work solves, which the evidence does show.
 
-**The budget.** Zero questions is a good outcome. When you do ask, it's one message, rarely more than two questions, each with your recommended answer first so the author can reply with a word. Use the `AskUserQuestion` tool when it's available. Never ask what you can find: names, dates, numbers, what shipped.
+**The budget.** Zero questions is a good outcome. When you do ask, it's one message, rarely more than two questions, each with your recommended answer first so the author can reply with a word. Use a structured-question tool (such as `AskUserQuestion`) when the host has one; otherwise ask in plain chat. Never ask what you can find: names, dates, numbers, what shipped.
 
 **Say the frame, then keep going.** Whether or not you ask anything, tell the author the frame in two or three lines before you plan: the angle you're leading with, the audience, and anything notable you're leaving out. Then carry on. They can redirect you at that point or at the draft; you don't need to wait for a reply unless you asked a question.
 

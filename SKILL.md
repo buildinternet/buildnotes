@@ -1,6 +1,10 @@
 ---
 name: build-story
 description: Turn the real history of a feature (its issues, PRs, commits, reviews, design docs and screenshots) into a public-facing post about how it was built and why, with diagrams, simple motion, before/after visuals and code where it helps, published as a page. Three flavors, from a release-notes-style launch story to a technical deep dive. Use when asked to write up how a feature was built, the thinking or design behind a change, a technical blog post, devlog, case study, launch post or behind-the-scenes piece about work in a git repo, even when the request never says "blog".
+license: MIT
+compatibility: Written for Claude Code; also runs in OpenCode and Codex. Needs Node.js, git and an authenticated gh, and Chrome or Chromium for the render pass.
+metadata:
+  opencode/slash: "true"
 ---
 
 # Build story
@@ -72,7 +76,7 @@ Settle these from the request, the repo and the defaults. Don't ask about scope 
 
 ### 2. Gather the evidence
 
-Make a work dir outside the repo, so it survives worktrees and never lands in tracked files. `<work-dir>` below means this path, or the author's own place if they name one.
+Make a work dir outside the repo, so it survives worktrees and never lands in tracked files. `<work-dir>` below means this path, or the author's own place if they name one. `<skill-dir>` means the folder this `SKILL.md` was loaded from (for example `~/.claude/skills/build-story`, `~/.agents/skills/build-story` or `~/.config/opencode/skills/build-story`).
 
 ```bash
 WORK=$(node <skill-dir>/scripts/workdir.mjs preview-links)   # → $BUILD_STORY_DIR (default ~/.build-stories)/<repo>/<date>-preview-links
@@ -134,13 +138,13 @@ The linter reports words per chapter, banned and writerly phrasing, process deta
 
 ### 8. Publish
 
-An artifact page can't load images from other hosts, so embed them first:
+Embed the images first, so the page is one self-contained file (an Artifact can't load images from other hosts):
 
 ```bash
 node <skill-dir>/scripts/inline-assets.mjs <work-dir>/post.html > <work-dir>/post.published.html
 ```
 
-Publish `post.published.html` as a private Artifact (title = the post's name) and give the author the link with the open questions and notes: three questions and two notes at most, one line each. The rest stays in `plan.md`. For their own site, add `--standalone` (doctype and viewport meta) or hand over `post.html` plus `assets/`. The chapters convert cleanly to Markdown/MDX on request.
+Publish `post.published.html` as a private Artifact (title = the post's name) when the host has an Artifact tool; otherwise leave it in the work dir and give its absolute path. Hand the author the link or path with the open questions and notes: three questions and two notes at most, one line each. The rest stays in `plan.md`. For their own site, add `--standalone` (doctype and viewport meta) or hand over `post.html` plus `assets/`. The chapters convert cleanly to Markdown/MDX on request.
 
 ## Files
 

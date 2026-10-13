@@ -41,6 +41,8 @@ The cure is the same for all three: find the few ideas and decisions that made t
 npx skills add buildinternet/buildnotes -g -a claude-code
 ```
 
+For OpenCode or Codex, swap the agent: `-a opencode` or `-a codex`. OpenCode takes the same `/build-story` command; in Codex, type `$build-story`.
+
 Then, in Claude Code, inside the repo the feature lives in:
 
 ```text
@@ -165,12 +167,16 @@ build-story is a standard [Agent Skill](https://agentskills.io): a folder with a
 
 | | Command | Installs to |
 |---|---|---|
-| **skills CLI**, for you | `npx skills add buildinternet/buildnotes -g -a claude-code` | `~/.claude/skills/build-story` |
-| **skills CLI**, for one project | `npx skills add buildinternet/buildnotes -a claude-code` | `.claude/skills/build-story` |
-| **git**, for you | `git clone https://github.com/buildinternet/buildnotes.git ~/.claude/skills/build-story` | `~/.claude/skills/build-story` |
-| **git**, for one project | `git clone https://github.com/buildinternet/buildnotes.git .claude/skills/build-story` | `.claude/skills/build-story` |
+| **skills CLI**, for you (Claude Code) | `npx skills add buildinternet/buildnotes -g -a claude-code` | `~/.claude/skills/build-story` |
+| **skills CLI**, for you (OpenCode) | `npx skills add buildinternet/buildnotes -g -a opencode` | `~/.config/opencode/skills/build-story` |
+| **skills CLI**, for you (Codex) | `npx skills add buildinternet/buildnotes -g -a codex` | `~/.agents/skills/build-story` |
+| **skills CLI**, for one project | `npx skills add buildinternet/buildnotes` | `.claude/skills/build-story` for Claude Code, `.agents/skills/build-story` for OpenCode and Codex |
+| **git**, for you (Claude Code) | `git clone https://github.com/buildinternet/buildnotes.git ~/.claude/skills/build-story` | `~/.claude/skills/build-story` |
+| **git**, for you (OpenCode) | `git clone https://github.com/buildinternet/buildnotes.git ~/.config/opencode/skills/build-story` | `~/.config/opencode/skills/build-story` |
+| **git**, for you (Codex) | `git clone https://github.com/buildinternet/buildnotes.git ~/.agents/skills/build-story` | `~/.agents/skills/build-story` |
+| **git**, for one project | `git clone https://github.com/buildinternet/buildnotes.git .claude/skills/build-story` | `.claude/skills/build-story` (Claude Code and OpenCode) or `.agents/skills/build-story` (OpenCode and Codex) |
 
-The [`skills`](https://github.com/vercel-labs/skills) CLI finds the `SKILL.md` at the root of this repository and installs it as `build-story`. `-g` installs it for your user rather than the current project, and `-a claude-code` sets up Claude Code only.
+The [`skills`](https://github.com/vercel-labs/skills) CLI finds the `SKILL.md` at the root of this repository and installs it as `build-story`. Without `-g` it installs into the current project and asks which agents to set up. `-g` installs it for your user, and `-a claude-code` sets up Claude Code only; use `-a opencode` or `-a codex` for those.
 
 With git, update by running `git pull` in that folder. If you already keep a checkout elsewhere, link it in instead, so the skill stays in step with that checkout:
 
@@ -178,11 +184,39 @@ With git, update by running `git pull` in that folder. If you already keep a che
 ln -s /path/to/buildnotes ~/.claude/skills/build-story
 ```
 
+Claude Code picks up new skills in a running session. OpenCode lists it as `/build-story`; Codex lists it under `/skills` and runs it with `$build-story`. Restart either if it doesn't show.
+
+<details>
+<summary><b>Codex: if gathering or the render pass is blocked</b></summary>
+
+<br>
+
+Codex runs commands in a sandbox. Two steps can trip it: `gather.mjs` calls `gh` over the network, and the render pass starts headless Chrome, which writes a temporary profile and talks to it over a local port. Work dirs also live outside the repo, in `~/.build-stories`. In order of preference:
+
+1. When Codex asks to run one of these outside the sandbox, approve it for that command. This needs the default `approval_policy = "on-request"`.
+2. Or allow it in `~/.codex/config.toml`:
+
+   ```toml
+   approval_policy = "on-request"
+   sandbox_mode = "workspace-write"
+
+   [sandbox_workspace_write]
+   network_access = true
+   writable_roots = ["/Users/you/.build-stories", "/tmp"]   # absolute paths
+   ```
+
+   Newer Codex releases may name these settings differently; check the config reference for your version.
+3. Or set `BUILD_STORY_DIR` to a folder Codex can already write to.
+
+</details>
+
 ### Requirements
+
+The skill is written for Claude Code and follows the open [Agent Skills](https://agentskills.io) format, so OpenCode and Codex load it too. On those hosts it leaves the finished page as a file in the work dir instead of publishing an Artifact.
 
 | Needs | For |
 |---|---|
-| Node 18+ | Every script. No npm packages. |
+| Node 22+ | Every script. No npm packages. |
 | `git` and an authenticated `gh` | Gathering the evidence |
 | Chrome or Chromium | The render pass, figure export and component screenshots. Set `CHROME_PATH` if it isn't found. |
 | `ffmpeg` (optional) | GIF and video export |

@@ -67,7 +67,7 @@ Use `steps` for a straight line and `flow` for everything with branches. Both st
 - Mark the one part the chapter is about `hot`; everything else stays neutral.
 - `flow` lays the boxes out by itself: a box's column is its longest path from a start, and boxes in a column are ordered to cut crossings. An edge that points back (a retry, a loop) runs around the outside. `flow` draws the diagram twice, left to right for wide screens and top to bottom for phones, and the page shows whichever fits. Keep labels short enough for the phone drawing; the renderer names any that don't fit.
 
-Mermaid (`<pre class="mermaid">`) renders inside Claude artifacts with no library and is fine for a quick sequence diagram. It doesn't render on most external blogs, so convert it to a component or SVG before the post leaves the artifact.
+Mermaid (`<pre class="mermaid">`) renders inside Claude artifacts with no library and is fine for a quick sequence diagram there. It doesn't render in a local file or on most external blogs, so outside an artifact (or before the post leaves one) convert it to a component or SVG.
 
 ### Hand-drawn SVG
 
@@ -94,7 +94,7 @@ For a longer explainer clip (20 s+, narrated or captioned), a video tool such as
 - **No access**: if the screen you'd want sits behind a sign-in you shouldn't use, or the feature has no UI, use the PR's own screenshots, a diagram, or a terminal run of the same behaviour. Don't sign in to anything to get a shot.
 - **Fresh captures**: run the app (or open the live site) with whatever browser tool the session has, and capture the element, not the whole window. After each capture, open the image and check it shows what the caption will say; the first capture is often the wrong scroll position. Use a fixed viewport (1280×800 desktop, 390×844 phone), the light theme unless dark is the point, and real-looking data. Crop tight; add a 1px border in the page via `figure.shot`.
 - **Before/after at two commits**: check out the parent of the first PR in a scratch worktree, run it, capture; repeat at the last merge. Put both in a `strip`, labelled by iteration ("Before", "Round two", "As it ships"), not by commit; add a date only when the time between them matters.
-- **Recordings**: keep loops under 8 s, no cursor flailing, MP4/WebM over GIF when the destination allows it. For an artifact page, a frame strip (4–6 stills side by side) is often clearer than a video and costs less.
+- **Recordings**: keep loops under 8 s, no cursor flailing, MP4/WebM over GIF when the destination allows it. For a single-file page, a frame strip (4–6 stills side by side) is often clearer than a video and costs less.
 - **Redact** anything personal or secret before the image enters the work dir: emails, tokens, account names, internal URLs. Blur or replace with example data; never rely on cropping alone.
 
 ### Capture recipe (agent-browser)
@@ -177,6 +177,6 @@ Files land in `<work-dir>/export/`. `--width 390` gives the phone layout, `--the
 
 ## Getting assets into the page
 
-An artifact page can only show images that ship with it: other hosts are blocked. Reference local files as `src="assets/name.png"` while drafting (in a `strip` spec, paths are relative to the post, like everything else in it), then run `scripts/inline-assets.mjs` to embed them as data URIs before publishing. Keep the total under a few MB: resize screenshots to 2× their display width and prefer WebP or optimized PNG (`sips -Z 1600 file.png` on macOS, or `magick` elsewhere).
+The published page should only show images that ship with it (an artifact page blocks other hosts). Reference local files as `src="assets/name.png"` while drafting (in a `strip` spec, paths are relative to the post, like everything else in it), then run `scripts/inline-assets.mjs` to embed them as data URIs before publishing. Keep the total under a few MB: resize screenshots to 2× their display width and prefer WebP or optimized PNG (`sips -Z 1600 file.png` on macOS, or `magick` elsewhere).
 
 For an external blog, keep the `assets/` folder and the un-inlined `post.html` instead; most blog tools want the files.

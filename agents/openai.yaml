@@ -1,0 +1,3 @@
+interface:
+  display_name: "Build Story"
+  short_description: "Turn a feature's history into a post about how it was built"
