@@ -7,6 +7,7 @@
   <a href="#example">Example</a> ·
   <a href="#flavors">Flavors</a> ·
   <a href="#visual-components">Visual components</a> ·
+  <a href="#motion-cut">Motion cut</a> ·
   <a href="#how-it-works">How it works</a> ·
   <a href="#install">Install</a> ·
   <a href="#scripts">Scripts</a> ·
@@ -53,7 +54,7 @@ You need `git`, an authenticated `gh`, Node 22 or later, and Chrome for the rend
 
 ## Example
 
-[`examples/weekly-digests/`](examples/weekly-digests) is a full run against the public `buildinternet/releases` repo, kept as a committed example. Open [`post.html`](examples/weekly-digests/post.html) in a browser; it is one self-contained file with every image embedded. [`post-field-notes.html`](examples/weekly-digests/post-field-notes.html) is the same post in the field notes style, and [`motion.html`](examples/weekly-digests/motion.html) is its motion cut, a one-minute reel built from [`motion.json`](examples/weekly-digests/motion.json). The folder also holds the story plan the agent wrote before drafting, its notes for the author, and the specs behind the rendered figures.
+[`examples/weekly-digests/`](examples/weekly-digests) is a full run against the public `buildinternet/releases` repo, kept as a committed example. Open [`post.html`](examples/weekly-digests/post.html) in a browser; it is one self-contained file with every image embedded. [`post-field-notes.html`](examples/weekly-digests/post-field-notes.html) is the same post in the field notes style, and [`motion.html`](examples/weekly-digests/motion.html) is its [motion cut](#motion-cut), a one-minute reel built from [`motion.json`](examples/weekly-digests/motion.json) and exported as [`motion.mp4`](examples/weekly-digests/motion.mp4). The folder also holds the story plan the agent wrote before drafting, its notes for the author, and the specs behind the rendered figures.
 
 <table>
   <tr>
@@ -138,6 +139,40 @@ Word counts are ceilings, not targets. A small change gets a **note** of a parag
 </table>
 
 Also: **steps** (a numbered pipeline with a moving highlight) and **bars** (a bar chart with one row marked). Open [`assets/components.html`](assets/components.html) in a browser to see every component next to its spec. The example specs are in [`assets/specs/`](assets/specs).
+
+## Motion cut
+
+Some people won't read a 1,500-word post but will watch a minute of video. The motion cut is the post as a reel of five to nine scenes that plays itself: the title, the problem, one scene for each idea, and how to try it. The agent writes a short scene script (`motion.json`) from the finished post, so every word, number and screenshot comes from the post. [`motion.mjs`](scripts/motion.mjs) checks the script, times each scene by how long its words take to read, builds one self-contained page, and exports a 1920×1080 MP4, a GIF, a still, or one scene as a short clip.
+
+The whole cut, one minute: [`examples/weekly-digests/motion.mp4`](examples/weekly-digests/motion.mp4).
+
+<table>
+  <tr>
+    <td width="50%"><img src=".github/assets/motion-morph.gif" alt="Four product tiles sized by release count, where Claude Code looks biggest, resize in place to tiles sized by impact, where Codex is biggest. The headline changes from 'Counting releases rewards busy weeks' to 'Counting impact rewards big ones'."></td>
+    <td width="50%"><img src=".github/assets/motion-flow.gif" alt="A flow of four boxes: Monday run, Week just closed?, Claim the week, Send. One dot travels to Send and is marked Sent. A second dot stops in front of Claim the week, turns red, and is labeled 'Already claimed. Stops.'"></td>
+  </tr>
+  <tr>
+    <td><sub><b>morph</b>: the same tiles, sized one way and then the right way. The wrong answer turns into the right one in front of the viewer.</sub></td>
+    <td><sub><b>flow</b>: dots travel the route; one is stopped at the step that guards it.</sub></td>
+  </tr>
+  <tr>
+    <td><img src=".github/assets/motion-shot.gif" alt="A screenshot of the week-at-a-glance card. A red ring outlines the product tiles, labeled 'Tile size: how much each product shipped', then moves down to the list, labeled 'The five biggest releases, linked into the digest'."></td>
+    <td><img src=".github/assets/motion-swap.gif" alt="A dark screenshot of the week replay paused on Tuesday. A bright line wipes across it, left to right, revealing the same replay at the end of the week."></td>
+  </tr>
+  <tr>
+    <td><sub><b>shot</b>: a ring moves across a screenshot's parts, naming each.</sub></td>
+    <td><sub><b>swap</b>: one frame of a screen wipes over another.</sub></td>
+  </tr>
+</table>
+
+Also: **title**, **statement** (the problem, line by line), **list**, **bars** and **end** (where to go and what to press). Each clip above is one scene of the weekly-digests cut, exported with `--scene`:
+
+```bash
+node scripts/motion.mjs examples/weekly-digests/motion.json --mp4                       # the whole cut → export/motion.mp4
+node scripts/motion.mjs examples/weekly-digests/motion.json --gif --scene 5 --size 720  # one scene → export/motion-scene-5.gif
+```
+
+The script format, the scene kinds and when to make a cut are in [`references/motion.md`](references/motion.md).
 
 ## How it works
 
@@ -259,7 +294,7 @@ Each script runs on its own and prints usage with `--help` or no arguments.
 | [`render.mjs`](scripts/render.mjs) | Screenshots at 1280 and 390 px, light and dark. Fails on sideways scroll, clipped code and broken images. |
 | [`export.mjs`](scripts/export.mjs) | One figure as PNG, GIF, MP4/WebM or standalone SVG, for slides or another blog (`--list` numbers them) |
 | [`module.mjs`](scripts/module.mjs) | An opt-in appendix module (`build-log`, `numbers`, `timeline`) from the dossier |
-| [`motion.mjs`](scripts/motion.mjs) | The motion cut: checks a scene script (`motion.json`), builds a reel page that plays itself, and exports it as a 1920×1080 MP4, WebM, GIF or still |
+| [`motion.mjs`](scripts/motion.mjs) | The motion cut: checks a scene script (`motion.json`), builds a reel page that plays itself, and exports it as a 1920×1080 MP4, WebM, GIF or still, or one scene as a clip (`--scene`) |
 | [`inline-assets.mjs`](scripts/inline-assets.mjs) | Embeds local images and video as data URIs, so the page is one file |
 
 ```bash

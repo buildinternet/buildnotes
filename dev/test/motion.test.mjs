@@ -6,7 +6,7 @@ import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, dirname, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { check, build, imageSize, readingTime } from "../../scripts/motion.mjs";
+import { check, build, exportPlan, imageSize, readingTime } from "../../scripts/motion.mjs";
 import { chromePath, openPage } from "../../scripts/chrome.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
@@ -66,6 +66,21 @@ test("image sizes come from the file header: WebP and PNG", () => {
   png.writeUInt32BE(640, 16);
   png.writeUInt32BE(360, 20);
   assert.deepEqual(imageSize(png), [640, 360]);
+});
+
+test("a clip is one scene: it starts where the scene starts and stops before its fade", () => {
+  const { cut } = check(example, base);
+  const whole = exportPlan(cut);
+  assert.deepEqual([whole.from, whole.seconds, whole.scale, whole.suffix], [0, cut.total, 1.875, ""]);
+  const clip = exportPlan(cut, { scene: 5, size: 720, gif: true });
+  const start = cut.scenes.slice(0, 4).reduce((a, d) => a + d.dur, 0);
+  assert.equal(clip.from, Math.round(start * 10) / 10);
+  assert.equal(clip.seconds, Math.round((cut.scenes[4].dur - 0.35) * 10) / 10);
+  assert.equal(clip.scale * 1024, 720, "the 1024 px screen exports 720 px wide");
+  assert.equal(clip.suffix, "-scene-5");
+  assert.equal(exportPlan(cut, { gif: true }).scale * 1024, 960);
+  assert.throws(() => exportPlan(cut, { scene: 10 }), /a scene from 1 to 9/);
+  assert.throws(() => exportPlan(cut, { size: 20 }), /a width from 160/);
 });
 
 test("the page embeds the images, carries the script safely and drops the authoring notes", () => {

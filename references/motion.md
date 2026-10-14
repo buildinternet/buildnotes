@@ -80,6 +80,7 @@ Every scene takes `kind`, an optional `label` (top right, usually the chapter: `
 node <skill-dir>/scripts/motion.mjs <work-dir>/motion.json --check   # errors and warnings, and each scene's length
 node <skill-dir>/scripts/motion.mjs <work-dir>/motion.json           # → <work-dir>/motion.html
 node <skill-dir>/scripts/motion.mjs <work-dir>/motion.json --mp4 --poster
+node <skill-dir>/scripts/motion.mjs <work-dir>/motion.json --gif --scene 5 --size 720   # one scene as a short clip
 ```
 
 `--check` fails on a missing field, an image it can't find or read, a region off its image, or a `morph` whose columns don't list every tile once. It warns about long headlines, a scene count outside five to nine, a cut over 75 seconds, a PR or commit named in the text, and a `dur` too short for its motion or its words. Fix every error. Treat a length warning as a reason to cut a scene, not to speed the rest up.
@@ -88,11 +89,13 @@ Building writes `motion.html` with the images embedded, then opens it in headles
 
 `--mp4` (or `--webm`, or `--gif` at half size) writes `<work-dir>/export/motion.mp4` at 1920×1080 and 30 fps. `--poster` writes a still from the end of the title scene, for a thumbnail; `--at <seconds>` picks another moment. `--theme dark` exports the dark theme. Export needs Chrome and `ffmpeg` and takes a couple of minutes for a one-minute cut.
 
+`--scene <n>` exports one scene alone, counted from 1, as `export/motion-scene-<n>.<ext>`. It stops just before the scene fades out, so a GIF loops on the scene. A clip is the right size for a README, a reply in a thread or a changelog entry; the `morph` and `flow` scenes make the best ones. `--size <px>` sets the width (default 1920, or 960 for a GIF): `--gif --scene 5 --size 720` gives a clip of a few hundred kilobytes. With `--poster`, `--scene` gives that scene's last frame.
+
 Look at the result before handing it over: open `motion.html`, play it once, and scrub to the end of each scene. Check that every ring and label sits on the part it names.
 
 ## Hand-off
 
-Publish `motion.html` as its own private Artifact, titled like the post, next to the post's link. Give the author the MP4's path (or send the file, when the host can). The cut is one line in the hand-off, not another round of questions.
+Publish `motion.html` as its own private Artifact, titled like the post, next to the post's link. Give the author the MP4's path (or send the file, when the host can), and a GIF of the strongest scene if they plan to post it somewhere a video won't play inline. The cut is one line in the hand-off, not another round of questions.
 
 ## Limits
 
