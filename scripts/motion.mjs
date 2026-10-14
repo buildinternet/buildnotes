@@ -6,12 +6,15 @@
 //   node motion.mjs <motion.json>                      check the script, write motion.html next to it
 //   node motion.mjs <motion.json> --mp4 | --webm | --gif   and export the reel to <dir>/export/motion.<ext>
 //   node motion.mjs <motion.json> --poster [--at <s>]  and one still frame as PNG (default: the end of the first scene)
+//   node motion.mjs <motion.json> --gif --scene 5 --size 720   one scene as a short clip, for a README or a reply
 //   node motion.mjs <motion.json> --check              check the script only; exit 1 on an error
 //
 // Options:
 //   --out <page.html>   default: motion.html next to the script
 //   --theme light|dark  for the export; default light
 //   --fps <n>           for the export; default 30 (15 for a GIF)
+//   --scene <n>         export scene n alone (from 1), to <dir>/export/motion-scene-<n>.<ext>; with --poster, its last frame
+//   --size <px>         width of the export; default 1920 (960 for a GIF). Height follows at 16:9
 //   --no-render         skip the headless pass that checks every scene's text fits the frame
 //
 // The script format and the scene kinds are in references/motion.md. Each scene's length comes from its
@@ -205,6 +208,21 @@ export function build(cut, images, template = readFileSync(TEMPLATE, "utf8")) {
     .replace(/(<script type="application\/json" id="cut">)[\s\S]*?(<\/script>)/, (_, a, b) => a + json(cut) + b);
 }
 
+// What to export: the whole reel, or one scene as a clip; the clip's place on the timeline, and the scale
+// that gives the asked-for width. Scene numbers count from 1.
+export function exportPlan(cut, { scene, size, gif = false } = {}) {
+  const width = Number(size ?? (gif ? 960 : 1920));
+  if (!(width >= 160 && width <= 3840)) throw new Error(`--size ${size}: a width from 160 to 3840`);
+  const plan = { scale: (EXPORT.scale * width) / 1920, from: 0, seconds: cut.total, at: round(cut.scenes[0].dur - 0.5), suffix: "" };
+  if (scene == null) return plan;
+  const n = Number(scene);
+  if (!Number.isInteger(n) || n < 1 || n > cut.scenes.length) throw new Error(`--scene ${scene}: a scene from 1 to ${cut.scenes.length}`);
+  const from = cut.scenes.slice(0, n - 1).reduce((a, d) => a + d.dur, 0);
+  // A clip stops just before the scene's fade-out, so it loops on the scene and not on a blank frame.
+  const seconds = round(cut.scenes[n - 1].dur - 0.35);
+  return { ...plan, from: round(from), seconds, at: round(from + seconds - 0.1), suffix: `-scene-${n}` };
+}
+
 // Open the page headless and ask it which scenes' text didn't fit, and which images didn't load.
 async function renderCheck(page) {
   const { openPage, chromePath } = await import("./chrome.mjs");
@@ -219,9 +237,9 @@ async function renderCheck(page) {
 async function main(argv) {
   const has = (k) => argv.includes(`--${k}`);
   const opt = (k) => { const i = argv.indexOf(`--${k}`); return i >= 0 ? argv[i + 1] : undefined; };
-  const file = argv.find((a, i) => !a.startsWith("--") && !["--out", "--theme", "--fps", "--at"].includes(argv[i - 1]));
+  const file = argv.find((a, i) => !a.startsWith("--") && !["--out", "--theme", "--fps", "--at", "--scene", "--size"].includes(argv[i - 1]));
   if (!file || has("help")) {
-    console.error("usage: motion.mjs <motion.json> [--check] [--mp4 | --webm | --gif] [--poster [--at s]] [--out page.html] [--theme light|dark] [--fps n] [--no-render]");
+    console.error("usage: motion.mjs <motion.json> [--check] [--mp4 | --webm | --gif] [--poster [--at s]] [--scene n] [--size px] [--out page.html] [--theme light|dark] [--fps n] [--no-render]");
     return has("help") ? 0 : 2;
   }
   const base = dirname(resolve(file));
@@ -244,22 +262,22 @@ async function main(argv) {
   }
 
   const theme = opt("theme") ?? "light";
+  const video = ["mp4", "webm", "gif"].find(has);
+  let plan;
+  try { plan = exportPlan(cut, { scene: opt("scene"), size: opt("size"), gif: video === "gif" }); } catch (e) { console.error(`error: ${e.message}`); return 2; }
   const exportOne = (fmt, extra) => {
-    const out = join(dirname(page), "export", `${basename(page, ".html")}.${fmt === "png" ? "png" : fmt}`);
+    const out = join(dirname(page), "export", `${basename(page, ".html")}${plan.suffix}.${fmt}`);
     const args = [join(here, "export.mjs"), page, "--select", "#stage", `--${fmt}`, "--width", String(EXPORT.width), "--pad", "0", "--theme", theme, "--out", out, ...extra];
     const r = spawnSync(process.execPath, args, { stdio: ["ignore", "inherit", "inherit"] });
     return r.status ?? 1;
   };
-  const video = ["mp4", "webm", "gif"].find(has);
   if (video) {
-    const gif = video === "gif";
     // A GIF at full size is tens of megabytes; half size at 15 fps keeps it shareable.
-    const status = exportOne(video, ["--scale", String(gif ? EXPORT.scale / 2 : EXPORT.scale), "--fps", opt("fps") ?? (gif ? "15" : "30"), "--seconds", String(cut.total)]);
+    const status = exportOne(video, ["--scale", String(plan.scale), "--fps", opt("fps") ?? (video === "gif" ? "15" : "30"), "--from", String(plan.from), "--seconds", String(plan.seconds)]);
     if (status) return status;
   }
   if (has("poster")) {
-    const at = opt("at") ?? String(round(cut.scenes[0].dur - 0.5));
-    const status = exportOne("png", ["--scale", String(EXPORT.scale), "--at", at]);
+    const status = exportOne("png", ["--scale", String(plan.scale), "--at", opt("at") ?? String(plan.at)]);
     if (status) return status;
   }
   return 0;

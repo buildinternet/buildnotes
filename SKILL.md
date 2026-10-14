@@ -160,7 +160,7 @@ node <skill-dir>/scripts/motion.mjs <work-dir>/motion.json --check
 node <skill-dir>/scripts/motion.mjs <work-dir>/motion.json --mp4 --poster   # → motion.html, export/motion.mp4, export/motion.png
 ```
 
-Play it once and scrub to the end of each scene before handing it over. Publish `motion.html` as its own private Artifact and give the author the MP4. Scene kinds, the script format and what the checks catch: [motion.md](references/motion.md).
+Play it once and scrub to the end of each scene before handing it over. Publish `motion.html` as its own private Artifact and give the author the MP4. `--gif --scene <n> --size 720` exports one scene as a short clip, for a README or a thread. Scene kinds, the script format and what the checks catch: [motion.md](references/motion.md).
 
 ## Files
 
@@ -171,7 +171,7 @@ Play it once and scrub to the end of each scene before handing it over. Publish 
 - `scripts/viz.mjs`: visual components rendered from small specs (`scripts/viz/`, one file per kind)
 - `scripts/render.mjs`: the render pass: both widths and themes, screenshots, and the fit faults
 - `scripts/export.mjs`: one figure as PNG, GIF, MP4/WebM or standalone SVG, for slides or another blog ([visuals.md](references/visuals.md#exporting-a-figure))
-- `scripts/motion.mjs`: the motion cut: checks a scene script, builds the reel page from `assets/motion.html`, and exports it as MP4, WebM, GIF or a still
+- `scripts/motion.mjs`: the motion cut: checks a scene script, builds the reel page from `assets/motion.html`, and exports it as MP4, WebM, GIF or a still, whole or one scene at a time
 - `scripts/inline-assets.mjs`: embed local images and video (`src`, `poster`, `srcset`) as data URIs and drop authoring comments
 - `assets/template.html`: page template and component toolbox
 - `assets/motion.html`: the reel page the motion cut fills in
