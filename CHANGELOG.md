@@ -26,6 +26,8 @@ Until the first release, changes are recorded under [Unreleased].
 
 ### Changed
 
+- Each beat now passes a reader test: what would a reader see differently if this had gone the other way? In a release or build story, a beat that only shows in the service's logs, costs or dashboards is cut. The build flavor keeps internals only where they explain something the reader sees.
+- `SKILL.md` adds *understood beats exact*, and `references/evidence.md` a section on how far to check a claim: check what would mislead, and treat a claim only production data can confirm as a sign the beat is about running the service.
 - Field notes sets margin notes in Source Serif 4 italic, in the note colour, instead of a handwritten face. The handwritten face (`--font-hand`, Shantell Sans) is kept for keyed-figure numbers and labels of a few words: no editorial site we checked sets sidenotes in one, and past a few words it reads slowly and re-wraps when the font loads. Margin notes have their own `--font-note` and `--note-style` tokens.
 - The weekly-digests example uses the current template: the card is a keyed figure over the shipped capture, the patch-pool bars and the replay frames use the `bars` and `strip` components, chapter 2 closes with a finding, and the sentence about the card's colors now says columns, as the card has. The README shows the keyed card and the field notes version.
 - `viz.mjs build` passes the page's folder to the renderers, so an image a spec names resolves relative to the page.

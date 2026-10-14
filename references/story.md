@@ -16,7 +16,7 @@ Lay out candidate beats from the dossier, then keep the ones that pass all three
 
 1. **A reader takeaway.** After the chapter, the reader understands something about the feature, its design, or a choice they could make in their own work.
 2. **There's evidence.** A doc, a thread, a commit, a run. Not just your inference.
-3. **It fits the flavor.** A release story keeps beats about what users can do; a deep dive keeps beats about mechanisms.
+3. **The reader would notice.** Ask what a reader would see differently if this part had gone the other way. A release or build story keeps a beat only when the answer is something users see or do (a page, a link, a limit, a step they skip). A beat whose difference shows only in the service's logs, costs or dashboards goes to the cuts, or to a deep dive, where mechanisms are the subject. One sentence of it can stay inside a reader-facing chapter when it explains what users see ("a link never shows where a file is stored").
 
 Order them so each chapter answers the question the last one raised. Put the most interesting idea no later than the third chapter.
 
