@@ -27,12 +27,16 @@
 //                       several plain words search as one phrase, search syntax passes through
 //   --window 2          days around the feature's span to list other merged PRs as "Nearby work" (0 = off)
 //
+// Reading one item in full (the digest cuts long bodies):
+//   node gather.mjs --out <dir> --show 2911      a PR or issue from <dir>/dossier.json: body, comments, reviews
+//   node gather.mjs --out <dir> --show owner/repo#7
+//
 // Writes <out>/dossier.json (everything, full cleaned text) and <out>/dossier.md (a skimmable digest).
 
 import { execFileSync } from "node:child_process";
 import { mkdirSync, readFileSync, realpathSync, writeFileSync } from "node:fs";
 import { join, extname } from "node:path";
-import { pathToFileURL } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 // Tests pass `{ command }` and skip the real git and gh binaries. The CLI keeps execFileSync.
 let command = realCommand;
@@ -72,7 +76,10 @@ async function addIssue(n, depth, { follow = true } = {}) {
   n = Number(n);
   if (seenIssue.has(n)) return;
   seenIssue.add(n);
+  // "Part of #N" often names another PR; `gh issue view` answers for PRs too. A PR is not an issue.
+  if (seenPr.has(`${repo}#${n}`)) return;
   const i = ghJson(["issue", "view", String(n), "-R", repo, "--json", "number,title,body,url,state,createdAt,closedAt,author,labels,comments"]);
+  if (/\/pull\/\d+$/.test(i.url ?? "")) return;
   const issue = {
     number: i.number,
     title: i.title,
@@ -367,6 +374,23 @@ function nearbyWork() {
   return { from, to, groups: [...groups].sort((a, b) => score(b[1]) - score(a[1])).map(([area, prs]) => ({ area, prs })) };
 }
 
+// PRs merged after the selected work that touch several of its files. They can change what ships
+// today (a later fix, a reworked default), so a post that describes current behaviour reads them first.
+function laterWork() {
+  const mine = new Set(dossier.prs.filter((p) => p.repo === repo).flatMap((p) => p.files.map((f) => f.path)));
+  const last = dossier.prs.filter((p) => p.repo === repo && p.mergedAt).map((p) => p.mergedAt).sort().at(-1);
+  if (!last || !mine.size) return { after: null, prs: [] };
+  const have = new Set(dossier.prs.filter((p) => p.repo === repo).map((p) => p.number));
+  const hits = ghJsonSafe(["pr", "list", "-R", repo, "--state", "merged", "--limit", "100", "--search", `merged:>=${last.slice(0, 10)}`, "--json", "number,title,mergedAt,author,files"]) ?? [];
+  const prs = hits
+    .filter((h) => !have.has(h.number) && !isBotPr(h) && h.mergedAt > last)
+    .map((h) => ({ number: h.number, title: h.title, date: h.mergedAt.slice(0, 10), shared: (h.files ?? []).filter((f) => mine.has(f.path)).length }))
+    .filter((h) => h.shared >= 2)
+    .sort((a, b) => b.shared - a.shared || a.date.localeCompare(b.date))
+    .slice(0, 10);
+  return { after: last.slice(0, 10), prs };
+}
+
 function daysBefore(iso, n) { return new Date(Date.parse(iso) - n * 86400000).toISOString().slice(0, 10); }
 
 function timeline() {
@@ -556,6 +580,12 @@ function renderMarkdown() {
     for (const g of nw.groups.slice(0, 12)) L.push(`- **${esc(g.area)}** (${g.prs.length}): ${g.prs.slice(0, 6).map((p) => `${p.shared ? `★${p.shared} ` : ""}#${p.number} ${esc(oneLine(p.title.replace(/^\w+(\([^)]+\))?!?:\s*/, ""), 70))}`).join(" · ")}${g.prs.length > 6 ? " · …" : ""}`);
     L.push("");
   }
+  const lw = dossier.laterWork;
+  if (lw.prs.length) {
+    L.push("## Since then", "", `Merged after ${lw.after}, touching two or more of the same files. Any of these may change what ships today: open each before the post states how something behaves (\`--show\` needs it in the dossier; \`--pr\` pulls it in).`, "");
+    for (const p of lw.prs) L.push(`- ${p.date} ★${p.shared} #${p.number} ${esc(oneLine(p.title, 100))}`);
+    L.push("");
+  }
   const pw = dossier.priorWork;
   L.push("## Prior work", "", `Leads for the brief's prior context (is this new, or an iteration on something users already know?), from before ${pw.before ?? "the feature"}. Confirm in the changelog, docs and earlier posts what was already announced.`, "");
   if (pw.notes.length) L.push("Where releases were announced (read the entries from before the feature): " + pw.notes.map((f) => `\`${f}\``).join(", "), "");
@@ -590,7 +620,7 @@ function renderMarkdown() {
   for (const i of dossier.issues) {
     L.push(`## Issue #${i.number} — ${i.title}`, "", `${i.url} · ${i.state} · opened ${i.createdAt.slice(0, 10)} by ${i.author}`, "");
     if (i.subIssues.length) L.push(`Sub-issues: ${i.subIssues.map((n) => `#${n}`).join(", ")}`, "");
-    L.push(trim(i.body), "");
+    L.push(trim(i.body, `${i.number}`), "");
     for (const c of i.comments) L.push(`> **${c.author}** (${c.at.slice(0, 10)}): ${oneLine(c.body, budget(c.author, i.author))}`, "");
     imgs(i.images);
   }
@@ -604,7 +634,7 @@ function renderMarkdown() {
         `${p.partOf.length ? ` · part of ${p.partOf.map((n) => `#${n}`).join(", ")}` : ""}`,
       "",
     );
-    L.push("### Description", "", trim(p.body), "");
+    L.push("### Description", "", trim(p.body, p.repo === repo ? `${p.number}` : `${p.repo}#${p.number}`), "");
     if (p.commits.some((c) => c.headline !== p.title)) {
       L.push(`### Branch commits (${p.commits.length})`, "");
       for (const c of p.commits) L.push(`- ${c.at.slice(0, 10)} \`${c.sha}\` ${c.headline}`);
@@ -782,7 +812,17 @@ function localParts(iso) {
 }
 function localTime(iso) { const p = localParts(iso); return `${p.date} ${p.time}`; }
 function fmtAt(iso) { return `${iso.slice(0, 16).replace("T", " ")} UTC${TZ ? ` (${localTime(iso)} ${TZ})` : ""}`; }
-function trim(s) { return s.length > BODY_CHARS ? `${s.slice(0, BODY_CHARS)}\n\n…[${s.length - BODY_CHARS} more chars in dossier.json]` : s || "_(empty)_"; }
+// Cut a long body at the last heading or paragraph break before the limit, so a section isn't split
+// mid-list, and say how to read the rest.
+function trim(s, ref) {
+  if (!s) return "_(empty)_";
+  if (s.length <= BODY_CHARS) return s;
+  const head = s.slice(0, BODY_CHARS);
+  const at = Math.max(head.lastIndexOf("\n#"), head.lastIndexOf("\n\n"));
+  const cut = at > BODY_CHARS * 0.5 ? at : Math.max(head.lastIndexOf("\n"), BODY_CHARS * 0.5);
+  const rest = s.length - cut;
+  return `${s.slice(0, cut).trimEnd()}\n\n…[${rest} more chars; read it all: \`node ${fileURLToPath(import.meta.url)} --out ${args.out} --show ${ref}\`]`;
+}
 function oneLine(s, n) { const t = s.replace(/\s+/g, " ").trim(); return t.length > n ? `${t.slice(0, n)}…` : t; }
 function esc(s) { return String(s).replace(/\|/g, "\\|"); }
 function bump(m, k, n) { m.set(k, (m.get(k) ?? 0) + n); }
@@ -839,6 +879,7 @@ async function run(argv) {
     process.exit(0);
   }
   if (!args.out) die("missing --out <dir> (see --help)");
+  if (args.show) return show(String(args.show));
   BODY_CHARS = Number(args["body-chars"] ?? 2500);
   repo = args.repo ?? sh("gh", ["repo", "view", "--json", "nameWithOwner", "-q", ".nameWithOwner"]).trim();
   TZ = typeof args.tz === "string" ? args.tz : null;
@@ -878,6 +919,7 @@ async function run(argv) {
   dossier.storyCandidates = storyCandidates();
   dossier.priorWork = priorWork();
   dossier.nearbyWork = nearbyWork();
+  dossier.laterWork = laterWork();
 
   mkdirSync(args.out, { recursive: true });
   if (args.download) await downloadImages();
@@ -888,6 +930,25 @@ async function run(argv) {
       `${dossier.summary.images} images → ${join(args.out, "dossier.md")}`,
   );
   return dossier;
+}
+
+// Print one PR or issue from an existing dossier in full.
+function show(ref) {
+  let d;
+  try { d = JSON.parse(readFileSync(join(args.out, "dossier.json"), "utf8")); } catch { die(`no dossier.json in ${args.out}`); }
+  const m = ref.match(/^(?:([\w.-]+\/[\w.-]+))?#?(\d+)$/);
+  if (!m) die(`--show takes a number or owner/repo#number, not ${ref}`);
+  const [, r = d.repo, n] = m;
+  const pr = d.prs.find((p) => p.repo === r && p.number === Number(n));
+  const issue = r === d.repo && d.issues.find((i) => i.number === Number(n));
+  const item = pr ?? issue;
+  if (!item) die(`${ref} is not in ${join(args.out, "dossier.json")}; add it with --pr or --issue`);
+  const L = [`# ${pr ? "PR" : "Issue"} ${r === d.repo ? "#" : `${r}#`}${n} — ${item.title}`, item.url, "", item.body || "(empty)", ""];
+  for (const c of item.comments ?? item.conversation ?? []) L.push(`## ${c.author} · ${c.at?.slice(0, 10) ?? ""}`, "", c.body, "");
+  for (const v of item.reviews ?? []) L.push(`## review: ${v.author} · ${v.state}`, "", v.body, "");
+  for (const t of item.threads ?? []) for (const msg of t.messages) L.push(`## ${t.path}${t.line ? `:${t.line}` : ""} · ${msg.author}`, "", msg.body, "");
+  process.stdout.write(L.join("\n"));
+  return item;
 }
 
 export async function gather(argv = process.argv.slice(2), options = {}) {

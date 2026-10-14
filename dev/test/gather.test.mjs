@@ -293,6 +293,10 @@ test("assembles a dossier from gh and git fixtures", () => serial(async () => {
     ],
   });
 
+  // #999 is a PR named by "part of"; it is not pulled in as an issue. #200 merged later and shares two files.
+  assert.ok(!dossier.issues.some((i) => i.number === 999));
+  assert.deepEqual(dossier.laterWork, { after: "2026-09-10", prs: [{ number: 200, title: "feat(limits): export the bucket", date: "2026-09-10", shared: 2 }] });
+
   const merged = dossier.timeline.find((e) => e.kind === "pr-merged" && e.ref === "#120");
   assert.equal(merged.at, "2026-09-10T15:00:00Z");
   assert.equal(merged.size, "+100 \u221240");
@@ -307,7 +311,8 @@ test("assembles a dossier from gh and git fixtures", () => serial(async () => {
   assert.match(md, /Repo is \*\*public\*\*/);
   assert.match(md, /when \(America\/New_York\)/);
   assert.match(md, /\| 2026-09-10 15:00 \| 2026-09-10 11:00 \| pr-merged \+100 \u221240 \| #120 \|/);
-  assert.match(md, /more chars in dossier\.json/);
+  assert.match(md, /more chars; read it all: `node \S+gather\.mjs --out \S+ --show 120`/);
+  assert.match(md, /## Since then[\s\S]*2026-09-10 ★2 #200 feat\(limits\): export the bucket/);
   assert.match(md, /Sub-issues: #413, #414/);
   assert.match(md, /decision\? #120 \*\*dana\*\*/);
   assert.match(md, /burst: 2026-09-10 — 3 merges \(#120, #130, #131\)/);
@@ -331,6 +336,7 @@ test("assembles a dossier from gh and git fixtures", () => serial(async () => {
   assert.deepEqual(searches.filter((s) => s.includes("merged:<") || s.startsWith("merged:")), [
     '"rate limit" merged:<2026-08-01',
     "merged:2026-07-30..2026-09-13",
+    "merged:>=2026-09-10",
   ]);
   assert.ok(calls.some((c) => c[0] === "git" && c.includes("--since=2026-09-01") && c.includes("--grep=limit") && c.includes("-i") && c.includes("--numstat") && c.at(-2) === "--" && c.at(-1) === "src/limits"));
   assert.ok(calls.some((c) => c[0] === "git" && c[1] === "rev-list" && c.includes("--before=2026-08-01T12:00:00Z")));
@@ -392,4 +398,23 @@ test("search syntax in --prior passes through, and a failed visibility lookup is
   assert.deepEqual(searchArgs(calls), ["label:bug OR limit merged:<2026-09-08"]);
   const md = readFileSync(join(dir, "dossier.md"), "utf8");
   assert.match(md, /Repo is \*\*unknown\*\*: the post must not link/);
+}));
+
+test("--show prints one item from a dossier in full", () => serial(async () => {
+  const dir = mkdtempSync(join(tmpdir(), "gather-"));
+  const orig = console.error;
+  console.error = () => {};
+  try {
+    await gather(["--out", dir, "--repo", "acme/app", "--pr", "120", "--body-chars", "80", "--window", "0"], { command: fixtureCommand() });
+  } finally {
+    console.error = orig;
+  }
+  const out = spawnSync(process.execPath, [script, "--out", dir, "--show", "120"], { encoding: "utf8" });
+  assert.equal(out.status, 0);
+  assert.match(out.stdout, /^# PR #120 — /);
+  assert.match(out.stdout, /We went with a token bucket/);
+  assert.match(out.stdout, /## review: dana · COMMENTED/);
+  const missing = spawnSync(process.execPath, [script, "--out", dir, "--show", "9999"], { encoding: "utf8" });
+  assert.equal(missing.status, 2);
+  assert.match(missing.stderr, /9999 is not in .*dossier\.json; add it with --pr or --issue/);
 }));

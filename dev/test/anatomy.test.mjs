@@ -35,6 +35,13 @@ test("the screenshot view puts each key where the spec says, in percent of the c
   assert.match(html, /<img src="img\/digest-card\.webp"/);
 });
 
+test("a screenshot key about the whole frame needs only an at, no part", () => {
+  const html = render({ ...card, view: "screenshot", keys: [...card.keys.slice(0, 2), { at: [896, 1700], text: "**The whole card.** No part to outline." }] }, { id: "t", base });
+  assert.deepEqual(takeWarnings(), []);
+  assert.deepEqual(hotspots(html).at(-1), ["3", 50, Math.round((1700 / 1878) * 1000) / 10]);
+  assert.throws(() => render({ ...card, view: "screenshot", keys: [{ text: "Nowhere." }] }, { id: "t", base }), /key 1 needs "at" or a part with a box/);
+});
+
 test("parts and marks carry the key that names them; iso parts lift apart with their keys", () => {
   const html = render(card, { id: "t", base });
   assert.match(html, /<g class="pt" data-k="2">/, "Codex answers to its tile key");

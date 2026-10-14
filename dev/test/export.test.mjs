@@ -88,15 +88,16 @@ test("a shader component loops exactly on u_phase", { skip: noChrome }, () => {
   assert.ok(!at(2).equals(at(3)), "the retries move");
 });
 
-test("render.mjs fails clipped code at desktop width, notes it on a phone, and saves four screenshots", { skip: noChrome }, () => {
+test("render.mjs fails clipped code at desktop width and cut-off SVG labels, notes scrolling code on a phone, and saves four screenshots", { skip: noChrome }, () => {
   const dir = mkdtempSync(join(tmpdir(), "render-"));
   const tpl = readFileSync(join(root, "assets/template.html"), "utf8");
   const css = tpl.slice(tpl.indexOf("<style>"), tpl.indexOf("</style>") + 8);
   const long = "x".repeat(200);
-  writeFileSync(join(dir, "post.html"), `<!doctype html><meta name="viewport" content="width=device-width">${css}<article class="post"><figure class="code"><figcaption><span>a.js</span></figcaption><pre><code>const s = "${long}";</code></pre></figure></article>`);
+  writeFileSync(join(dir, "post.html"), `<!doctype html><meta name="viewport" content="width=device-width">${css}<article class="post"><figure class="code"><figcaption><span>a.js</span></figcaption><pre><code>const s = "${long}";</code></pre></figure><figure class="diagram"><svg viewBox="0 0 200 100"><text x="-30" y="50">Corner label</text></svg></figure></article>`);
   const r = spawnSync("node", [join(root, "scripts/render.mjs"), join(dir, "post.html")], { encoding: "utf8" });
   assert.equal(r.status, 1);
   assert.match(r.stdout, /1280 light: ✗ code clipped by \d+ px: a\.js/);
-  assert.match(r.stdout, /390 light: ok \(code scrolls in its card by \d+ px: a\.js\)/);
+  assert.match(r.stdout, /1280 light: .*✗ label cut off by \d+ px at the drawing's edge: "Corner label"/);
+  assert.match(r.stdout, /390 light: ✗ label cut off by \d+ px at the drawing's edge: "Corner label" \(code scrolls in its card by \d+ px: a\.js\)/);
   for (const s of ["1280-light", "1280-dark", "390-light", "390-dark"]) assert.ok(statSync(join(dir, "render", `post-${s}.png`)).size > 0);
 });
