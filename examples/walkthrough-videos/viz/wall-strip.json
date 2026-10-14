@@ -1,0 +1,8 @@
+{
+  "frames": [
+    { "label": "Before · coming down", "src": "img/wall-before-1.png", "alt": "Floor tour descending toward the Boardroom from outside its corner, with its full-height walls in the way.", "width": 400, "height": 225 },
+    { "label": "Before · inside the wall", "src": "img/wall-before-2.png", "alt": "The next frame: the camera is inside the corner wall, and the shot is a grey wall face.", "width": 400, "height": 225 },
+    { "label": "After · coming down", "src": "img/wall-after-1.png", "alt": "The same descent with the corner walls lowered near the camera, so the room stays in view.", "width": 400, "height": 225 },
+    { "label": "After · nearly in", "src": "img/wall-after-2.png", "alt": "The camera passes over the lowered wall into the room; the furniture is in view.", "width": 400, "height": 225 }
+  ]
+}

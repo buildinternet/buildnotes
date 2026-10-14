@@ -1,0 +1,6 @@
+{
+  "frames": [
+    { "label": "Before", "src": "img/lamp-before.png", "alt": "Eye-level frame from the back-left corner of a room: a black floor lamp stands right in front of the camera and covers the middle of the shot.", "width": 640, "height": 360 },
+    { "label": "Now", "src": "img/lamp-after.png", "alt": "The same frame with the lamp faded out: the sofas, armchairs, coffee table, sideboard and door are all clear.", "width": 640, "height": 360 }
+  ]
+}

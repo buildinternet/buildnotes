@@ -6,13 +6,17 @@ import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, dirname, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { check, build, exportPlan, imageSize, readingTime } from "../../scripts/motion.mjs";
+import { check, build, clipSprite, exportPlan, imageSize, readingTime } from "../../scripts/motion.mjs";
+import { spawnSync } from "node:child_process";
 import { chromePath, openPage } from "../../scripts/chrome.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const base = join(root, "examples/weekly-digests");
 const example = JSON.parse(readFileSync(join(base, "motion.json"), "utf8"));
 const noChrome = !chromePath() && "no Chrome";
+const noFfmpeg = spawnSync("ffmpeg", ["-version"]).status !== 0 && "no ffmpeg";
+const sunnyBase = join(root, "examples/walkthrough-videos");
+const sunny = JSON.parse(readFileSync(join(sunnyBase, "motion.json"), "utf8"));
 const scene = (kind) => structuredClone(example.scenes.find((s) => s.kind === kind));
 const one = (...scenes) => check({ title: "T", scenes }, base);
 
@@ -68,6 +72,31 @@ test("image sizes come from the file header: WebP and PNG", () => {
   assert.deepEqual(imageSize(png), [640, 360]);
 });
 
+test("a clip scene: footage that ends somewhere, in a format ffmpeg reads; its length follows its speed", () => {
+  const clip = structuredClone(sunny.scenes.find((x) => x.kind === "clip"));
+  const ok = check({ title: "T", scenes: [clip] }, sunnyBase);
+  assert.deepEqual(ok.errors, []);
+  assert.ok(ok.cut.scenes[0].dur >= 16.5 / 1.5 + 1.4 - 0.05, `${ok.cut.scenes[0].dur} s`);
+  const { errors, warnings } = check({ title: "T", scenes: [
+    { ...clip, to: undefined },
+    { ...clip, src: "viz/img/lamp-before.png" },
+    { ...clip, speed: 1 },
+  ] }, sunnyBase);
+  assert.match(errors.join("\n"), /scene 1: clip needs "to"/);
+  assert.match(errors.join("\n"), /scene 2: clip: viz\/img\/lamp-before\.png isn't a GIF, MP4, WebM or MOV/);
+  assert.match(warnings.join("\n"), /scene 3: the clip plays 16\.5 s/);
+});
+
+test("a clip's footage becomes one sheet of frames at the footage's own rate", { skip: noFfmpeg }, () => {
+  const d = check({ title: "T", scenes: [{ ...sunny.scenes.find((x) => x.kind === "clip"), from: 1, to: 3 }] }, sunnyBase).cut.scenes[0];
+  const sp = clipSprite(d);
+  assert.equal(sp.fps, 10, "the walkthrough GIF was 10 fps");
+  assert.equal(sp.frames, 20);
+  assert.deepEqual(sp.size, [480, 270]);
+  assert.equal(sp.cols * sp.rows >= sp.frames, true);
+  assert.deepEqual(imageSize(readFileSync(sp.sheet)), [sp.cols * 480, sp.rows * 270]);
+});
+
 test("a clip is one scene: it starts where the scene starts and stops before its fade", () => {
   const { cut } = check(example, base);
   const whole = exportPlan(cut);
@@ -92,8 +121,15 @@ test("the page embeds the images, carries the script safely and drops the author
   assert.ok(!html.includes("<!--"), "the authoring notes are dropped");
 });
 
-test("every scene of the example fits the frame and stays on the stage", { skip: noChrome }, async () => {
-  const { cut, images } = check(example, base);
+for (const [name, script, dir, needs] of [["weekly-digests", example, base, null], ["walkthrough-videos", sunny, sunnyBase, noFfmpeg]])
+test(`every scene of the ${name} cut fits the frame and stays on the stage`, { skip: noChrome || needs || false }, async () => {
+  const { cut, images } = check(script, dir);
+  for (const d of cut.scenes.filter((x) => x.kind === "clip")) {
+    const sp = clipSprite(d);
+    images[d.sprite = "clip"] = sp.sheet;
+    Object.assign(d, { frames: sp.frames, fps: sp.fps, cols: sp.cols, rows: sp.rows, size: sp.size });
+    delete d.file;
+  }
   const page = join(mkdtempSync(join(tmpdir(), "motion-")), "motion.html");
   writeFileSync(page, build(cut, images));
   const tab = await openPage(pathToFileURL(page).href, { width: 1280, height: 900, scale: 1 });

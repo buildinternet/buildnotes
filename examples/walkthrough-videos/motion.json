@@ -1,0 +1,49 @@
+{
+  "title": "Walk through any room, floor or project in a looping video",
+  "dek": "The build story in under a minute: a camera that plans its own shots, a plan that travels with the clip, and a clear view at eye level.",
+  "product": "Sunny",
+  "scenes": [
+    { "kind": "title", "label": "Build notes",
+      "kicker": "How we built it",
+      "headline": "Walk through any room, floor or project in a looping video",
+      "ticks": ["Orbit", "Eye level", "Plan", "Back to the start"] },
+    { "kind": "statement", "label": "The problem",
+      "lines": ["Your customers need to see the plan.", "They shouldn't have to *steer a 3D view* to do it."] },
+    { "kind": "clip", "label": "01 · A camera that plans its own shots",
+      "kicker": "One export",
+      "headline": "The room decides the shots.",
+      "sub": "Orbit, a glide to eye level, the plan from above, then back to the first frame, so it loops.",
+      "src": "viz/img/walkthrough-room.mp4", "from": 0, "to": 16.5, "speed": 1.5,
+      "say": "A real room export, at 1.5× speed", "sayAt": "top" },
+    { "kind": "shot", "label": "02 · The plan in the corner",
+      "kicker": "The mini-map",
+      "headline": "The plan in the corner goes where the clip goes.",
+      "sub": "It's drawn into every frame, so it's in the download and the chat preview too.",
+      "src": "viz/img/frame-boardroom.png",
+      "regions": [
+        { "box": [497, 18, 123, 86], "say": "The floor's plan, in every frame" },
+        { "box": [563, 20, 36, 32], "say": "Where the camera stands, and what it sees" }
+      ] },
+    { "kind": "bars", "label": "03 · Floors and projects",
+      "kicker": "Floors and projects",
+      "headline": "The same shots, room after room.",
+      "sub": "A floor tour runs 60 s at most, a project 90 s. Small rooms drop out before visits get rushed.",
+      "rows": [
+        { "label": "A room", "value": 16.5 },
+        { "label": "A floor of 4 rooms", "value": 44 },
+        { "label": "A project of 2 floors", "value": 79, "lit": true }
+      ],
+      "unit": " s", "max": 90 },
+    { "kind": "swap", "label": "04 · Nothing in the way",
+      "kicker": "Eye level",
+      "headline": "Anything in the way fades out.",
+      "sub": "A lamp in the corner fades as the camera comes down, and returns as it rises.",
+      "from": { "src": "viz/img/lamp-before.png", "say": "Before" },
+      "to": { "src": "viz/img/lamp-after.png", "say": "Now" }, "sayAt": "top" },
+    { "kind": "end", "label": "Try it",
+      "kicker": "Try it",
+      "headline": "Open a room and export its video.",
+      "pills": ["Share", { "text": "Export video…", "solid": true }],
+      "foot": "On a floor, choose Video. On a project, Export, then Walkthrough video." }
+  ]
+}

@@ -23,7 +23,8 @@
 // in. Video is 1920×1080: export.mjs steps the stage frame by frame on a virtual clock, so it needs Chrome
 // and ffmpeg. Warnings go to stderr.
 
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdtempSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { spawnSync } from "node:child_process";
 import { basename, dirname, extname, join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -31,6 +32,8 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 const here = dirname(fileURLToPath(import.meta.url));
 const TEMPLATE = join(here, "../assets/motion.html");
 const TYPES = { ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".webp": "image/webp", ".gif": "image/gif" };
+// Footage a clip scene can play: a GIF or a video, turned into one sprite sheet of frames at build time.
+const FOOTAGE = [".gif", ".mp4", ".webm", ".mov"];
 export const COLORS = ["green", "blue", "red", "yellow", "gray", "accent", "dim"];
 export const ICONS = ["grid", "play", "mail", "check", "clock", "code", "bolt"];
 // The screen is 64rem (1024 px) wide on a 1280 px page; this scale makes the exported stage 1920×1080.
@@ -58,6 +61,8 @@ const BASE = {
   list: (d) => 3.6 + (d.items?.length || 0) * 0.45,
   shot: (d) => 2.6 + Math.max(1, d.regions?.length || 0) * 2.2,
   swap: () => 6.6,
+  // The footage plays once from 0.6 s, then holds its last frame for a moment.
+  clip: (d) => 1.4 + Math.max(0, (d.to ?? 0) - (d.from ?? 0)) / (d.speed || 1),
   morph: () => 6.8,
   bars: (d) => 3.2 + (d.rows?.length || 0) * 0.4 + (d.cap ? 1.2 : 0),
   flow: (d) => 2.6 + (d.runs?.length || 1) * 2.8,
@@ -144,6 +149,20 @@ export function check(input, base) {
         if ((d.regions || []).length > 3) warn(i, `${d.regions.length} regions; two or three is plenty for one shot`);
         break;
       }
+      case "clip": {
+        need(i, d, "headline", "src");
+        if (typeof d.src === "string") {
+          const file = resolve(base, d.src);
+          if (!FOOTAGE.includes(extname(file).toLowerCase())) err(i, `clip: ${d.src} isn't a GIF, MP4, WebM or MOV`);
+          else if (!existsSync(file)) err(i, `clip: no file at ${d.src}`);
+          else d.file = file;
+        }
+        const from = d.from ?? 0;
+        if (!Number.isFinite(d.to) || !(d.to > from)) err(i, `clip needs "to", the second the clip ends at, after "from" (${from})`);
+        else if ((d.to - from) / (d.speed || 1) > 15) warn(i, `the clip plays ${round((d.to - from) / (d.speed || 1))} s; trim it with "from" and "to", or raise "speed"`);
+        if (d.speed != null && !(d.speed > 0 && d.speed <= 4)) err(i, `"speed" is a playback rate from above 0 to 4`);
+        break;
+      }
       case "swap": {
         need(i, d, "headline", "from", "to");
         const a = image(i, d.from?.src, "swap from"), b = image(i, d.to?.src, "swap to");
@@ -179,12 +198,12 @@ export function check(input, base) {
         break;
       case "end": need(i, d, "headline"); break;
     }
-    const base = BASE[d.kind](d), read = readingTime(d);
+    const motion = BASE[d.kind](d), read = readingTime(d);
     if (d.dur != null) {
       if (!(d.dur > 0)) err(i, `"dur" must be a number of seconds`);
-      else if (d.dur < base) warn(i, `dur ${d.dur} s cuts off the motion, which takes ${round(base)} s`);
+      else if (d.dur < motion) warn(i, `dur ${d.dur} s cuts off the motion, which takes ${round(motion)} s`);
       else if (d.dur < read) warn(i, `dur ${d.dur} s is short for its words; about ${round(read)} s to read`);
-    } else d.dur = round(Math.max(base, read));
+    } else d.dur = round(Math.max(motion, read));
   });
   if (cut.scenes[0]?.kind !== "title") warn(null, `the first scene is usually a "title"`);
   if (cut.scenes.at(-1)?.kind !== "end") warn(null, `the last scene is usually an "end": how to try it`);
@@ -223,6 +242,28 @@ export function exportPlan(cut, { scene, size, gif = false } = {}) {
   return { ...plan, from: round(from), seconds, at: round(from + seconds - 0.1), suffix: `-scene-${n}` };
 }
 
+// A clip's footage as one sprite sheet: its frames from "from" to "to" at its own rate up to 15 a second, at most
+// 640 px wide, tiled left to right and top to bottom, in one JPEG. Returns the sheet's file and how to step through it.
+export function clipSprite(d) {
+  if (spawnSync("ffmpeg", ["-version"]).status !== 0) throw new Error("a clip scene needs ffmpeg to read its footage");
+  const dir = mkdtempSync(join(tmpdir(), "motion-clip-"));
+  // The footage's own frame rate, capped at 15, so a 10 fps GIF isn't padded with repeated frames.
+  const probe = spawnSync("ffprobe", ["-v", "error", "-select_streams", "v:0", "-show_entries", "stream=r_frame_rate", "-of", "csv=p=0", d.file], { encoding: "utf8" });
+  const [num, den] = (probe.stdout || "").trim().split("/").map(Number);
+  const from = d.from ?? 0, fps = Math.min(15, d.fps ?? (num > 0 && den > 0 ? num / den : 15));
+  const run = (args) => { const r = spawnSync("ffmpeg", ["-y", "-loglevel", "error", ...args], { encoding: "utf8" }); if (r.status !== 0) throw new Error(`ffmpeg: ${r.stderr.trim().split("\n").pop()}`); };
+  run(["-ss", String(from), "-t", String(d.to - from), "-i", d.file, "-vf", `fps=${fps},scale='min(640,iw)':-2`, join(dir, "f-%04d.png")]);
+  const frames = readdirSync(dir).filter((f) => f.startsWith("f-")).length;
+  if (!frames) throw new Error(`no frames between ${from} s and ${d.to} s of ${basename(d.file)}`);
+  const [w, h] = imageSize(readFileSync(join(dir, "f-0001.png")));
+  const cols = Math.min(frames, Math.floor(16000 / w)), rows = Math.ceil(frames / cols);
+  if (rows * h > 16000) throw new Error(`${frames} frames don't fit one sheet; trim the clip or lower its fps`);
+  // JPEG, because every ffmpeg build can write it (WebP needs libwebp).
+  const sheet = join(dir, "sheet.jpg");
+  run(["-framerate", String(fps), "-i", join(dir, "f-%04d.png"), "-vf", `tile=${cols}x${rows}`, "-frames:v", "1", "-q:v", "4", sheet]);
+  return { sheet, frames, fps, cols, rows, size: [w, h] };
+}
+
 // Open the page headless and ask it which scenes' text didn't fit, and which images didn't load.
 async function renderCheck(page) {
   const { openPage, chromePath } = await import("./chrome.mjs");
@@ -253,6 +294,15 @@ async function main(argv) {
   if (has("check")) { console.log(`ok: ${cut.scenes.length} scenes, ${cut.total} s (${lengths})`); return 0; }
 
   const page = resolve(opt("out") ?? join(base, "motion.html"));
+  for (const d of cut.scenes.filter((x) => x.kind === "clip")) {
+    try {
+      const sp = clipSprite(d);
+      const key = `${d.src}#${d.from ?? 0}-${d.to}`;
+      images[key] = sp.sheet;
+      Object.assign(d, { sprite: key, frames: sp.frames, fps: sp.fps, cols: sp.cols, rows: sp.rows, size: sp.size });
+      delete d.file;
+    } catch (e) { console.error(`error: ${e.message}`); return 1; }
+  }
   const html = build(cut, images);
   writeFileSync(page, html);
   console.log(`wrote ${page} (${cut.scenes.length} scenes, ${cut.total} s, ${Math.round(html.length / 1024)} KB)`);

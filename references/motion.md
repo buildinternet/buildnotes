@@ -27,6 +27,7 @@ Pick the kind from the visual the chapter already has:
 
 | The post has | Scene kind | What moves |
 |---|---|---|
+| A GIF or video of the feature itself, from a PR or your own capture | `clip` | The footage plays inside the frame, stepped with the reel's clock |
 | A keyed screenshot or an `anatomy` figure | `shot` | A ring travels from part to part, each with a short label |
 | Two frames of one screen (a `strip`, a before/after) | `swap` | The second frame wipes across the first |
 | A `bars` or `delta` chart | `bars` | Bars grow in turn; an optional limit line |
@@ -36,6 +37,8 @@ Pick the kind from the visual the chapter already has:
 | The opening problem | `statement` | Lines arrive one by one; the earlier one fades back |
 
 A `morph` is the strongest moment a cut can have: the reader watches the wrong answer turn into the right one. Use it when the post's argument is "measured this way, it looks like X; measured the right way, it's Y."
+
+When the feature makes something that moves (a video, an animation, a walkthrough), show the real thing with a `clip`. PRs for visual features often carry a GIF or a screen recording; trim it with `from` and `to`, speed it up with `speed` if it runs long, and label it honestly (`"say": "A real room export, at 1.5× speed"`).
 
 ## The script
 
@@ -66,13 +69,16 @@ Every scene takes `kind`, an optional `label` (top right, usually the chapter: `
 | `statement` | `lines`: one to three |
 | `list` | `headline`; `items`: two to four `{ "title", "text", "icon" }`, icon one of `grid`, `play`, `mail`, `check`, `clock`, `code`, `bolt`, or `"img": "path"` |
 | `shot` | `kicker`, `headline`, `sub`; `src`, optional `srcDark`; `regions`: up to three `{ "box": [x, y, width, height], "say" }` in the image's pixels. The `anatomy` spec's part boxes are in the same units |
+| `clip` | `kicker`, `headline`, `sub`; `src`: a GIF, MP4, WebM or MOV; `to`, the second it ends (required), optional `from` (default 0) and `speed` (up to 4); `say`. The clip plays once and holds its last frame; keep it under 15 seconds of play |
 | `swap` | `kicker`, `headline`, `sub`; `from` and `to`, each `{ "src", "say" }` |
-| `bars` | `kicker`, `headline`, `sub`; `rows`: two to seven `{ "label", "value", "lit" }` (`lit` marks the one that matters); optional `max`, `decimals`, and `cap`: `{ "value", "label" }` |
+| `bars` | `kicker`, `headline`, `sub`; `rows`: two to seven `{ "label", "value", "lit" }` (`lit` marks the one that matters); optional `max`, `unit` (`" s"`, `"%"`), `decimals` (default: as many as each value has), and `cap`: `{ "value", "label" }` |
 | `flow` | `kicker`, `headline`; `nodes`: two to five `{ "text", "small", "lit" }`; `runs`: up to three `{ "to", "stop", "say" }`. A run travels from the first node to node `to` (default the last). With `stop` it halts in front of that node and turns red |
 | `morph` | `kicker`; `before` and `after`, each `{ "headline", "tag" }`; `tiles`: two to eight `{ "name", "note", "before", "after", "parts", "say" }`, sized by `before` and then by `after`; optional `key`: `[{ "label", "color" }]` naming the `parts` in order (`green`, `blue`, `red`, `yellow`, `gray`, `accent`, `dim`); optional `columns`: tile indexes per column, like `[[0], [1], [2, 3]]` |
 | `end` | `kicker`, `headline`; `pills`: the product's own button labels, strings or `{ "text", "solid" }`; `foot` |
 
-`examples/weekly-digests/motion.json` uses every kind.
+On `clip` and `swap`, `"sayAt": "top"` moves the label to the top-left corner, for footage with its own caption at the bottom.
+
+`examples/weekly-digests/motion.json` uses most kinds; `examples/walkthrough-videos/motion.json` adds a `clip`.
 
 ## Build, check and export
 
@@ -85,7 +91,7 @@ node <skill-dir>/scripts/motion.mjs <work-dir>/motion.json --gif --scene 5 --siz
 
 `--check` fails on a missing field, an image it can't find or read, a region off its image, or a `morph` whose columns don't list every tile once. It warns about long headlines, a scene count outside five to nine, a cut over 75 seconds, a PR or commit named in the text, and a `dur` too short for its motion or its words. Fix every error. Treat a length warning as a reason to cut a scene, not to speed the rest up.
 
-Building writes `motion.html` with the images embedded, then opens it in headless Chrome to check that every scene's text fits the frame. A headline shrinks to fit before it is reported; a reported scene needs fewer words.
+Building writes `motion.html` with the images embedded (a `clip`'s footage becomes one sheet of frames, which needs `ffmpeg`), then opens it in headless Chrome to check that every scene's text fits the frame. A headline shrinks to fit before it is reported; a reported scene needs fewer words.
 
 `--mp4` (or `--webm`, or `--gif` at half size) writes `<work-dir>/export/motion.mp4` at 1920×1080 and 30 fps. `--poster` writes a still from the end of the title scene, for a thumbnail; `--at <seconds>` picks another moment. `--theme dark` exports the dark theme. Export needs Chrome and `ffmpeg` and takes a couple of minutes for a one-minute cut.
 

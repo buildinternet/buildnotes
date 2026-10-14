@@ -1,0 +1,21 @@
+{
+  "title": "One frame of a floor tour, at eye level in the Boardroom, with its parts named.",
+  "view": "screenshot",
+  "src": "img/frame-boardroom.png",
+  "alt": "A video frame at eye level in the Boardroom of Meridian HQ's Level 4: sofas, armchairs and a side table, a caption chip reading Boardroom 6.4 × 4.8 m in the lower left, and a small floor plan in the top-right corner with the Boardroom tinted blue and a blue dot and wedge in its top-left corner.",
+  "size": [640, 360],
+  "parts": [
+    { "id": "card", "box": [497, 18, 123, 86] },
+    { "id": "room", "box": [569, 24, 46, 36], "lit": true },
+    { "id": "camera", "box": [569, 24, 26, 24] },
+    { "id": "caption", "box": [18, 323, 112, 18] },
+    { "id": "view", "box": [0, 0, 640, 360] }
+  ],
+  "keys": [
+    { "part": "view", "at": [215, 262], "text": "**The shot.** Drawn by the same 3D view you see on the page, at 1920 × 1080 and 30 frames a second." },
+    { "part": "card", "at": [508, 114], "text": "**The mini-map.** The floor's plan as a plain line drawing, in the corner away from the caption, at most a quarter of the frame's height." },
+    { "part": "room", "at": [630, 66], "text": "**The room in shot** is tinted, so on a floor tour you can see which room you're in." },
+    { "part": "camera", "at": [554, 9], "text": "**The camera.** A dot where it stands and a wedge for what it sees. Both move with every frame." },
+    { "part": "caption", "at": [146, 332], "text": "**The caption** names the room and its size." }
+  ]
+}
