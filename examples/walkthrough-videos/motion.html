@@ -290,9 +290,9 @@ em { font-style: normal; background: linear-gradient(var(--mark), var(--mark)) 0
         const p = seg(t, 0.3, 1.2);
         pic.style.opacity = p; pic.style.transform = `translateY(${(1 - p) * 60}px) scale(${lerp(0.96, 1, p)})`;
         if (!R.length) return;
-        // Region k is ringed from 1.3 + 2.2k s; the ring travels for 0.9 s between regions.
+        // Each region is held for 2.2 s, from 1.3 s; the ring then travels 0.9 s to the next one.
         let k = 0, m = 0;
-        for (let i = 1; i < R.length; i++) { const a = 1.3 + i * 2.2 - 0.9; if (t > a) { k = i - 1; m = seg(t, a, a + 0.9, E.inOut); } }
+        for (let i = 1; i < R.length; i++) { const a = 1.3 + i * 3.1 - 0.9; if (t > a) { k = i - 1; m = seg(t, a, a + 0.9, E.inOut); } }
         const from = R[k], to = R[Math.min(k + 1, R.length - 1)];
         const b = from.map((v, i) => lerp(v, to[i], m));
         place(ring, b[0], b[1], b[2], b[3]);

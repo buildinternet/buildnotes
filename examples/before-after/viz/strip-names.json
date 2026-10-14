@@ -1,0 +1,6 @@
+{
+  "frames": [
+    { "label": "Before the fix · same page, twice", "term": { "out": ["before → …/localhost-docs-mcp.webp", "after  → …/localhost-docs-mcp.webp", "          (the after replaced the before)"] } },
+    { "label": "As it ships", "term": { "out": ["before → …/localhost-docs-mcp-before.webp", "after  → …/localhost-docs-mcp-after.webp"] } }
+  ]
+}

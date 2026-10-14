@@ -54,7 +54,7 @@ You need `git`, an authenticated `gh`, Node 22 or later, and Chrome for the rend
 
 ## Examples
 
-Two full runs are kept as committed examples. Each folder holds the finished page (one self-contained file with every image embedded), the story plan the agent wrote before drafting, its notes, the specs behind the rendered figures, and a [motion cut](#motion-cut) with its video.
+Three full runs are kept as committed examples. Each folder holds the finished page (one self-contained file with every image embedded), the story plan the agent wrote before drafting, its notes, the specs behind the rendered figures, and a [motion cut](#motion-cut) with its video.
 
 ### Walkthrough videos
 
@@ -72,6 +72,23 @@ https://github.com/user-attachments/assets/630f699d-4134-47bc-bcb2-da6b5a755225
   <tr>
     <td><sub><b>A path computed by the product.</b> Chapter 1 draws the camera's route from poses the shot planner itself computed, with a dot that moves on the clip's own clock.</sub></td>
     <td><sub><b>One frame, its parts named.</b> Chapter 2 keys a real video frame: the plan in the corner, the camera on it, and the caption.</sub></td>
+  </tr>
+</table>
+
+### Before and after
+
+[`examples/before-after/`](examples/before-after) is a build story about before/after comparison on [uploads.sh](https://uploads.sh), from the public `buildinternet/uploads` repo: tag two screenshots before and after, and the pull request comment shows them in one row; open either one, and a divider slides across both. Its figures are the product in use, captured live: a real pull request comment and the file page in Compare. Open [`post.html`](examples/before-after/post.html) for the post, in the Plain style, or watch its 47-second cut:
+
+The cut: [`examples/before-after/motion.mp4`](examples/before-after/motion.mp4).
+
+<table>
+  <tr>
+    <td width="50%"><img src=".github/assets/before-after-comment.webp" alt="A pull request comment on GitHub from uploads.sh: an unpaired screenshot of an API errors page, and below it one row with two screenshots of a REST API docs page labelled Before and After."></td>
+    <td width="50%"><img src=".github/assets/before-after-compare.webp" alt="The uploads.sh file page in Compare mode: a REST API docs screenshot with a purple divider down the middle, Before on the left and After on the right."></td>
+  </tr>
+  <tr>
+    <td><sub><b>The real thing, captured.</b> Chapter 1 shows a live comment: a pair shares a row, and a shot with no before shows on its own.</sub></td>
+    <td><sub><b>The same pair in Compare.</b> Chapter 3 shows how the two shots are lined up from the top-left corner, so what moved is what changed.</sub></td>
   </tr>
 </table>
 
@@ -361,7 +378,7 @@ To keep a public run as a committed example, check it, then copy its page, plan 
 - **The record has to say it.** The skill infers angles and context, but not motives, quotes or numbers. When the record doesn't say why something was done, the reason stays out of the post and goes on the open questions.
 - **Private repos link nothing internal.** The linter fails a `--private` post that links the repo's issues, PRs or commits.
 - **No sign-ins for screenshots.** If a screen sits behind a sign-in the skill shouldn't use, it falls back to the PR's own images, a diagram or a terminal run.
-- **Two examples so far.** `examples/` holds two runs, one from a public repo and one from a private repo that quotes no code.
+- **Three examples so far.** `examples/` holds three runs: two from public repos, and one from a private repo that quotes no code.
 
 ## License
 
