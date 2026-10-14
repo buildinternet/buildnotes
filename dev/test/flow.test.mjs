@@ -6,7 +6,7 @@ import { tmpdir } from "node:os";
 import { join, dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { render, graph } from "../../scripts/viz/flow.mjs";
-import { build } from "../../scripts/viz.mjs";
+import { build, styleOf } from "../../scripts/viz.mjs";
 import { takeWarnings } from "../../scripts/viz/util.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
@@ -103,4 +103,33 @@ test("fold buckets stop at what a wide figure can hold", () => {
   const html = render(spec, { id: "wide" });
   const fold = Number(html.match(/data-fold="(\d+)"/)[1]);
   assert.ok([30, 38, 46, 52].includes(fold), `fold ${fold} is a bucket a figure can reach`);
+});
+
+test("field notes draws boxes and wires by hand, the same every time, ending on the same points", () => {
+  const spec = specs[0][1];
+  const plain = render(spec, { id: "t" });
+  const hand = render(spec, { id: "t", style: "field-notes" });
+  takeWarnings();
+  assert.equal(render(spec, { id: "t", style: "field-notes" }), hand, "seeded: the same strokes on every build");
+  assert.doesNotMatch(hand, /<rect class="box/);
+  assert.match(hand, /<path class="box[^"]*" d="M[^"]+Z"/);
+  const ends = (html) => [...html.matchAll(/<path class="wire[^"]*" d="([^"]+)"/g)].map((m) => { const p = pts(m[1]); return [p[0], p.at(-1)]; });
+  assert.deepEqual(ends(hand), ends(plain), "wires start and end where the straight ones do");
+  const route = (html) => html.match(/<path class="route" d="([^"]+)"/)?.[1];
+  assert.equal(route(hand), route(plain), "motion keeps the exact geometry");
+});
+
+test("the post's style reaches the renderers and is part of the stamp", () => {
+  assert.equal(styleOf('<article class="post">'), "plain");
+  assert.equal(styleOf('<article class="post" data-style="field-notes">'), "field-notes");
+  assert.equal(styleOf('<article class="post" data-style="neon">'), "plain");
+  const dir = mkdtempSync(join(tmpdir(), "viz-"));
+  mkdirSync(join(dir, "viz"));
+  writeFileSync(join(dir, "viz/p.json"), JSON.stringify(specs[0][1]));
+  const body = `<figure class="wide">\n<!-- viz flow viz/p.json -->\n<!-- /viz -->\n</figure>\n</article>`;
+  const plain = build(`<article class="post">\n${body}`, dir).html;
+  const notes = build(`<article class="post" data-style="field-notes">\n${body}`, dir).html;
+  assert.match(notes, /<path class="box/);
+  const switched = plain.replace('<article class="post">', '<article class="post" data-style="field-notes">');
+  assert.match(build(switched, dir, { check: true }).problems[0], /changed since the last render/);
 });

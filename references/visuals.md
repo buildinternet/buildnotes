@@ -71,7 +71,7 @@ Mermaid (`<pre class="mermaid">`) renders inside Claude artifacts with no librar
 
 ### Hand-drawn SVG
 
-For a figure no spec can express, hand-write inline SVG in a `figure.diagram` (the template keeps its CSS). Set `viewBox`, `role="img"`, a `<title>` and `<desc>`; colour every shape from the tokens (`var(--ink)`, `var(--accent)`, `var(--rule)`); end lines on box edges. The SVG doesn't reflow, so for a phone draw it top to bottom, about 320 units wide, with the outcome at the bottom.
+For a figure no spec can express, hand-write inline SVG in a `figure.diagram` (the template keeps its CSS). Set `viewBox`, `role="img"`, a `<title>` and `<desc>`; colour every shape from the tokens by role ([Styles](#styles)); end lines on box edges. The SVG doesn't reflow, so for a phone draw it top to bottom, about 320 units wide, with the outcome at the bottom.
 
 A moving dot in hand-drawn SVG goes wrong in two ways, both caught by `lint.mjs`: the circle must have `cx="0" cy="0"`, because `animateMotion` adds its path to the circle's own position; and the motion path must reuse the exact vertices of the wires it travels, or the dot drifts off the lines (turning a corner inside a box is fine). Draw the dot after the wires and before the boxes, so it disappears into each box instead of sliding across a label.
 
@@ -126,7 +126,30 @@ One idea per chart, drawn to scale, labelled directly. Chart product numbers, no
 - **One number** is not a chart: use `delta`, or say it in a sentence.
 - **A few sizes or counts**: `bars`. Mark the row the chapter is about `hot`, and the rest turn grey. Add a `limit` when a budget or threshold is the point.
 - **A trend**: `line`, one series. Add a second only when the comparison is the point; it gets the grey and a legend. Never two y-axes: two measures of different scale are two charts.
-- The colours come from the tokens: the accent for the series that matters and `--dim` for the rest. Both themes are checked for contrast and for colour-blind readers, so don't add hues.
+- The colours come from the tokens: the accent for the series that matters and `--dim` for the rest; `--landmark` marks a landmark or target line. Both themes are checked for contrast and for colour-blind readers, so don't add hues.
+
+## Styles
+
+The template draws one page in two styles. The markup and the specs are the same; the style is one attribute on the article.
+
+| | Plain (default) | Field notes (`data-style="field-notes"`) |
+|---|---|---|
+| For | Release stories, posts that live on a product's own site, any brand | Concepts and discoveries: a build story or deep dive that explains |
+| Type | Archivo headings and labels, Newsreader text, IBM Plex Mono | Source Serif 4 throughout, Martian Mono labels, IBM Plex Mono code |
+| Figures | Plain ground between two rules | A dot grid; flows drawn by hand |
+| Chapter numbers | In the mark colour | Ringed |
+
+Colour is by role, the same in both, so a figure reads the same way in either:
+
+- `--ink` for the data and the drawing.
+- `--accent` for fills, boxes, the lit part and the series that matters. Blue by default.
+- `--mark` for highlights and commentary only: chapter numbers, footnotes, a bracket or note that says what to see. Never a fill; a box in the mark colour drowns the page.
+- `--landmark` for a landmark release, a star or a target line. Never text.
+- `--dim` for the data that isn't the point.
+
+Field notes' strokes are drawn at render time: `viz.mjs build` reads the style from the post and draws flow boxes and wires by hand, seeded by the figure's id, so the same spec gives the same strokes on every build. Data lines (a `line` series, a bar's length) stay exact in both styles. The style is part of each marker's stamp, so switching it shows every flow as stale until you build again.
+
+A brand restyles Plain: change the tokens in the first `:root` block, keep the role of each one, and keep the dark block in step.
 
 ## Checking the render
 

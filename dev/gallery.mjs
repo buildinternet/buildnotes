@@ -2,7 +2,7 @@
 // gallery.mjs — render every example spec in assets/specs/ into one page that uses the template's
 // own CSS: a preview of all the components, each with its spec.
 //
-// Usage: node dev/gallery.mjs [--only flow] [--out runs/components/gallery.html]
+// Usage: node dev/gallery.mjs [--only flow] [--style field-notes] [--out runs/components/gallery.html]
 //        node dev/gallery.mjs --publish      writes assets/components.html, images embedded (commit it)
 // Each spec sits in its own chapter-width section, the way a post would hold it.
 
@@ -17,6 +17,7 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const argv = process.argv.slice(2);
 const opt = (k) => { const i = argv.indexOf(`--${k}`); return i >= 0 ? argv[i + 1] : undefined; };
 const only = opt("only");
+const style = opt("style") ?? "plain";
 const publish = argv.includes("--publish");
 const out = resolve(publish ? join(root, "assets/components.html") : opt("out") ?? join(root, "runs/components/gallery.html"));
 const specDir = join(root, "assets/specs");
@@ -79,7 +80,7 @@ for (const f of specs) {
   const kind = f.split("-")[0];
   const id = f.replace(/\.\w+$/, "");
   const text = readFileSync(join(specDir, f), "utf8");
-  const frag = renderKind(kind, text, { id, base: specDir }).replace(/src="img\//g, `src="${imgBase}/img/`);
+  const frag = renderKind(kind, text, { id, base: specDir, style }).replace(/src="img\//g, `src="${imgBase}/img/`);
   for (const w of takeWarnings()) { warned++; console.error(`! ${f}: ${w}`); }
   const name = id.slice(kind.length + 1);
   const whole = /^(code|term)$/.test(kind);
@@ -116,7 +117,7 @@ ${head}
 .theme { justify-self: start; font: 0.75rem var(--font-mono); color: var(--ink); background: var(--wash); border: 1px solid var(--rule); border-radius: 4px; padding: 0.3rem 0.6rem; cursor: pointer; }
 </style>
 </head><body>
-<article class="post">
+<article class="post"${style === "plain" ? "" : ` data-style="${style}"`}>
   <header class="mast">
     <p class="kicker">build-story · assets/components.html</p>
     <h1>Components</h1>

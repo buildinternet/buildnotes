@@ -10,8 +10,10 @@
 // rank (column when wide) and lane (row when wide) are optional overrides; by default a node's rank
 // is its longest path from a source, and lanes are centred and ordered to cut crossings.
 // A label may break with "\n". An edge that points back (a loop or retry) runs around the outside.
+// With opts.style "field-notes", boxes and wires are drawn by hand (seeded by the figure's id, so the
+// same spec draws the same strokes); the motion route stays on the exact geometry.
 
-import { esc, slug, width, r, warn, W_LABEL, W_SUB, W_EDGE } from "./util.mjs";
+import { esc, slug, width, r, warn, W_LABEL, W_SUB, W_EDGE, rand, handLine, handRect } from "./util.mjs";
 
 const PAD = 8;
 const PHONE = 320; // the stacked drawing's width budget in SVG units (a 390px phone shows ~324px of stage)
@@ -19,8 +21,9 @@ const PHONE = 320; // the stacked drawing's width budget in SVG units (a 390px p
 export function render(spec, opts = {}) {
   const id = opts.id ?? spec.id ?? slug(spec.title);
   const g = graph(spec, id);
-  const h = draw(g, spec, "h", `${id}-h`);
-  const v = draw(g, spec, "v", `${id}-v`);
+  const hand = opts.style === "field-notes";
+  const h = draw(g, spec, "h", `${id}-h`, hand);
+  const v = draw(g, spec, "v", `${id}-v`, hand);
   // Show the stacked drawing when the wide one would shrink below ~88% (13px labels → 11.4px).
   const need = (h.w * 0.88) / 16;
   // Buckets are the .flow box's inner width (rem) in a column figure (38) up to a wide one (52, i.e.
@@ -127,7 +130,7 @@ export function graph(spec, id = "flow") {
 
 // ── draw: one orientation ──────────────────────────────────────────────────────────────────────
 // Layout runs in (u, v): u along the flow, v across it. "h" maps (u, v) → (x, y); "v" maps → (v, u).
-function draw(g, spec, o, sid) {
+function draw(g, spec, o, sid, hand = false) {
   const { nodes, edges, by, L } = g;
   const lines = Math.max(...nodes.map((n) => n.label.split("\n").length));
   const hasSub = nodes.some((n) => n.sub);
@@ -235,6 +238,8 @@ function draw(g, spec, o, sid) {
   const W = r(Math.max(...xs) - minX + 2 * PAD), H = r(Math.max(...ys) - minY + 2 * PAD);
   const X = (x) => r(x + dx), Y = (y) => r(y + dy);
   const d = (pts) => pts.map(([x, y], k) => `${k ? "L" : "M"}${X(x)},${Y(y)}`).join(" ");
+  const next = hand ? rand(sid) : null;
+  const wire = (pts) => (hand ? handLine(pts.map(([x, y]) => [X(x), Y(y)]), next) : d(pts));
 
   // The motion route: the legs' own vertices, joined through each box (hidden under it).
   const routePts = [];
@@ -252,7 +257,7 @@ function draw(g, spec, o, sid) {
   out.push(`  <defs><marker id="${sid}-ah" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path class="arrow" d="M0,0 L8,4 L0,8 z"/></marker></defs>`);
   for (const e of edges) {
     const live = g.style === "dashes" && onRoute.has(e) ? " live" : "";
-    out.push(`  <path class="wire${live}" d="${d(geo.get(e).pts)}" marker-end="url(#${sid}-ah)"/>`);
+    out.push(`  <path class="wire${live}" d="${wire(geo.get(e).pts)}" marker-end="url(#${sid}-ah)"/>`);
   }
   if (routePts.length > 1 && g.style === "dashes") out.push(`  <path class="route" d="${d(routePts)}"/>`);
   if (routePts.length > 1 && g.style === "dot") {
@@ -265,7 +270,9 @@ function draw(g, spec, o, sid) {
   }
   for (const n of nodes) {
     const { x, y, w, h } = n.box;
-    out.push(`  <rect class="box${n.hot ? " hot" : ""}" x="${X(x)}" y="${Y(y)}" width="${r(w)}" height="${r(h)}" rx="6"/>`);
+    out.push(hand
+      ? `  <path class="box${n.hot ? " hot" : ""}" d="${handRect(X(x), Y(y), r(w), r(h), next)}"/>`
+      : `  <rect class="box${n.hot ? " hot" : ""}" x="${X(x)}" y="${Y(y)}" width="${r(w)}" height="${r(h)}" rx="6"/>`);
     const ls = n.label.split("\n");
     const block = ls.length * 16 + (n.sub ? 14 : 0);
     const cx = X(x + w / 2);
