@@ -27,4 +27,5 @@ Until the first release, changes are recorded under [Unreleased].
 
 - The weekly-digests example uses the current template: the card is a keyed figure over the shipped capture, the patch-pool bars and the replay frames use the `bars` and `strip` components, chapter 2 closes with a finding, and the sentence about the card's colors now says columns, as the card has. The README shows the keyed card and the field notes version.
 - `viz.mjs build` passes the page's folder to the renderers, so an image a spec names resolves relative to the page.
+- `export.mjs` hides the expand icon and hotspot notes in exports, and the README's images are re-exported with it from the current gallery and example.
 - Plain replaces the template's previous look: Archivo, Newsreader and IBM Plex Mono on a white page, and figures (flows, steps, diagrams) on plain ground between two rules instead of a bordered dot grid.
