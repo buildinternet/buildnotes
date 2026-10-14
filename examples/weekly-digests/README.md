@@ -4,7 +4,8 @@ A build story about the weekly collection digests on [Release Notes Index](https
 
 - `post.html`: the finished page, self-contained (images embedded). Open it in a browser.
 - `post-field-notes.html`: the same page in the field notes style, with the card drawn at an angle instead of keyed over the capture.
-- `viz/`: the specs behind the rendered figures (the card's parts, measured on the capture, and the patch-pool bars) and the captures they use.
+- `motion.json` and `motion.html`: the motion cut, the post as a one-minute reel that plays itself (`node scripts/motion.mjs examples/weekly-digests/motion.json` rebuilds it; add `--mp4` for the video).
+- `viz/`: the specs behind the rendered figures (the card's parts, measured on the capture, and the patch-pool bars) and the captures they use, including the two replay frames the motion cut wipes between.
 - `plan.md`: the story plan the agent wrote before drafting.
 - `notes.md`: the agent's open questions, the skill friction it hit, and its lint summary.
 
