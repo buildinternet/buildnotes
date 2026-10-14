@@ -44,6 +44,8 @@ Each kind in the table renders from a small spec into static HTML or SVG, with n
 
 `code` and `term` render as a light card with a copy button: a terminal copies its command, a code block its excerpt. The button needs the template's script and stays hidden without it.
 
+A command the reader will copy, with no output worth showing (an install, the one command in a try-it), takes no spec: write `<div class="cmd"><code>uploads feed create --repo owner/repo</code></div>` in the chapter. The page's script adds the copy button and sets the command name in full ink, flags quieter and quoted strings in the accent. Write the command as it should be typed, with no `$ `. A command wider than the bar scrolls inside it, with a fade at the edge. `lint.mjs` points at a one-line `<pre>` that should be one.
+
 Lint lists the specs behind the page, so the fact pass can tick their numbers there. It also warns when a marker is empty or its spec changed since the last render, and fails while a marker still points at the template's `specs/…` examples. The rendered markup is ordinary HTML: a hand edit is fine, but the next `build` replaces it, so edit the spec when you can.
 
 | Kind | Spec, in short |

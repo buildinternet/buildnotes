@@ -5,7 +5,7 @@ import { execFileSync, spawnSync } from "node:child_process";
 import { mkdtempSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, dirname, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { chromePath } from "../../scripts/chrome.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
@@ -100,4 +100,24 @@ test("render.mjs fails clipped code at desktop width and cut-off SVG labels, not
   assert.match(r.stdout, /1280 light: .*✗ label cut off by \d+ px at the drawing's edge: "Corner label"/);
   assert.match(r.stdout, /390 light: ✗ label cut off by \d+ px at the drawing's edge: "Corner label" \(code scrolls in its card by \d+ px: a\.js\)/);
   for (const s of ["1280-light", "1280-dark", "390-light", "390-dark"]) assert.ok(statSync(join(dir, "render", `post-${s}.png`)).size > 0);
+});
+
+test("a command line gets a copy button and coloured words, and copies the command as typed", { skip: noChrome }, async () => {
+  const { openPage } = await import("../../scripts/chrome.mjs");
+  const page = await openPage(pathToFileURL(join(root, "assets/template.html")).href, { width: 800, height: 600, scale: 1 });
+  try {
+    const r = JSON.parse(await page.evaluate(`(() => {
+      const cmd = document.querySelector(".cmd");
+      let copied = null;
+      navigator.clipboard.writeText = (t) => { copied = t; return Promise.resolve(); };
+      cmd.querySelector(".copy").click();
+      const spans = [...cmd.querySelectorAll("code span")].map((s) => s.className + ":" + s.textContent);
+      return JSON.stringify({ spans, copied, buttons: cmd.querySelectorAll(".copy").length });
+    })()`));
+    assert.deepEqual(r.spans, ["c-cmd:node", "c-flag:--out", "c-flag:--search", 'c-str:"rate limit"']);
+    assert.equal(r.copied, 'node scripts/gather.mjs --out evidence --search "rate limit"');
+    assert.equal(r.buttons, 1);
+  } finally {
+    await page.close();
+  }
 });

@@ -22,6 +22,7 @@ Until the first release, changes are recorded under [Unreleased].
 
 - The `anatomy` component (`scripts/viz/anatomy.mjs`): the parts of one thing, named. One parts list, measured on a capture, draws as keys over the capture (`screenshot`, with an optional dark capture), a flat drawing with the object's own labels (`flat`), or an angled drawing of its structure that comes apart on request (`iso`). Each renders as a keyed figure; pointing at a part lifts it, and pointing at a key fades the rest. A spec can start from another with `from`. Example specs in `assets/specs/anatomy-card*.json`, measured on the shipped digest card; tests in `dev/test/anatomy.test.mjs`.
 - `examples/weekly-digests/post-field-notes.html`, the example in the field notes style, and `examples/weekly-digests/viz/`, the specs behind its rendered figures.
+- A command line in the template, `<div class="cmd"><code>…</code></div>`, for a command the reader will copy: a bar with a copy button, the command name in full ink, flags quieter and quoted strings in the accent. A long command scrolls inside the bar with a fade at the edge. `lint.mjs` points at a one-line `<pre>` that should be one. Docs in `references/visuals.md#components`.
 
 ### Changed
 

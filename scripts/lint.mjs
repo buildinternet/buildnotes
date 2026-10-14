@@ -258,6 +258,10 @@ if (stats.length) {
 for (const m of raw.replace(/<!--[\s\S]*?-->/g, "").matchAll(/<figure class="code(?! term)[^"]*">\s*<figcaption>([\s\S]*?)<\/figcaption>/g)) {
   if ((m[1].match(/<span>/g) ?? []).length > 1) say(`! code caption "${text(m[1]).slice(0, 80)}": the file name is enough; drop the side note`);
 }
+// A one-line command in a bare <pre> works, but the command-line component gives the reader a copy button.
+for (const m of raw.replace(/<!--[\s\S]*?-->/g, "").replace(/<figure class="code[\s\S]*?<\/figure>/g, "").matchAll(/<pre>\s*<code>([^\n<]+)<\/code>\s*<\/pre>/g)) {
+  say(`! one-line command in a bare <pre> ("${text(m[1]).slice(0, 50)}"): use <div class="cmd"><code>…</code></div> for a copy button`);
+}
 let ti = 0;
 for (const m of raw.replace(/<!--[\s\S]*?-->/g, "").matchAll(/<figure class="code term[^"]*">([\s\S]*?)<\/figure>/g)) {
   ti++;
