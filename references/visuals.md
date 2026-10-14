@@ -14,6 +14,7 @@ Every visual answers a question a chapter raises. Before making one, write its c
 | How a design converged over several iterations | Progression strip (2–4 frames), "Round one" … "As it ships" | `strip` |
 | What the user actually sees | Screenshot of the real UI | `figure.shot` in the template |
 | What each part of one thing is (a card, a panel, a screen) | Keyed figure: the capture, a flat drawing, or an angled one that comes apart | `anatomy` |
+| A route or a position over a plan or map (a camera's path, where something moves) | The plan drawn from above with the path on it, computed from the product's own code | [hand-drawn SVG](#a-path-over-a-plan) |
 | An interaction or a sequence over time | Short loop (GIF/MP4/WebM) or a frame strip | `figure.shot`, or `strip` |
 | A state machine, a lifecycle, a set of rules | Small state diagram or a table | `flow` (with a back edge), or `options` |
 | Pace, when the pace is the point | Timeline, by day | template partial, from `dossier.json` → `timeline` |
@@ -73,9 +74,13 @@ Mermaid (`<pre class="mermaid">`) renders inside Claude artifacts with no librar
 
 ### Hand-drawn SVG
 
-For a figure no spec can express, hand-write inline SVG in a `figure.diagram` (the template keeps its CSS). Set `viewBox`, `role="img"`, a `<title>` and `<desc>`; colour every shape from the tokens by role ([Styles](#styles)); end lines on box edges. The SVG doesn't reflow, so for a phone draw it top to bottom, about 320 units wide, with the outcome at the bottom.
+For a figure no spec can express, hand-write inline SVG in a `figure.diagram` (the template keeps its CSS). Set `viewBox`, `role="img"`, a `<title>` and `<desc>`; colour every shape from the tokens by role ([Styles](#styles)); end lines on box edges. The SVG doesn't reflow, so for a phone draw it top to bottom, about 320 units wide, with the outcome at the bottom. A drawing that size fills the column; cap it with `style="max-width: 24rem; margin-inline: auto"` on the `<svg>` so its text stays near the page's size. A drawing that must stay wide goes in `figure.diagram.wide`: it keeps at least 30rem and scrolls sideways on a phone.
 
-A moving dot in hand-drawn SVG goes wrong in two ways, both caught by `lint.mjs`: the circle must have `cx="0" cy="0"`, because `animateMotion` adds its path to the circle's own position; and the motion path must reuse the exact vertices of the wires it travels, or the dot drifts off the lines (turning a corner inside a box is fine). Draw the dot after the wires and before the boxes, so it disappears into each box instead of sliding across a label.
+#### A path over a plan
+
+When the subject is where something goes (a camera's route through a room, a robot's path, a cursor across a screen), draw the plan from above and the path on it. Don't trace the path by eye: bundle the product's own planner (`npx esbuild <entry> --bundle --format=esm --outfile=<work-dir>/viz/planner.mjs`), call it on the demo data the screenshots use, sample positions at even times, and write the SVG from those points. The figure then matches the product, and an `animateMotion` with the same duration as the real thing moves the dot at the real pace. Label each stage of the path once, at the point it starts, with its time; keep labels off the path itself and inside the `viewBox` (`render.mjs` flags one that is cut off, but not one sitting on a line).
+
+A moving dot in hand-drawn SVG goes wrong in two ways, both caught by `lint.mjs`: the circle must have `cx="0" cy="0"`, because `animateMotion` adds its path to the circle's own position; and the motion path must reuse the exact vertices of the wires it travels, or the dot drifts off the lines (turning a corner inside a box is fine). Draw the dot after the wires and before the boxes, so it disappears into each box instead of sliding across a label. On a plan or map the dot travels over the drawing, so draw it last; the lint warning about boxes doesn't apply there.
 
 ## Motion
 
@@ -122,11 +127,13 @@ When the reader needs the parts of one screenshot named (what each tile, column 
 - **`flat`**: the object redrawn straight on, with its own labels and row texts, in the page's colours. Use it when the capture is busy, low-contrast or dark next to a light page.
 - **`iso`**: the object at an angle, structure only (no labels on the parts, the object's title on its base). It shows how the parts sit together; "Apart" lifts them off, staggered, with outlines where they sat. Use it where structure is the point; it is the one view that reads as a drawing rather than a record.
 
+In the screenshot view, a key about the whole frame (or anything without an outline to draw) needs only `at`, no `part`. Where several parts sit in one small area (a corner card with three things in it), put their hotspots on the area's outside edge, each level with its part, rather than on the parts themselves; the legend says which is which.
+
 Mark one part `lit` (the one the chapter is about): it takes the accent fills. Marks (`landmark`, `major`) are small flames in the landmark colour; `cursor` draws a pointer, for a key about clicking. A key with `"marks": true` lights the part's marks rather than the part. Pointing at a part lifts it; pointing at a key or legend entry fades the other parts. Keep to six keys. One spec can feed several views: write the parts once and give each other view its own small spec, `{ "from": "card.json", "view": "flat" }`. In field notes, the flat and iso lines are drawn by hand, like flows.
 
 ### Expanding a screenshot
 
-Nothing to write: the page's script lets a reader open any `.shot`, `.strip` or keyed image full size when it is drawn at least 15% smaller than it really is (a corner icon, then a dialog with the caption). So capture at full resolution even when the figure is narrow. `data-no-expand` on an image opts out. Without the script, the image stays inline as before.
+Nothing to write: the page's script lets a reader open any `.shot`, `.strip` or keyed image full size when it is drawn at least 15% smaller than it really is (a corner icon, then a dialog with the caption). When a figure holds several images (a strip's frames), the dialog pages through them with ← and → or its arrow buttons, and shows each frame's label with the caption. So capture at full resolution even when the figure is narrow. `data-no-expand` on an image opts out. Without the script, the image stays inline as before.
 
 ### Dark mode
 
@@ -173,9 +180,9 @@ A brand restyles Plain: change the tokens in the first `:root` block, keep the r
 
 ## Checking the render
 
-Run `node <skill-dir>/scripts/render.mjs <work-dir>/post.html`. It renders the page at 1280×800 and 390×844, in light and dark, saves a full-page screenshot of each to `<work-dir>/render/`, and fails on what a reader would hit: the page scrolling sideways, a code or terminal line clipped at desktop width, an image that didn't load. On a phone, code that scrolls inside its card is normal and only noted.
+Run `node <skill-dir>/scripts/render.mjs <work-dir>/post.html`. It renders the page at 1280×800 and 390×844, in light and dark, saves a full-page screenshot of each to `<work-dir>/render/`, and fails on what a reader would hit: the page scrolling sideways, a code or terminal line clipped at desktop width, a label in an SVG cut off at the drawing's edge, an image that didn't load. On a phone, code that scrolls inside its card is normal and only noted.
 
-Then look at the four screenshots, because the script checks fit, not taste: the stacked flow and the table cards read on the phone, screenshots read in dark mode, nothing looks cramped. Clipped help text or prose in a terminal takes `"wrap": true` on the `term` spec; a long string in code (a prompt, a message) takes `"wrap": true` on the `code` spec. Don't loop: one look per width, one round of fixes.
+Then look at the four screenshots even when every line says ok, because the script checks fit, not taste: no label sits on a line or another label, the stacked flow and the table cards read on the phone, screenshots read in dark mode, nothing looks cramped. Clipped help text or prose in a terminal takes `"wrap": true` on the `term` spec; a long string in code (a prompt, a message) takes `"wrap": true` on the `code` spec. Don't loop: one look per width, one round of fixes.
 
 ## Canvas and WebGL
 

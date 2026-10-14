@@ -31,6 +31,10 @@ Until the first release, changes are recorded under [Unreleased].
 - Figures get more room above and below than paragraphs. A caption stays in the reading column under a figure that breaks out wider, set in the heading face a step below the text, with its figure number ("Fig. 2.") as a label; a keyed figure's legend uses the heading face too. The examples and the gallery pick this up, and the README's two keyed images are re-exported.
 - `lint.mjs` counts a sentence that names a pull request as process talk only when it's about the record (a number, "the second pull request", or what was done to one), so a post about a product built around pull requests isn't flagged for describing it. The colon-reveal check flags only a short payoff after the colon.
 - `gather.mjs` names a repo's changelog folder (one file per entry, such as `apps/web/src/content/changelog/`) under Prior work, and the entries the selected work added there.
+- `gather.mjs` lists **Since then**: PRs merged after the selected work that touch two or more of its files, since they can change what ships today. The digest cuts a long body at a section break and prints the command to read it whole, `gather.mjs --out <dir> --show <number>`.
+- Several images in one figure (a strip's frames) page with ← and → in the expanded view, with arrow buttons, a count and each frame's label.
+- `render.mjs` fails an SVG label cut off at the drawing's edge, and reminds you to look at the screenshots even when every check passes.
+- `references/visuals.md`: a row and a recipe for a path over a plan (computed from the product's own code), hotspot placement in a crowded corner, a screenshot key that needs no part, and how wide a hand drawing should be. `workdir.mjs` says where to start `house-style.md` when there isn't one.
 
 ### Fixed
 
@@ -38,5 +42,10 @@ Until the first release, changes are recorded under [Unreleased].
 - Image paths in `strip` specs are relative to the spec, as they already were in `anatomy` specs; both now share one rule, and a path that only resolves from the page still renders, with a warning.
 - `gather.mjs` no longer looks up placeholder references such as `owner/repo#123` in PR bodies.
 - `workdir.mjs --help` prints its usage instead of making a folder called `--help`.
+- `gather.mjs` no longer pulls a pull request in a second time as an issue when another PR says it is "part of" it (its body printed twice, and `--download` saved its images twice).
+- A strip label that wraps to two lines no longer pushes its picture below the others: labels share one row.
+- A hand-drawn SVG in `figure.diagram` fits the column instead of being held at 30rem and scrolling on a phone; `figure.diagram.wide` keeps the 30rem minimum.
+- `lint.mjs`'s moving-dot warning says why the dot goes under the boxes in a flow, and that a route over a plan can ignore it.
+- Headless Chrome gets 45 s to start instead of 20, since a busy CI runner starting several at once can take longer.
 - `references/visuals.md`: how to hide sticky headers before a capture, and a crop command that honours its offset (`sips -c` crops around the centre).
 - Plain replaces the template's previous look: Archivo, Newsreader and IBM Plex Mono on a white page, and figures (flows, steps, diagrams) on plain ground between two rules instead of a bordered dot grid.

@@ -26,8 +26,21 @@ const PROBE = `(() => {
   const clipped = [...document.querySelectorAll("figure.code pre")]
     .filter((pre) => !pre.closest(".wrap, .scroll") && pre.scrollWidth > pre.clientWidth + 1)
     .map((pre) => ({ what: label(pre), over: pre.scrollWidth - pre.clientWidth }));
+  // Text in an SVG that runs past the drawing's edge is cut off (an SVG hides what overflows it).
+  const cut = [];
+  for (const svg of document.querySelectorAll("svg")) {
+    if (getComputedStyle(svg).overflow === "visible") continue;
+    const box = svg.getBoundingClientRect();
+    if (!box.width) continue;
+    for (const t of svg.querySelectorAll("text")) {
+      const r = t.getBoundingClientRect();
+      if (!r.width) continue;
+      const over = Math.round(Math.max(box.left - r.left, r.right - box.right, box.top - r.top, r.bottom - box.bottom));
+      if (over > 1) cut.push({ what: t.textContent.trim().slice(0, 40), over });
+    }
+  }
   const broken = [...document.images].filter((img) => !img.complete || !img.naturalWidth).map((img) => img.getAttribute("src")?.slice(0, 60));
-  return { scrollW: document.documentElement.scrollWidth, innerW: innerWidth, height: document.documentElement.scrollHeight, clipped, broken };
+  return { scrollW: document.documentElement.scrollWidth, innerW: innerWidth, height: document.documentElement.scrollHeight, clipped, cut, broken };
 })()`;
 
 let bad = 0;
@@ -44,6 +57,7 @@ for (const width of [1280, 390]) {
       if (r.scrollW > r.innerW) faults.push(`scrolls sideways (${r.scrollW} px wide in a ${r.innerW} px window)`);
       const notes = [];
       for (const c of r.clipped) (width > 600 ? faults : notes).push(`code ${width > 600 ? "clipped" : "scrolls in its card"} by ${c.over} px: ${c.what}`);
+      for (const c of r.cut) faults.push(`label cut off by ${c.over} px at the drawing's edge: "${c.what}"`);
       for (const b of r.broken) faults.push(`image didn't load: ${b}`);
       bad += faults.length;
       console.log(`${width} ${theme}: ${faults.length ? faults.map((f) => `✗ ${f}`).join("; ") : "ok"}${notes.length ? ` (${notes.join("; ")})` : ""} → ${shot}`);
@@ -53,4 +67,5 @@ for (const width of [1280, 390]) {
   }
 }
 if (bad) console.log("Fix each ✗, then run again. Then look at the screenshots: this checks fit, not taste.");
+else console.log("No fit faults. Now look at the screenshots: this can't see a label sitting on a line, crowded keys or a figure that reads wrong.");
 process.exit(bad ? 1 : 0);

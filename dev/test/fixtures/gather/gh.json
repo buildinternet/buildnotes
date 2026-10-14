@@ -83,6 +83,20 @@
       },
       "labels": [],
       "comments": []
+    },
+    "999": {
+      "number": 999,
+      "title": "The pool half (a pull request)",
+      "body": "Not an issue.",
+      "url": "https://github.com/acme/app/pull/999",
+      "state": "MERGED",
+      "createdAt": "2026-09-01T12:00:00Z",
+      "closedAt": null,
+      "author": {
+        "login": "erin"
+      },
+      "labels": [],
+      "comments": []
     }
   },
   "subIssues": {

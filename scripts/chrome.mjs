@@ -34,11 +34,11 @@ export function chromePath() {
   return candidates.find((p) => existsSync(p));
 }
 
-// Chrome prints its DevTools port on stderr once it is ready.
+// Chrome prints its DevTools port on stderr once it is ready. A busy CI runner starting several at once can take 20 s or more.
 function portOf(chrome) {
   return new Promise((done, fail) => {
     let text = "";
-    const timer = setTimeout(() => fail(new Error("Chrome did not start within 20 s")), 20000);
+    const timer = setTimeout(() => fail(new Error("Chrome did not start within 45 s")), 45000);
     chrome.stderr.on("data", (chunk) => {
       text += chunk;
       const m = text.match(/DevTools listening on ws:\/\/[^:]+:(\d+)\//);

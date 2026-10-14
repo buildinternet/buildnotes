@@ -25,5 +25,5 @@ try {
 const dir = join(root, repo, name);
 mkdirSync(dir, { recursive: true });
 const style = join(root, repo, "house-style.md");
-if (existsSync(style)) console.error(`house style: ${style} (read it before writing)`);
+console.error(existsSync(style) ? `house style: ${style} (read it before writing)` : `house style: none yet; when the author settles a name or term, start ${style}`);
 console.log(dir);

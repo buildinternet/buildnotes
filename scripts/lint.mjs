@@ -284,7 +284,7 @@ for (const svg of raw.match(/<svg\b[\s\S]*?<\/svg>/g) ?? []) {
   for (const m of svg.matchAll(/<circle\b([^>]*)>\s*<animateMotion\b([^>]*)>/g)) {
     const cx = Number(m[1].match(/\bcx="([^"]+)"/)?.[1] ?? 0), cy = Number(m[1].match(/\bcy="([^"]+)"/)?.[1] ?? 0);
     if (cx || cy) { hard++; say(`✗ "${title}": moving dot has cx/cy ${cx},${cy}; set both to 0 (animateMotion adds its path to them)`); }
-    if (svg.indexOf(m[0]) > svg.search(/<rect\b/) && svg.search(/<rect\b/) >= 0) say(`! "${title}": moving dot is drawn after the boxes, so it crosses their labels; move the <circle> above the first <rect>`);
+    if (svg.indexOf(m[0]) > svg.search(/<rect\b/) && svg.search(/<rect\b/) >= 0) say(`! "${title}": moving dot is drawn after the <rect>s; in a flow it should vanish into each box, not slide across its label, so move the <circle> above the first <rect>. A route over a plan or map can ignore this`);
     // A point hidden inside a box is fine: the dot turns while it's covered.
     const rects = [...svg.matchAll(/<rect\b([^>]*)>/g)].map((r) => ["x", "y", "width", "height"].map((k) => Number(r[1].match(new RegExp(`\\b${k}="([^"]+)"`))?.[1] ?? NaN)));
     const inBox = (p) => { const [x, y] = p.split(",").map(Number); return rects.some(([rx, ry, w, h]) => x > rx && x < rx + w && y > ry && y < ry + h); };
