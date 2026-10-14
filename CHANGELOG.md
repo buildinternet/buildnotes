@@ -34,6 +34,7 @@ Until the first release, changes are recorded under [Unreleased].
 
 ### Fixed
 
+- A keyed figure's legend lost its own spacing to the chapter's list rule (no gap above it, an indent, rows packed tight); the list rule now leaves the legend alone.
 - Image paths in `strip` specs are relative to the spec, as they already were in `anatomy` specs; both now share one rule, and a path that only resolves from the page still renders, with a warning.
 - `gather.mjs` no longer looks up placeholder references such as `owner/repo#123` in PR bodies.
 - `workdir.mjs --help` prints its usage instead of making a folder called `--help`.
