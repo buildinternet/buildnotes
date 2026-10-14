@@ -39,6 +39,8 @@ Until the first release, changes are recorded under [Unreleased].
 
 ### Fixed
 
+- Margin notes: on a narrow screen a note is set off from the text by a rule, so it doesn't read as body text; on a wide one it sits level with its line without making the paragraph taller (it was floated, and a paragraph in the chapter grid grew to hold it, leaving a gap). `lint.mjs` flags a note placed mid-paragraph or mid-item, which splits the text on a phone; the example's one note moves to the end of its item.
+- The `delta` component's before and after values lost their layout when the margin note class was renamed; the template styles `.delta .side` again.
 - A keyed figure's legend lost its own spacing to the chapter's list rule (no gap above it, an indent, rows packed tight); the list rule now leaves the legend alone.
 - Image paths in `strip` specs are relative to the spec, as they already were in `anatomy` specs; both now share one rule, and a path that only resolves from the page still renders, with a warning.
 - `gather.mjs` no longer looks up placeholder references such as `owner/repo#123` in PR bodies.

@@ -105,3 +105,14 @@ test("pull request as product vocabulary isn't process talk; the record still is
   assert.match(out, /colon reveal\?: The fix: a cache/);
   assert.doesNotMatch(out, /colon reveal\?: We already had a way/);
 });
+
+test("a margin note mid-paragraph or mid-item is flagged; one at the end is not", () => {
+  const dir = mkdtempSync(join(tmpdir(), "lint-"));
+  const note = (s) => `<span class="sidenote" role="note">${s}</span>`;
+  writeFileSync(join(dir, "p.html"), `<article class="post"><section class="ch" id="c1"><h2>A</h2>
+    <p>One.${note("Mid.")} Two.</p><ul><li>Item.${note("Mid item.")} More.</li><li>Fine.${note("End.")}</li></ul><p>Ok.${note("End too.")}</p></section></article>`);
+  const out = lint(join(dir, "p.html"), "--offline");
+  assert.match(out, /margin note mid-paragraph \(before "Two\."\)/);
+  assert.match(out, /margin note mid-paragraph \(before "More\."\)/);
+  assert.equal((out.match(/mid-paragraph/g) ?? []).length, 2);
+});

@@ -354,9 +354,9 @@ figcaption a { color: inherit; }
 
 /* ── component: delta (viz.mjs delta) ── one number before and after, the change, and bars to scale */
 .delta { display: grid; grid-template-columns: auto auto 1fr; align-items: end; gap: 0.35rem 1.25rem; }
-.delta .sidenote { display: grid; gap: 0.15rem; }
+.delta .side { display: grid; gap: 0.15rem; }
 .delta .num { font: 600 clamp(1.75rem, 6vw, 2.5rem)/1.1 var(--font-display); letter-spacing: -0.01em; }
-.delta .sidenote:not(.after) .num { color: var(--muted); }
+.delta .side:not(.after) .num { color: var(--muted); }
 .delta .to { font: 1.5rem/1.6 var(--font-mono); color: var(--muted); }
 .delta .change { grid-column: 1 / -1; font: 0.8125rem/1.5 var(--font-mono); color: var(--muted); }
 .delta .change b { color: var(--ink); font-weight: 500; }
@@ -449,9 +449,15 @@ figcaption a { color: inherit; }
 .colophon { color: var(--muted); font-style: italic; }
 
 /* margin note: a short aside (a definition, a unit, where a number came from), never part of the argument.
-   It follows its paragraph on narrow screens and moves into the right margin when there is room. */
-.sidenote { display: block; margin-top: 0.55rem; max-width: 30rem; font: 400 0.875rem/1.45 var(--font-note); color: var(--note); text-wrap: pretty; }
-@media (min-width: 76rem) { .sidenote { float: right; clear: right; width: 12rem; margin: 0.15rem -15rem 0 0; } }
+   Put it at the end of its paragraph. On narrow screens it follows the paragraph, set off by a rule so it
+   doesn't read as body text; when there is room it sits in the right margin, level with its line, without
+   making the paragraph taller. */
+.sidenote { display: block; margin-top: 0.6rem; max-width: 30rem; padding: 0.05rem 0 0.05rem 0.75rem; border-left: 2px solid color-mix(in oklab, var(--note) 35%, var(--paper)); font: 400 0.875rem/1.45 var(--font-note); color: var(--note); text-wrap: pretty; }
+@media (min-width: 76rem) {
+  :has(> .sidenote) { position: relative; }
+  /* inline, so its top sits on the line it ends (an absolute box keeps an inline box's static position) */
+  .sidenote { display: inline; position: absolute; right: -15rem; width: 12rem; margin: 0; padding: 0; border: 0; }
+}
 
 /* finding: what the chapter found, in one sentence a reader would repeat. At most one per chapter. */
 .finding { display: grid; gap: 0.35rem; margin-block: 0.4rem 0; }

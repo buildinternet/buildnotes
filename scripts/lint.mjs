@@ -348,6 +348,10 @@ for (const p of parts) {
   const n = (p.html.match(/<aside class="finding"/g) ?? []).length;
   if (n > 1) say(`! ${p.id}: ${n} findings; keep the one a reader would repeat`);
 }
+// A note mid-paragraph splits the paragraph on a phone, where notes follow the text they sit in.
+for (const m of live.matchAll(/<span class="sidenote"[^>]*>[\s\S]*?<\/span>([\s\S]*?)<\/(?:p|li)>/g)) {
+  if (text(m[1]).trim()) say(`! margin note mid-paragraph (before "${text(m[1]).trim().slice(0, 40)}"): move it to the end of the paragraph, or split the paragraph there`);
+}
 for (const m of live.matchAll(/<span class="sidenote"[^>]*>([\s\S]*?)<\/span>/g)) {
   const w = words(text(m[1]));
   if (w > 30) say(`! margin note of ${w} words ("${text(m[1]).slice(0, 50)}…"): a note is a short aside; move the rest into the paragraph or cut it`);
