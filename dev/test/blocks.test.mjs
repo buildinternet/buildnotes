@@ -139,3 +139,15 @@ test("matrix warns when a row's marks tell nothing apart; code takes wrap", () =
   assert.match(code({ file: "a.js", source: "const a = 1;\n", wrap: true }), /^<figure class="code wrap">/);
   assert.match(code({ file: "a.js", source: "const a = 1;\n" }), /^<figure class="code">/);
 });
+
+test("strip: image paths are relative to the spec, written relative to the page", () => {
+  const specs = resolve(root, "assets/specs");
+  const frames = [{ label: "Round one", src: "img/round-1.svg", alt: "a" }, { label: "As it ships", src: "img/round-3.svg", alt: "b" }];
+  takeWarnings();
+  assert.match(strip({ frames }, { base: specs, page: root }), /<img src="assets\/specs\/img\/round-1\.svg"/);
+  assert.deepEqual(takeWarnings(), []);
+  // A path that only works from the page still renders, and says so.
+  const old = strip({ frames: frames.map((f) => ({ ...f, src: `assets/specs/${f.src}` })) }, { base: specs, page: root });
+  assert.match(old, /<img src="assets\/specs\/img\/round-1\.svg"/);
+  assert.match(takeWarnings().join("\n"), /resolves from the page, not the spec/);
+});

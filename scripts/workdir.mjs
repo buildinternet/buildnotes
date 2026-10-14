@@ -15,7 +15,7 @@ import { homedir } from "node:os";
 import { basename, dirname, join } from "node:path";
 
 const slug = process.argv[2];
-if (!slug) { console.error("usage: workdir.mjs <slug>"); process.exit(2); }
+if (!slug || slug.startsWith("-")) { console.error("usage: workdir.mjs <slug>   (makes and prints ~/.build-stories/<repo>/<date>-<slug>)"); process.exit(slug === "--help" || slug === "-h" ? 0 : 2); }
 const name = /^\d{4}-\d{2}-\d{2}-/.test(slug) ? slug : `${new Date().toISOString().slice(0, 10)}-${slug}`;
 const root = process.env.BUILD_STORY_DIR || join(homedir(), ".build-stories");
 let repo = "no-repo";

@@ -321,7 +321,7 @@
     "other/cli#7": {
       "number": 7,
       "title": "feat(cli): share the limit",
-      "body": "The CLI half of the limit.\n\nSee https://github.com/elsewhere/docs/issues/9 for the write-up.",
+      "body": "The CLI half of the limit.\n\nSee https://github.com/elsewhere/docs/issues/9 for the write-up. Usage: `uploads put x --github owner/repo#123`.",
       "url": "https://github.com/other/cli/pull/7",
       "state": "MERGED",
       "author": {

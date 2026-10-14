@@ -19,8 +19,8 @@
 // lines are drawn by hand, seeded by the figure's id.
 
 import { readFileSync } from "node:fs";
-import { relative, resolve } from "node:path";
-import { esc, inline, slug, r, warn, rand, handLine, handRect } from "./util.mjs";
+import { resolve } from "node:path";
+import { esc, inline, slug, r, warn, rand, handLine, handRect, assetSrc } from "./util.mjs";
 
 const U = 430; // the drawing's width in its own units, whatever the capture's size
 
@@ -55,8 +55,7 @@ export function render(input, opts = {}) {
   const D = frame[3] / s;
   const hand = opts.style === "field-notes";
   const next = hand ? rand(id) : null;
-  // Image paths in the spec are relative to it; on a page they must be relative to the page.
-  const src = (p) => (p && opts.page && opts.base && !/^(https?:|data:|\/)/.test(p) ? relative(opts.page, resolve(opts.base, p)) : p);
+  const src = (p) => assetSrc(p, opts, `anatomy "${id}"`);
 
   // Which data-k each part and each part's marks answer to: a part lights for its first plain key,
   // its marks for a key with "marks": true.

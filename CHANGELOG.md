@@ -28,4 +28,15 @@ Until the first release, changes are recorded under [Unreleased].
 - The weekly-digests example uses the current template: the card is a keyed figure over the shipped capture, the patch-pool bars and the replay frames use the `bars` and `strip` components, chapter 2 closes with a finding, and the sentence about the card's colors now says columns, as the card has. The README shows the keyed card and the field notes version.
 - `viz.mjs build` passes the page's folder to the renderers, so an image a spec names resolves relative to the page.
 - `export.mjs` hides the expand icon and hotspot notes in exports, and the README's images are re-exported with it from the current gallery and example.
+- Figures get more room above and below than paragraphs. A caption stays in the reading column under a figure that breaks out wider, set in the heading face a step below the text, with its figure number ("Fig. 2.") as a label; a keyed figure's legend uses the heading face too. The examples and the gallery pick this up, and the README's two keyed images are re-exported.
+- `lint.mjs` counts a sentence that names a pull request as process talk only when it's about the record (a number, "the second pull request", or what was done to one), so a post about a product built around pull requests isn't flagged for describing it. The colon-reveal check flags only a short payoff after the colon.
+- `gather.mjs` names a repo's changelog folder (one file per entry, such as `apps/web/src/content/changelog/`) under Prior work, and the entries the selected work added there.
+
+### Fixed
+
+- A keyed figure's legend lost its own spacing to the chapter's list rule (no gap above it, an indent, rows packed tight); the list rule now leaves the legend alone.
+- Image paths in `strip` specs are relative to the spec, as they already were in `anatomy` specs; both now share one rule, and a path that only resolves from the page still renders, with a warning.
+- `gather.mjs` no longer looks up placeholder references such as `owner/repo#123` in PR bodies.
+- `workdir.mjs --help` prints its usage instead of making a folder called `--help`.
+- `references/visuals.md`: how to hide sticky headers before a capture, and a crop command that honours its offset (`sips -c` crops around the centre).
 - Plain replaces the template's previous look: Archivo, Newsreader and IBM Plex Mono on a white page, and figures (flows, steps, diagrams) on plain ground between two rules instead of a bordered dot grid.

@@ -1,4 +1,5 @@
 <title>Weekly Digests, Rebuilt</title>
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
@@ -98,7 +99,7 @@ em { font-style: italic; }
 
 /* ── masthead ───────────────────────────────────────── */
 .mast { display: grid; gap: 0.9rem; padding-bottom: 1.25rem; border-bottom: 1px solid var(--rule); }
-.kicker, .byline, .stats dt, .label, figcaption, .toc, .n, .tag, .end h2 {
+.kicker, .byline, .stats dt, .label, .toc, .n, .tag, .end h2 {
   font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.04em; color: var(--muted);
 }
 .kicker, .stats dt, .n, .tag, .end h2 { font-family: var(--font-label); font-stretch: var(--label-stretch); font-weight: 600; }
@@ -135,12 +136,18 @@ h1 {
   .ch h2 { position: relative; }
   .ch h2 .n { position: absolute; right: calc(100% + 1rem); top: 0.45rem; }
 }
-.ch ul, .ch ol:not(.timeline):not(.steps) { margin-block: 0; padding-left: 1.25rem; display: grid; gap: 0.35rem; }
+.ch ul, .ch ol:not(.timeline):not(.steps):not(.keys) { margin-block: 0; padding-left: 1.25rem; display: grid; gap: 0.35rem; }
 
 /* ── figures (shared) ───────────────────────────────── */
-figure { margin: 0; display: grid; gap: 0.5rem; min-width: 0; }
-figcaption { line-height: 1.5; text-wrap: pretty; }
-figcaption a { color: var(--muted); }
+/* A figure gets more room above and below than a paragraph, so it reads as its own block. Its caption
+   sits in the reading column even when the figure breaks out wider, set in the heading face a step
+   below the text, with the figure number as its label. */
+figure { margin: 0; display: grid; gap: 0.6rem; min-width: 0; }
+.post > figure, .ch > figure { margin-block: 0.9rem; }
+figcaption { font: 0.875rem/1.5 var(--font-display); color: color-mix(in oklab, var(--ink) 72%, var(--paper)); text-wrap: pretty; }
+figure:not(.code) > figcaption { width: 100%; max-width: var(--col); justify-self: center; padding-top: 0.15rem; }
+figcaption .fig-n { font-weight: 600; color: var(--ink); margin-right: 0.15em; }
+figcaption a { color: inherit; }
 
 /* code + terminal */
 .code { gap: 0; padding: 0.75rem 1rem 0.9rem; border-radius: 12px; background: var(--card); box-shadow: var(--card-shadow); }
@@ -441,7 +448,7 @@ figcaption a { color: var(--muted); }
   .hs .tip, .hs.left .tip { top: calc(100% + 2px); left: 50%; right: auto; max-width: min(15rem, 86cqw); transform: translateX(calc(-1 * var(--x))); }
 }
 .hs:is(:hover, :focus-visible) { z-index: 3; }
-.keys { list-style: none; margin: 0.6rem 0 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: 0.5rem 1.75rem; counter-reset: key; font-size: 0.9375rem; line-height: 1.45; }
+.keys { list-style: none; margin: 1rem 0 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: 0.5rem 1.75rem; counter-reset: key; font: 0.875rem/1.45 var(--font-display); }
 .keys li { counter-increment: key; display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 0.6rem; align-items: start; margin: -0.25rem -0.4rem; padding: 0.25rem 0.4rem; border-radius: 6px; transition: background 0.15s; }
 .keys li::before { content: attr(data-k); margin-top: 0.05rem; }
 .keys li.on { background: color-mix(in oklab, var(--mark) 9%, var(--paper)); }
@@ -512,6 +519,8 @@ figcaption a { color: var(--muted); }
 [data-style="field-notes"] .sidenote { font-size: 0.9375rem; }
 @media (min-width: 76rem) { [data-style="field-notes"] .sidenote::before { content: "← " / ""; } }
 [data-style="field-notes"] .finding .label { color: var(--muted); }
+[data-style="field-notes"] figure:not(.code) > figcaption { font-style: italic; }
+[data-style="field-notes"] figcaption .fig-n { font-style: normal; }
 [data-style="field-notes"] .hs .dot, [data-style="field-notes"] .keys li::before { background: var(--paper); color: var(--ink); border: 1.25px solid var(--ink); border-radius: 52% 46% 50% 48% / 47% 53% 46% 54%; font-family: var(--font-note); font-size: 0.8125rem; }
 [data-style="field-notes"] .hs:is(:hover, :focus-visible, .on) .dot { background: color-mix(in oklab, var(--mark) 16%, var(--paper)); color: var(--ink); border-color: var(--mark); }
 [data-style="field-notes"] .hs .tip, :root:has(.post[data-style="field-notes"]) .zoom { border-color: var(--ink); border-radius: 3px; box-shadow: 3px 3px 0 var(--rule); }
@@ -862,6 +871,17 @@ figcaption a { color: var(--muted); }
       start();
     }
   })();
+  // Captions: set the figure number ("Fig. 2.") as the caption's label.
+  for (const cap of document.querySelectorAll("figure:not(.code) > figcaption")) {
+    const first = cap.firstChild;
+    const m = first?.nodeType === 3 && first.textContent.match(/^\s*(Fig\.\s*[\w.]+?\.)\s/);
+    if (!m) continue;
+    const n = document.createElement("span");
+    n.className = "fig-n";
+    n.textContent = m[1];
+    first.textContent = first.textContent.slice(m[0].length - 1);
+    cap.insertBefore(n, first);
+  }
   // Keyed figures: copy each legend entry into its hotspot's note, and light a hotspot and its entry together.
   for (const fig of document.querySelectorAll(".keyed")) {
     const entries = new Map([...fig.querySelectorAll(".keys [data-k]")].map((li) => [li.dataset.k, li]));

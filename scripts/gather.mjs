@@ -281,7 +281,12 @@ function priorWork() {
   const before = start?.slice(0, 10) ?? null;
   // Where earlier releases were announced: changelogs and release-notes files in the repo.
   const notes = [...headFiles].filter((f) => /(^|\/)(CHANGELOG|CHANGES|HISTORY|RELEASES|RELEASE[-_]NOTES)\.(md|mdx)$/i.test(f) && !/node_modules|vendor\/|dist\/|\/npm\/|(^|\/)(packages|apps)\/[^/]+\/CHANGELOG/i.test(f)).sort((x, y) => x.split("/").length - y.split("/").length).slice(0, 6);
-  const out = { before, files: [], changes: [], prs: [], notes };
+  // Sites keep one file per entry in a changelog folder (apps/web/src/content/changelog/x.md); name
+  // the folder, and the entries the selected work added, which say what's already been announced.
+  const ENTRY = /(^|\/)(changelogs?|release-notes|releases)\/[^/]+\.(md|mdx)$/i;
+  const noteDirs = [...new Set([...headFiles].filter((f) => ENTRY.test(f) && !/node_modules|vendor\//.test(f)).map((f) => f.replace(/[^/]+$/, "")))].slice(0, 3);
+  const announced = [...new Set(dossier.prs.flatMap((p) => p.files.map((f) => f.path)).filter((f) => noteDirs.some((d) => f.startsWith(d) && !f.slice(d.length).includes("/"))))];
+  const out = { before, files: [], changes: [], prs: [], notes, noteDirs, announced };
   if (!start) return out;
 
   // Explicit search for earlier work in the area (--prior "terms").
@@ -410,6 +415,8 @@ function crossRepoRefs() {
     // "apps/cli#12" is a path-ish mention, not a repo: skip owners that are top-level directories here.
     for (const m of (text ?? "").matchAll(/(?<![\w/.@-])([A-Za-z0-9][A-Za-z0-9-]*)\/([\w.-]*[\w-])#(\d+)\b/g)) if (!top.has(m[1])) found.push([m[1], m[2], m[3]]);
     for (const [o, r, n] of found) {
+      // Docs and PR bodies use placeholders ("owner/repo#123"); they aren't references.
+      if (/^(owner|org|user|you|your-?org|example|acme)$/i.test(o) && /^(repo|name|project|example|your-?repo)$/i.test(r)) continue;
       const full = `${o}/${r.replace(/\.git$/, "")}`;
       if (full.toLowerCase() === fromRepo.toLowerCase()) continue;
       const key = `${full}#${n}`;
@@ -552,9 +559,10 @@ function renderMarkdown() {
   const pw = dossier.priorWork;
   L.push("## Prior work", "", `Leads for the brief's prior context (is this new, or an iteration on something users already know?), from before ${pw.before ?? "the feature"}. Confirm in the changelog, docs and earlier posts what was already announced.`, "");
   if (pw.notes.length) L.push("Where releases were announced (read the entries from before the feature): " + pw.notes.map((f) => `\`${f}\``).join(", "), "");
+  if (pw.noteDirs?.length) L.push("Changelog entries, one file each: " + pw.noteDirs.map((d) => `\`${d}\``).join(", ") + (pw.announced.length ? `. This work added ${pw.announced.map((f) => `\`${f.split("/").pop()}\``).join(", ")}: what's already announced.` : "."), "");
   if (pw.prs.length) { L.push(`Earlier PRs matching \`--prior ${esc(args.prior)}\`:`, ""); for (const p of pw.prs) L.push(`- ${p.date} #${p.number} ${esc(oneLine(p.title, 110))}`); L.push(""); }
   if (pw.changes.length) { L.push("Earlier changes to files this feature modified (most shared files first; busy hub files skipped):", ""); for (const c of pw.changes) L.push(`- ${c.date} \`${c.sha}\` (${c.overlap} files) ${esc(oneLine(c.subject, 100))}`); L.push(""); }
-  if (!pw.notes.length && !pw.prs.length && !pw.changes.length) L.push("- none found. Try `--prior \"<terms>\"`.", "");
+  if (!pw.notes.length && !pw.noteDirs?.length && !pw.prs.length && !pw.changes.length) L.push("- none found. Try `--prior \"<terms>\"`.", "");
 
   if (dossier.feedbackSignals.length) {
     const fs = dossier.feedbackSignals;

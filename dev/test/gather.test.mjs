@@ -271,6 +271,9 @@ test("assembles a dossier from gh and git fixtures", () => serial(async () => {
 
   assert.equal(dossier.priorWork.before, "2026-08-01");
   assert.deepEqual(dossier.priorWork.notes, ["CHANGELOG.md"]);
+  assert.deepEqual(dossier.priorWork.noteDirs, ["site/changelog/"]);
+  assert.deepEqual(dossier.priorWork.announced, []);
+  assert.ok(!errors.some((e) => /owner\/repo#123/.test(e)), "a placeholder owner/repo#123 is not looked up");
   assert.deepEqual(dossier.priorWork.files, ["src/quota/budget.js", "docs/limits.md"]);
   assert.deepEqual(dossier.priorWork.prs, [{ number: 40, title: "feat(limits): first token bucket", date: "2026-07-15" }]);
   assert.deepEqual(dossier.priorWork.changes, [{

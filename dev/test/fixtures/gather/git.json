@@ -1,5 +1,5 @@
 {
-  "lsFiles": "CHANGELOG.md\npackages/app/CHANGELOG.md\ndocs/limits.md\nsrc/limits/budget.js\nsrc/limits/budget.test.js\nREADME.md\n",
+  "lsFiles": "CHANGELOG.md\npackages/app/CHANGELOG.md\nsite/changelog/token-bucket.md\ndocs/limits.md\nsrc/limits/budget.js\nsrc/limits/budget.test.js\nREADME.md\n",
   "renames": "M\tREADME.md\nR100\tsrc/quota/budget.js\tsrc/limits/budget.js\nR090\tREADME.md\tREADME-old.md\n",
   "lsTree": "CHANGELOG.md\nREADME.md\ndocs\npackages\nsrc\n",
   "commits": "\u001eab12cd34\u001f2026-09-12\u001fErin\u001fRevert the limit bump\u001fThe limit was too low.\n1\t2\tsrc/limits/budget.js\n-\t-\tbin.dat\n\u001eef56ab78\u001f2026-09-03\u001fErin\u001ffeat: already in the PR (#120)\u001f\n3\t0\tsrc/limits/budget.js\n",
