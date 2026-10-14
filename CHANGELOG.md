@@ -16,3 +16,8 @@ Until the first release, changes are recorded under [Unreleased].
 - Install paths for Claude Code, OpenCode, and Codex, and the MIT license, including the notice for the capture script adapted from [anatomy](https://github.com/wheresryan22/anatomy).
 - Node.js 22 as the minimum (`package.json` engines, the README, and `SKILL.md`). GitHub Actions checks script syntax, `SKILL.md` frontmatter, and the test suite on Node 22 ([#1](https://github.com/buildinternet/buildnotes/pull/1)).
 - This changelog, a pull request template that asks for an Unreleased line, and fixture tests for `scripts/gather.mjs` (`dev/test/gather.test.mjs`, `dev/test/fixtures/gather/`).
+- Two page styles in `assets/template.html`: Plain, the default, and field notes (`data-style="field-notes"` on the article), each in light and dark. Colour tokens now have roles, with `--landmark` added for landmarks and target lines, and `--font-label` and `--font-code` for labels and code. `viz.mjs build` reads the style and draws flows by hand in field notes, seeded so every build matches (`--style` for a single figure, `dev/gallery.mjs` and `dev/shots.mjs`). The styles and the colour roles are in `references/visuals.md#styles`.
+
+### Changed
+
+- Plain replaces the template's previous look: Archivo, Newsreader and IBM Plex Mono on a white page, and figures (flows, steps, diagrams) on plain ground between two rules instead of a bordered dot grid.

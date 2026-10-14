@@ -120,7 +120,9 @@ For each beat, decide whether a visual earns its place, and make it before writi
 
 ### 6. Write the page
 
-Copy [assets/template.html](assets/template.html) to `<work-dir>/post.html` and replace its example content. Its components are a toolbox: most posts use four or five and delete the rest. Point each `<!-- viz … -->` marker at your own spec and render them all with `node <skill-dir>/scripts/viz.mjs build <work-dir>/post.html`; run it again after editing a spec. Opted-in modules go after the last chapter; generate the data ones with `node <skill-dir>/scripts/module.mjs <build-log|numbers|timeline> <work-dir>/evidence/dossier.json`. If the project has its own brand, restyle the `:root` tokens.
+Copy [assets/template.html](assets/template.html) to `<work-dir>/post.html` and replace its example content. Its components are a toolbox: most posts use four or five and delete the rest. Point each `<!-- viz … -->` marker at your own spec and render them all with `node <skill-dir>/scripts/viz.mjs build <work-dir>/post.html`; run it again after editing a spec. Opted-in modules go after the last chapter; generate the data ones with `node <skill-dir>/scripts/module.mjs <build-log|numbers|timeline> <work-dir>/evidence/dossier.json`.
+
+Pick the style before rendering. **Plain** (the default) is the base: a white page, figures on plain ground, nothing drawn by hand; a project with its own brand restyles its tokens. **Field notes** (`data-style="field-notes"` on the article) suits a post that explains a concept or shares a discovery: a serif page, figures on a dot grid, flows drawn by hand. Ask only when the author has a house look; otherwise choose, and say which in the hand-off. Both work in light and dark. [visuals.md](references/visuals.md#styles)
 
 ### 7. Check
 

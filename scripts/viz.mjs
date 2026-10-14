@@ -2,7 +2,7 @@
 // viz.mjs — render a post's visual components from small data specs into static HTML/SVG.
 //
 // Usage:
-//   node viz.mjs <kind> <spec.json> [--id name]   print one fragment (paste it into the post)
+//   node viz.mjs <kind> <spec.json> [--id name] [--style field-notes]   print one fragment
 //   node viz.mjs build <post.html> [--check]      render every viz marker in the post, in place
 //   node viz.mjs kinds                            list the kinds
 //
@@ -16,10 +16,12 @@
 // The fragment is the component only: wrap it in your own <figure> and write the <figcaption>.
 // code and term are the exception: they render whole figures with their captions.
 // Warnings (sizes, long labels) go to stderr. Specs and kinds: references/visuals.md#components.
+// The page's style (data-style on the article, plain by default) goes to the renderers: in field notes
+// a flow is drawn by hand. The style is part of the stamp, so changing it marks every flow stale.
 
 import { readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
-import { hash, takeWarnings } from "./viz/util.mjs";
+import { hash, takeWarnings, STYLES } from "./viz/util.mjs";
 import * as flow from "./viz/flow.mjs";
 import * as bars from "./viz/bars.mjs";
 import * as delta from "./viz/delta.mjs";
@@ -44,19 +46,29 @@ export function renderKind(kind, specText, opts = {}) {
   return mod.render(parseSpec(mod, specText), opts);
 }
 
+// The style a post asks for: data-style on <article class="post">. Unknown values fall back to plain.
+export function styleOf(html) {
+  const tag = html.match(/<article\b[^>]*\bclass="[^"]*\bpost\b[^"]*"[^>]*>/)?.[0] ?? "";
+  const s = tag.match(/\bdata-style="([^"]+)"/)?.[1];
+  return STYLES.includes(s) ? s : "plain";
+}
+
 export function build(html, base, { check = false } = {}) {
   const problems = [];
   let n = 0;
+  const style = styleOf(html);
+  // Plain stamps stay as they were; another style salts the hash so a switch shows up as stale.
+  const salt = style === "plain" ? "" : `\nstyle:${style}`;
   const out = html.replace(MARKER, (all, kind, path, stamp, body) => {
     n++;
     let text;
     try { text = readFileSync(resolve(base, path), "utf8"); } catch { problems.push(`${kind} ${path}: spec not found`); return all; }
     const specBase = dirname(resolve(base, path));
-    let h = hash(text);
+    let h = hash(text + salt);
     try {
       const mod = KINDS[kind];
       const deps = mod?.deps?.(parseSpec(mod, text), specBase) ?? [];
-      if (deps.length) h = hash(text + deps.map((d) => readFileSync(d, "utf8")).join("\n"));
+      if (deps.length) h = hash(text + deps.map((d) => readFileSync(d, "utf8")).join("\n") + salt);
     } catch {}
     if (check) {
       if (!body.trim()) problems.push(`${kind} ${path}: not rendered yet`);
@@ -64,7 +76,7 @@ export function build(html, base, { check = false } = {}) {
       return all;
     }
     try {
-      const frag = renderKind(kind, text, { id: nameOf(path), base: specBase });
+      const frag = renderKind(kind, text, { id: nameOf(path), base: specBase, style });
       for (const w of takeWarnings()) problems.push(`${kind} ${path}: ${w}`);
       return `<!-- viz ${kind} ${path} #${h} -->\n${frag}\n<!-- /viz -->`;
     } catch (err) {
@@ -81,7 +93,7 @@ if (isMain) {
   const [cmd, file] = argv;
   const opt = (k) => { const i = argv.indexOf(`--${k}`); return i >= 0 ? argv[i + 1] : undefined; };
   if (!cmd || cmd === "--help" || cmd === "-h") {
-    console.error("usage: viz.mjs <kind> <spec.json> [--id name] | viz.mjs build <post.html> [--check] | viz.mjs kinds");
+    console.error("usage: viz.mjs <kind> <spec.json> [--id name] [--style field-notes] | viz.mjs build <post.html> [--check] | viz.mjs kinds");
     process.exit(cmd ? 0 : 2);
   }
   if (cmd === "kinds") { console.log(Object.keys(KINDS).join("\n")); process.exit(0); }
@@ -96,7 +108,9 @@ if (isMain) {
       process.exit(check && problems.length ? 1 : 0);
     }
     const id = opt("id") ?? nameOf(file);
-    console.log(renderKind(cmd, readFileSync(file, "utf8"), { id, base: dirname(resolve(file)) }));
+    const style = opt("style") ?? "plain";
+    if (!STYLES.includes(style)) throw new Error(`unknown style "${style}" (styles: ${STYLES.join(", ")})`);
+    console.log(renderKind(cmd, readFileSync(file, "utf8"), { id, base: dirname(resolve(file)), style }));
     for (const w of takeWarnings()) console.error(`! ${w}`);
   } catch (err) {
     console.error(`viz.mjs: ${err.message}`);

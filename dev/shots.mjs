@@ -3,7 +3,7 @@
 // dark, with headless Chrome (scripts/chrome.mjs); check that nothing scrolls the page sideways; then
 // build a contact sheet. The four modes run in parallel, one Chrome each.
 //
-// Usage: node dev/shots.mjs [--only flow] [--time 1]
+// Usage: node dev/shots.mjs [--only flow] [--style field-notes] [--time 1]
 // Writes runs/components/shots/<id>-<width>-<theme>.png and runs/components/sheet.png.
 // --time: the moment (seconds) SVG motion is frozen at, so a dot shows mid-trip (default 1).
 // Needs Chrome (set CHROME_PATH if it isn't found).
@@ -21,7 +21,7 @@ const dir = join(root, "runs/components");
 const shots = join(dir, "shots");
 mkdirSync(shots, { recursive: true });
 
-execFileSync("node", [join(root, "dev/gallery.mjs"), ...(opt("only") ? ["--only", opt("only")] : [])], { stdio: "inherit" });
+execFileSync("node", [join(root, "dev/gallery.mjs"), ...(opt("only") ? ["--only", opt("only")] : []), ...(opt("style") ? ["--style", opt("style")] : [])], { stdio: "inherit" });
 const page = pathToFileURL(join(dir, "gallery.html")).href;
 const ids = [...readFileSync(join(dir, "gallery.html"), "utf8").matchAll(/<div class="ex" id="([^"]+)"/g)].map((m) => m[1]);
 const time = Number(opt("time") ?? 1);

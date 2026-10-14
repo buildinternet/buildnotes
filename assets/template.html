@@ -9,46 +9,89 @@
   ("viz kind viz/name.json" … "/viz", as below), and run scripts/viz.mjs build post.html.
   The markers below point at the skill's example specs (specs/…); replace them. Every kind, with its
   spec, is previewed in assets/components.html. Specs: references/visuals.md#components.
-  Restyle by editing the :root tokens only. Keep the light/dark structure.
+  Two styles share this markup. Plain is the default. For field notes, set data-style="field-notes" on
+  the article and render the viz markers again (flows get hand-drawn strokes). Restyle by editing the
+  tokens only: a brand changes the Plain block. Keep the light/dark structure.
+  Colour roles: --accent fills and the series that matters, --mark highlights and commentary (never
+  a fill), --landmark a landmark or star, --dim the data that isn't the point.
 -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Schibsted+Grotesk:wght@500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap">
+<!-- Both styles' fonts. A browser downloads only the files a page uses. -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500&family=Martian+Mono:wdth,wght@75..112.5,300..500&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=Shantell+Sans:wght@300..600&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap">
 <style>
 /* Layout: one reading column (~40rem) with figures that may break out to ~54rem; chapter numbers hang in the left margin from 48rem. */
+/* Plain: white paper, a grotesque for headings and labels, a reading serif, figures on plain ground between two rules. */
 :root {
-  --paper: #f5f6f7;
-  --ink: #16191d;
-  --muted: #5b636e;
-  --rule: #d8dce1;
-  --wash: #eaedf0;
-  --accent: #1d5bd0;
-  --accent-wash: #dfe8fa;
-  --mark: #df004e; /* annotation accent: chapter numbers, footnotes, partial marks; #ff3264 deepened in oklch for 4.5:1 on paper */
-  --dim: #7b838d; /* de-emphasised data marks (the series that isn't the point) */
-  --card: #ffffff; /* code and terminal blocks: a card lifted by a soft ring and shadow, no border */
-  --card-shadow: 0 0 0 1px rgb(0 0 0 / 0.05), 0 1px 2px 0 rgb(0 0 0 / 0.04), 0 2px 8px -2px rgb(0 0 0 / 0.06);
-  --font-display: "Schibsted Grotesk", "Helvetica Neue", Arial, sans-serif;
-  --font-body: "Source Serif 4", Georgia, "Times New Roman", serif;
-  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --paper: #ffffff;
+  --ink: #161616;
+  --muted: #616161;
+  --rule: #e4e4e4;
+  --wash: #f2f2f2;
+  --accent: #3358d4; /* fills, boxes, the lit part, the series that matters */
+  --accent-wash: #e8edfb;
+  --mark: #df004e; /* highlights and commentary: chapter numbers, footnotes, partial marks; #ff3264 deepened for 4.5:1 on paper. Never a fill. */
+  --landmark: #f2b81c; /* a landmark or star on a chart; never text */
+  --dim: #b3b3b3; /* de-emphasised data marks (the series that isn't the point) */
+  --card: #f7f7f7; /* code and terminal blocks */
+  --card-shadow: 0 0 0 1px rgb(0 0 0 / 0.05);
+  --plate: var(--paper); /* the ground under a flow, steps or diagram */
+  --font-display: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --font-body: "Newsreader", Georgia, "Times New Roman", serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-label: var(--font-display); /* kickers, chapter numbers, tags */
+  --font-code: var(--font-mono); /* code and terminal blocks */
+  --label-stretch: 80%;
+  --display-weight: 800;
+  --display-stretch: 86%;
+  --heading-weight: 700;
+  --body-size: 1.125rem;
   --col: 40rem;
   --wide: 54rem;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --paper: #0f1215; --ink: #e3e6ea; --muted: #9aa3ad; --rule: #2a3037; --wash: #171b20;
-    --accent: #82a8f6; --accent-wash: #1a2538; --mark: #ff3264; --dim: #646c76; --card: #161a1f; --card-shadow: 0 0 0 1px rgb(255 255 255 / 0.07); color-scheme: dark;
+    --paper: #131415; --ink: #ececea; --muted: #9c9c99; --rule: #2a2b2d; --wash: #1c1d1f;
+    --accent: #8aa6f5; --accent-wash: #1c2440; --mark: #ff3264; --dim: #55585d; --card: #1a1b1d; --card-shadow: 0 0 0 1px rgb(255 255 255 / 0.07); color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --paper: #0f1215; --ink: #e3e6ea; --muted: #9aa3ad; --rule: #2a3037; --wash: #171b20;
-  --accent: #82a8f6; --accent-wash: #1a2538; --mark: #ff3264; --dim: #646c76; --card: #161a1f; --card-shadow: 0 0 0 1px rgb(255 255 255 / 0.07); color-scheme: dark;
+  --paper: #131415; --ink: #ececea; --muted: #9c9c99; --rule: #2a2b2d; --wash: #1c1d1f;
+  --accent: #8aa6f5; --accent-wash: #1c2440; --mark: #ff3264; --dim: #55585d; --card: #1a1b1d; --card-shadow: 0 0 0 1px rgb(255 255 255 / 0.07); color-scheme: dark;
+}
+/* Field notes: off-white paper, a serif throughout, mono labels, figures on a dot grid, drawn strokes. */
+:root:has(.post[data-style="field-notes"]) {
+  --paper: #fcfcfa; --ink: #1f1f1d; --muted: #64645f; --rule: #e3e3dd; --wash: #f1f1ec;
+  --accent: #3358d4; --accent-wash: #e7ebf7; --mark: #df004e; --dim: #c4c4bd; --card: #f5f5f1; --card-shadow: 0 0 0 1px rgb(31 31 29 / 0.08);
+  --plate: radial-gradient(circle, var(--dot) 0.9px, transparent 1.2px) 0 0 / 16px 16px, var(--paper);
+  --dot: #d8d8d1;
+  --font-display: "Source Serif 4", Georgia, "Times New Roman", serif;
+  --font-body: "Source Serif 4", Georgia, "Times New Roman", serif;
+  --font-mono: "Martian Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-label: var(--font-mono);
+  --font-code: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace; /* Martian is too wide for a code line */
+  --font-note: "Shantell Sans", "Comic Neue", cursive; /* margin notes and annotations only */
+  --label-stretch: 87.5%;
+  --display-weight: 600;
+  --display-stretch: 100%;
+  --heading-weight: 600;
+  --body-size: 1.0625rem;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]):has(.post[data-style="field-notes"]) {
+    --paper: #18181a; --ink: #ebe8e1; --muted: #9d9a92; --rule: #2d2c2a; --wash: #222220;
+    --accent: #8aa6f5; --accent-wash: #1f2638; --mark: #ff3264; --dim: #55534d; --card: #1f1f1e; --card-shadow: 0 0 0 1px rgb(255 255 255 / 0.07); --dot: #3a3934;
+  }
+}
+:root[data-theme="dark"]:has(.post[data-style="field-notes"]) {
+  --paper: #18181a; --ink: #ebe8e1; --muted: #9d9a92; --rule: #2d2c2a; --wash: #222220;
+  --accent: #8aa6f5; --accent-wash: #1f2638; --mark: #ff3264; --dim: #55534d; --card: #1f1f1e; --card-shadow: 0 0 0 1px rgb(255 255 255 / 0.07); --dot: #3a3934;
 }
 
 * { box-sizing: border-box; }
 body {
   background: var(--paper); color: var(--ink);
-  font: 400 1.0625rem/1.65 var(--font-body);
+  font: 400 var(--body-size)/1.65 var(--font-body);
   padding-inline: 16px; padding-block: 3rem 5rem;
   -webkit-font-smoothing: antialiased;
 }
@@ -59,7 +102,7 @@ a { color: var(--accent); text-underline-offset: 0.18em; text-decoration-thickne
 a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
 p { margin: 0; }
 code, pre, kbd, samp { font-variant-ligatures: none; font-feature-settings: "liga" 0, "calt" 0; }
-code { font: 0.86em/1.5 var(--font-mono); background: var(--wash); padding: 0.1em 0.3em; border-radius: 3px; }
+code { font: 0.86em/1.5 var(--font-code); background: var(--wash); padding: 0.1em 0.3em; border-radius: 3px; }
 em { font-style: italic; }
 
 /* ── masthead ───────────────────────────────────────── */
@@ -67,15 +110,16 @@ em { font-style: italic; }
 .kicker, .byline, .stats dt, .label, figcaption, .toc, .n, .tag, .end h2 {
   font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.04em; color: var(--muted);
 }
+.kicker, .stats dt, .n, .tag, .end h2 { font-family: var(--font-label); font-stretch: var(--label-stretch); font-weight: 600; }
 .kicker { text-transform: uppercase; letter-spacing: 0.08em; }
 h1 {
-  font: 700 clamp(2rem, 5vw, 3rem)/1.08 var(--font-display); letter-spacing: -0.02em; margin: 0; text-wrap: balance;
+  font: var(--display-weight) clamp(2rem, 5vw, 3rem)/1.06 var(--font-display); font-stretch: var(--display-stretch); letter-spacing: -0.02em; margin: 0; text-wrap: balance;
 }
-.dek { font-size: 1.25rem; line-height: 1.45; color: var(--ink); font-style: italic; text-wrap: pretty; }
+.dek { font-size: 1.25rem; line-height: 1.45; color: color-mix(in oklab, var(--ink) 78%, var(--paper)); text-wrap: pretty; }
 .stats { display: flex; flex-wrap: wrap; gap: 0.5rem 1.75rem; margin: 0.35rem 0 0; }
 .stats div { display: grid; gap: 0.1rem; }
 .stats dt { text-transform: uppercase; letter-spacing: 0.08em; font-size: 0.6875rem; }
-.stats dd { margin: 0; font: 600 1.25rem/1.2 var(--font-display); font-variant-numeric: tabular-nums; }
+.stats dd { margin: 0; font: var(--heading-weight) 1.25rem/1.2 var(--font-display); font-variant-numeric: tabular-nums; }
 
 .lede { font-size: 1.125rem; }
 
@@ -89,11 +133,11 @@ h1 {
 .ch { display: grid; gap: 1.1rem; padding-top: 2rem; border-top: 1px solid var(--rule); max-width: var(--wide) !important; }
 .ch > * { width: 100%; max-width: var(--col); margin-inline: auto; min-width: 0; }
 .ch h2 {
-  font: 600 1.5rem/1.2 var(--font-display); letter-spacing: -0.01em; margin-block: 0; text-wrap: balance;
+  font: var(--heading-weight) 1.5rem/1.2 var(--font-display); letter-spacing: -0.01em; margin-block: 0; text-wrap: balance;
   display: flex; flex-direction: column; gap: 0.3rem;
 }
-.ch h3 { font: 600 1.0625rem/1.3 var(--font-display); margin-block: 0.5rem 0; }
-.n { font-size: 0.8125rem; color: var(--mark); font-weight: 500; }
+.ch h3 { font: var(--heading-weight) 1.0625rem/1.3 var(--font-display); margin-block: 0.5rem 0; }
+.n { font-size: 0.8125rem; color: var(--mark); letter-spacing: 0.06em; }
 /* Hang the number in the margin once there is room for it (column + number + gap + page padding),
    so headings line up with the text; on phones it sits on its own line above the heading. */
 @media (min-width: 48rem) {
@@ -111,7 +155,7 @@ figcaption a { color: var(--muted); }
 .code { gap: 0; padding: 0.75rem 1rem 0.9rem; border-radius: 12px; background: var(--card); box-shadow: var(--card-shadow); }
 .code figcaption { display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 0.4rem; font: 0.75rem/1.5 var(--font-display); letter-spacing: 0; color: var(--muted); }
 .code figcaption span { min-width: 0; overflow-wrap: anywhere; } /* a long file path wraps on a phone instead of widening the page */
-.code pre { margin: 0; overflow-x: auto; scrollbar-width: thin; font: 0.8125rem/1.6 var(--font-mono); tab-size: 2; color: var(--ink); }
+.code pre { margin: 0; overflow-x: auto; scrollbar-width: thin; font: 0.8125rem/1.6 var(--font-code); tab-size: 2; color: var(--ink); }
 .code pre code { background: none; padding: 0; font-size: inherit; }
 /* greyscale highlighting: keywords and comments recede, strings sit between them and the code */
 .code .k { color: var(--muted); }
@@ -199,8 +243,7 @@ figcaption a { color: var(--muted); }
 /* steps: a linear flow in HTML. Row on wide screens, column on phones; .hot = this chapter's part.
    Motion: .live steps a highlight through the boxes; off under reduced motion. */
 .steps { list-style: none; margin: 0; padding: 1rem; display: flex; gap: 0; align-items: stretch;
-  border: 1px solid var(--rule); border-radius: 6px; counter-reset: step;
-  background: radial-gradient(circle, var(--rule) 1px, transparent 1.2px) 0 0 / 16px 16px, var(--paper); }
+  border-block: 1px solid var(--rule); counter-reset: step; background: var(--plate); }
 .steps li { flex: 1 1 0; min-width: 0; display: flex; align-items: center; }
 .steps li + li::before { content: "→"; flex: 0 0 1.75rem; text-align: center; color: var(--muted); font-family: var(--font-mono); }
 .steps .box { flex: 1; min-width: 0; border: 1.25px solid var(--ink); border-radius: 6px; background: var(--paper); padding: 0.6rem 0.7rem; display: grid; gap: 0.15rem; text-align: center; transition: background 0.4s, border-color 0.4s; }
@@ -227,24 +270,22 @@ figcaption a { color: var(--muted); }
 :root[data-theme="dark"] .shot img:not(.dark-ok), :root[data-theme="dark"] .strip img:not(.dark-ok) { filter: brightness(0.86) contrast(1.05); }
 
 /* diagram */
-.diagram .stage { overflow-x: auto; border: 1px solid var(--rule); border-radius: 6px; padding: 1rem; background:
-  radial-gradient(circle, var(--rule) 1px, transparent 1.2px) 0 0 / 16px 16px, var(--paper); }
+.diagram .stage { overflow-x: auto; border-block: 1px solid var(--rule); padding: 1rem; background: var(--plate); }
 .diagram svg { display: block; min-width: 30rem; width: 100%; height: auto; }
 .diagram .box { fill: var(--paper); stroke: var(--ink); stroke-width: 1.25; }
 .diagram .box.hot { fill: var(--accent-wash); stroke: var(--accent); }
 .diagram .wire { fill: none; stroke: var(--muted); stroke-width: 1.25; }
 .diagram .flow { fill: none; stroke: var(--accent); stroke-width: 1.5; stroke-dasharray: 3 7; animation: march 1.2s linear infinite; }
 .diagram .lbl { font: 600 13px var(--font-display); fill: var(--ink); }
-.diagram .sub { font: 400 11px var(--font-mono); fill: var(--muted); }
-.diagram .edge { font: 400 10.5px var(--font-mono); fill: var(--muted); }
+.diagram .sub { font: 400 11px var(--font-code); fill: var(--muted); }
+.diagram .edge { font: 400 10.5px var(--font-code); fill: var(--muted); }
 .diagram .dot { fill: var(--accent); }
 .diagram .arrow { fill: var(--muted); }
 @keyframes march { to { stroke-dashoffset: -20; } }
 
 /* ── component: flow (viz.mjs flow) ── one spec, two drawings: svg.h left to right, svg.v top to bottom.
    data-fold = the width (rem) of the .flow box below which the stacked drawing shows instead. */
-.flow { container-type: inline-size; border: 1px solid var(--rule); border-radius: 6px; padding: 1rem 0.75rem; background:
-  radial-gradient(circle, var(--rule) 1px, transparent 1.2px) 0 0 / 16px 16px, var(--paper); }
+.flow { container-type: inline-size; border-block: 1px solid var(--rule); padding: 1rem 0.75rem; background: var(--plate); }
 .flow svg { display: block; width: 100%; height: auto; margin-inline: auto; }
 .flow svg.v { display: none; }
 @container (max-width: 30rem) { .flow[data-fold="30"] svg.h { display: none; } .flow[data-fold="30"] svg.v { display: block; } }
@@ -259,8 +300,8 @@ figcaption a { color: var(--muted); }
 .flow .arrow { fill: var(--muted); }
 .flow .dot { fill: var(--accent); }
 .flow .lbl { font: 600 13px var(--font-display); fill: var(--ink); }
-.flow .sub { font: 400 11px var(--font-mono); fill: var(--muted); }
-.flow .edge { font: 400 10.5px var(--font-mono); fill: var(--muted); paint-order: stroke; stroke: var(--paper); stroke-width: 4px; stroke-linejoin: round; }
+.flow .sub { font: 400 11px var(--font-code); fill: var(--muted); }
+.flow .edge { font: 400 10.5px var(--font-code); fill: var(--muted); paint-order: stroke; stroke: var(--paper); stroke-width: 4px; stroke-linejoin: round; }
 
 /* ── component: bars (viz.mjs bars) ── drawn to scale: --v = value ÷ largest. --lw/--vw = label and value
    column widths in ch. .emph greys every bar but the .hot one; .limit is a dashed rule at --l. */
@@ -373,6 +414,14 @@ figcaption a { color: var(--muted); }
 .end ol { margin: 0; padding-left: 1.4rem; display: grid; gap: 0.45rem; }
 .end li::marker { font: 0.75rem var(--font-mono); color: var(--muted); }
 .colophon { color: var(--muted); font-style: italic; }
+
+/* ── field notes ── what tokens can't say: a ringed chapter number, boxes with a drawn edge, pinned screenshots */
+.post[data-style="field-notes"] { font-stretch: 87.5%; } /* Martian Mono's narrower cut, so labels fit the flow boxes */
+[data-style="field-notes"] .ch h2 .n { display: inline-grid; place-items: center; width: 2.25rem; height: 2.25rem; border: 1.25px solid var(--mark); border-radius: 52% 46% 50% 48% / 47% 53% 46% 54%; color: var(--ink); font-weight: 400; letter-spacing: 0; }
+@media (min-width: 48rem) { [data-style="field-notes"] .ch h2 .n { top: -0.2rem; } }
+[data-style="field-notes"] .steps .box { border-radius: 7px 5px 8px 4px / 5px 8px 4px 7px; }
+[data-style="field-notes"] :is(.shot, .strip) img { border-color: var(--ink); border-radius: 2px; box-shadow: 3px 3px 0 var(--rule); }
+[data-style="field-notes"] .flow .lbl, [data-style="field-notes"] .diagram .lbl { font-weight: 600; }
 
 @media (prefers-reduced-motion: reduce) {
   .diagram .flow, .flow .route, .steps .box { animation: none !important; }

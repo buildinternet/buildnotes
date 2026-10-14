@@ -11,7 +11,8 @@ export const hash = (text) => createHash("sha1").update(text).digest("hex").slic
 export const slug = (s) => String(s ?? "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 32) || "fig";
 
 // Rough text widths in SVG units, for fit checks and layout. The template's fonts:
-// labels 13px Schibsted Grotesk 600, sub-labels 11px JetBrains Mono, edge labels 10.5px mono.
+// labels 13px Archivo 600 (Source Serif 4 in field notes), sub-labels 11px IBM Plex Mono
+// (Martian Mono at 87.5% width), edge labels 10.5px mono. The widths cover both.
 export const W_LABEL = 7.6, W_SUB = 6.7, W_EDGE = 6.4;
 export const width = (s, per) => Math.max(0, ...String(s ?? "").split("\n").map((l) => l.length * per));
 
@@ -102,3 +103,53 @@ export const ranges = (s) => String(s).split(",").flatMap((part) => {
 export const copyButton = (label) => `<button type="button" class="copy" aria-label="${label}">`
   + `<svg class="idle" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5.5" y="5.5" width="8" height="8" rx="2"/><path d="M10.5 5.5V4A1.5 1.5 0 0 0 9 2.5H4A1.5 1.5 0 0 0 2.5 4v5A1.5 1.5 0 0 0 4 10.5h1.5"/></svg>`
   + `<svg class="done" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7"/></svg></button>`;
+
+// The page styles a renderer can draw for. "field-notes" draws strokes by hand; "plain" is the default.
+export const STYLES = ["plain", "field-notes"];
+
+// A small seeded random source, so a drawn stroke comes out the same on every build.
+export function rand(seed) {
+  let a = 0;
+  for (const ch of String(seed)) a = (Math.imul(a, 31) + ch.charCodeAt(0)) | 0;
+  return () => {
+    a = (a + 0x6d2b79f5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+// One drawn segment as a quadratic from a to b: the midpoint bows sideways by up to `bow`, never more
+// than 0.8% of the length, so a stroke looks drawn without moving off its line.
+function bend([x0, y0], [x1, y1], next, bow) {
+  const len = Math.hypot(x1 - x0, y1 - y0) || 1;
+  const off = Math.min(bow, len * 0.008) * (next() < 0.5 ? -1 : 1) * (0.5 + next() / 2);
+  const t = 0.4 + next() * 0.2;
+  const mx = x0 + (x1 - x0) * t - ((y1 - y0) / len) * off;
+  const my = y0 + (y1 - y0) * t + ((x1 - x0) / len) * off;
+  return `Q${r(mx)},${r(my)} ${r(x1)},${r(y1)}`;
+}
+
+// A polyline drawn by hand: each leg bows a little. Ends stay exactly on their points, so arrows
+// and joints still meet.
+export function handLine(pts, next, bow = 1.2) {
+  let d = `M${r(pts[0][0])},${r(pts[0][1])}`;
+  for (let k = 1; k < pts.length; k++) d += ` ${bend(pts[k - 1], pts[k], next, bow)}`;
+  return d;
+}
+
+// A rectangle drawn by hand, closed so it can be filled: bowed sides and slightly uneven corners.
+export function handRect(x, y, w, h, next, rad = 6) {
+  const j = () => (next() - 0.5) * 1.2;
+  const c = [[x + j(), y + j()], [x + w + j(), y + j()], [x + w + j(), y + h + j()], [x + j(), y + h + j()]];
+  const toward = (a, b, d) => { const len = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1; return [a[0] + ((b[0] - a[0]) / len) * d, a[1] + ((b[1] - a[1]) / len) * d]; };
+  let d = "";
+  for (let k = 0; k < 4; k++) {
+    const p = c[k], q = c[(k + 1) % 4], o = c[(k + 3) % 4];
+    const rr = rad * (0.75 + next() * 0.5);
+    const start = toward(p, q, rr), end = toward(q, p, rad);
+    d += k ? ` Q${r(p[0])},${r(p[1])} ${r(start[0])},${r(start[1])}` : `M${r(toward(p, o, rr)[0])},${r(toward(p, o, rr)[1])} Q${r(p[0])},${r(p[1])} ${r(start[0])},${r(start[1])}`;
+    d += ` ${bend(start, end, next, 1)}`;
+  }
+  return `${d} Z`;
+}
