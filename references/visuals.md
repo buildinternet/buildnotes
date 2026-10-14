@@ -108,7 +108,7 @@ agent-browser eval "document.querySelector('main h1').scrollIntoView()"
 agent-browser screenshot "$PWD/assets/feature-docs.png"   # absolute path: the daemon has its own cwd; add --full for the whole page
 ```
 
-Other tools (Playwright, a browser MCP, a built-in browser pane) work the same way: fixed viewport, scroll the target into view, capture, then look at the file. agent-browser's element screenshots (`screenshot <selector> <path>`) can come out wrong for elements below the first screen; hide what is above the element, or capture the full page and crop.
+Other tools (Playwright, a browser MCP, a built-in browser pane) work the same way: fixed viewport, scroll the target into view, capture, then look at the file. agent-browser's element screenshots (`screenshot <selector> <path>`) can come out wrong for elements below the first screen; hide what is above the element, or capture the full page and crop. Sticky headers (GitHub's PR title bar, a site's nav) cover whatever you scroll to; hide them first: `[...document.querySelectorAll('body *')].filter(e => ['sticky', 'fixed'].includes(getComputedStyle(e).position)).forEach(e => e.style.visibility = 'hidden')`.
 
 ### Keyed figures
 
@@ -220,6 +220,6 @@ Files land in `<work-dir>/export/`. `--width 390` gives the phone layout, `--the
 
 ## Getting assets into the page
 
-The published page should only show images that ship with it (an artifact page blocks other hosts). Reference local files as `src="assets/name.png"` while drafting (in a `strip` spec, paths are relative to the post, like everything else in it), then run `scripts/inline-assets.mjs` to embed them as data URIs before publishing. Keep the total under a few MB: resize screenshots to 2× their display width and prefer WebP or optimized PNG (`sips -Z 1600 file.png` on macOS, or `magick` elsewhere).
+The published page should only show images that ship with it (an artifact page blocks other hosts). Reference local files as `src="assets/name.png"` while drafting (in the page, paths are relative to the post; in a spec, relative to the spec, so `viz/img/name.png` is `img/name.png` from `viz/strip.json`, and `viz.mjs build` rewrites it for the page), then run `scripts/inline-assets.mjs` to embed them as data URIs before publishing. Keep the total under a few MB: resize screenshots to 2× their display width and prefer WebP or optimized PNG (`sips -Z 1600 file.png` on macOS, or `magick` elsewhere). To crop, use `magick file.png -crop WxH+X+Y +repage out.png`; `sips -c` crops around the centre whatever `--cropOffset` says.
 
 For an external blog, keep the `assets/` folder and the un-inlined `post.html` instead; most blog tools want the files.

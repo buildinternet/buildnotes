@@ -88,3 +88,19 @@ test("a flow wider than the column needs a wide figure", () => {
   assert.equal(out.match(/a flow needs a wide figure/g)?.length, 1);
   assert.match(out, /data-fold 46/);
 });
+
+test("pull request as product vocabulary isn't process talk; the record still is", () => {
+  const dir = mkdtempSync(join(tmpdir(), "lint-pr-"));
+  const page = `<article class="post"><header class="mast"><h1>One page per pull request</h1></header>
+<section class="ch" id="c1"><h2><span class="n">01</span>A page that fills itself</h2><p>Every pull request gets a live link. Asking for the same pull request again returns the same link. We already had a way to share a set of files: galleries, which you build by hand and put in order. The fix: a cache.</p></section>
+<section class="ch" id="c2"><h2><span class="n">02</span>Paging</h2><p>The second pull request added paging. That landed in #412. The pull request was approved the same day.</p></section></article>`;
+  writeFileSync(join(dir, "p.html"), page);
+  const out = lint(join(dir, "p.html"), "--offline");
+  assert.doesNotMatch(out, /process talk: Every pull request/);
+  assert.doesNotMatch(out, /process talk: Asking for the same pull request/);
+  assert.match(out, /process talk: The second pull request added paging/);
+  assert.match(out, /process talk: That landed in #412/);
+  assert.match(out, /process talk: The pull request was approved/);
+  assert.match(out, /colon reveal\?: The fix: a cache/);
+  assert.doesNotMatch(out, /colon reveal\?: We already had a way/);
+});

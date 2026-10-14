@@ -52,7 +52,12 @@ const BUDGET = { note: { refs: 0, talk: 0, dates: 0 }, release: { refs: 0, talk:
 const CLOCK = /\b([01]?\d|2[0-3]):[0-5]\d\b(\s?(UTC|GMT|ET|EST|EDT|PT|PST|PDT|CET|am|pm))?/g;
 const DATE = /\b(\d{1,2}\s+(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*|(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\.?\s+\d{1,2}(st|nd|rd|th)?|\d{4}-\d{2}-\d{2})\b/g;
 const REF = /(^|[\s(])#\d{2,}\b|\b[\w.-]+\/[\w.-]+#\d+\b|\b[0-9a-f]{7,12}\b(?=\s|$)/g;
-const TALK = /\b(pull requests?|PRs?|merged|merge|commits?|reviewers?|reviewed|code review|adversarial|CodeRabbit|ticket|issue tracker|the issue)\b/i;
+const TALK = /\b(merged|merge|commits?|reviewers?|reviewed|code review|adversarial|CodeRabbit|ticket|issue tracker|the issue)\b/i;
+// "Pull request" is also product vocabulary (a CI tool, a review bot, an uploader for PR comments), so a
+// sentence that names one counts only when it's about the record: a number, an ordinal or count of
+// them, or what was done to one.
+const PR = String.raw`(?:pull requests?|PRs?)`;
+const PR_TALK = new RegExp(String.raw`#\d+|\b(?:first|second|third|fourth|next|last|later|earlier|follow-up|stacked|one|two|three|four|five|several|few)\s+(?:\w+\s+)?${PR}\b|\b${PR}\b[^.]{0,30}\b(?:opened|landed|approved|stacked|split|shipped|followed|introduced|went in)\b`, "i");
 // Tool names are also product names (a changelog index is full of them). They count as process
 // talk only when the sentence says the tool did the work.
 const TOOL_TALK = /\b(Codex|Copilot|Cursor|Claude( Code)?|Devin|an? (coding )?agent)\b[^.]{0,60}\b(wrote|generated|built|implemented|reviewed|caught|flagged|found|suggested|drafted|fixed)\b/i;
@@ -136,7 +141,10 @@ for (const p of parts) {
   const allSentences = blocks.flatMap((b) => sentences(b.t));
   for (const s of allSentences) {
     if (/\bnot\s+(just\s+|only\s+)?[^.;]{1,60}?,?\s+but\b/i.test(s)) say(`  ! "not X, but Y": ${s.slice(0, 140)}`);
-    if (/^[^:“"]{3,60}:\s+[A-Za-z]/.test(s) && !/^(Fig|Note|Run|Source|In|Out)\b/.test(s)) say(`  ! colon reveal?: ${s.slice(0, 140)}`);
+    // A reveal is a short payoff after the colon ("The fix: a cache."); a colon that introduces a
+    // definition or a list runs on, and isn't one.
+    const reveal = s.match(/^[^:“"]{3,60}:\s+([A-Za-z][^:]*)$/);
+    if (reveal && reveal[1].split(/\s+/).length <= 6 && !/^(Fig|Note|Run|Source|In|Out)\b/.test(s)) say(`  ! colon reveal?: ${s.slice(0, 140)}`);
   }
   for (const s of allSentences) if (BY_ITEM.test(s)) say(`  ! narrates the record item by item: ${s.slice(0, 140)}`);
   const first = prose.find((b) => b.tag === "p");
@@ -146,7 +154,7 @@ for (const p of parts) {
   const clock = proseText.match(CLOCK) ?? [];
   const dates = proseText.match(DATE) ?? [];
   const refs = (proseText.match(REF) ?? []).map((r) => r.trim());
-  const talk = prose.flatMap((b) => sentences(b.t)).filter((x) => TALK.test(x) || TOOL_TALK.test(x));
+  const talk = prose.flatMap((b) => sentences(b.t)).filter((x) => TALK.test(x) || PR_TALK.test(x) || TOOL_TALK.test(x));
   totals.clock += clock.length; totals.dates += dates.length; totals.refs += refs.length; totals.talk += talk.length;
   for (const c of blocks.filter((b) => b.tag === "figcaption").map((b) => b.t)) {
     if (CLOCK.test(c) || /\b[0-9a-f]{7,12}\b|\bcommit\b/i.test(c)) say(`  ! caption names a time or commit; label the iteration instead ("Round one", "As it ships"): ${c.slice(0, 100)}`);

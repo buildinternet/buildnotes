@@ -1,6 +1,8 @@
 // Shared helpers for the viz renderers.
 
 import { createHash } from "node:crypto";
+import { existsSync } from "node:fs";
+import { relative, resolve } from "node:path";
 
 export const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
@@ -152,4 +154,17 @@ export function handRect(x, y, w, h, next, rad = 6) {
     d += ` ${bend(start, end, next, 1)}`;
   }
   return `${d} Z`;
+}
+
+// An image path in a spec is relative to the spec, like every other path in it. On a page it must be
+// relative to the page, so rewrite it when the page's folder is known (viz.mjs build passes it). A path
+// that only resolves from the page still works, with a warning, so older specs keep rendering.
+export function assetSrc(p, { base, page } = {}, who = "spec") {
+  if (!p || !base || !page || /^(https?:|data:|\/)/.test(p)) return p;
+  const fromSpec = resolve(base, p);
+  if (!existsSync(fromSpec)) {
+    if (existsSync(resolve(page, p))) { warn(`${who}: "${p}" resolves from the page, not the spec; image paths are relative to the spec ("${relative(base, resolve(page, p))}")`); return p; }
+    warn(`${who}: image "${p}" not found (paths are relative to the spec)`);
+  }
+  return relative(page, fromSpec);
 }
