@@ -118,7 +118,7 @@ Most people skim first. Give them handholds:
 - **Lists for what you added, chose or ruled out.**
 - **Short paragraphs.** Three or four sentences. A paragraph that makes two points becomes two paragraphs.
 - **A finding, sometimes.** When a chapter discovers something (a rule that held, a number that surprised), close it with a `finding`: one sentence a reader would repeat to a colleague. "Counting releases rewards busy weeks; counting impact rewards big ones." It isn't a summary of the chapter, and most chapters don't have one. At most one per chapter (lint warns at two).
-- **Margin notes for asides.** A definition, a unit, where a number came from: put it in a `<span class="side">` at the end of its paragraph instead of a parenthesis or a footnote. It sits under the paragraph on a phone and in the margin on a wide screen. A note the argument needs belongs in the paragraph; lint warns past 30 words.
+- **Margin notes for asides.** A definition, a unit, where a number came from: put it in a `<span class="sidenote">` at the end of its paragraph instead of a parenthesis or a footnote. It sits under the paragraph on a phone and in the margin on a wide screen. A note the argument needs belongs in the paragraph; lint warns past 30 words.
 
 `lint.mjs` reports bold and list counts per chapter, flags a sentence that announces a count ("three things") with no list after it, and flags the most common writerly words ("prose", "narrative", "the reader", "altitude", "dossier", "this post covers").
 

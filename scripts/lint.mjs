@@ -336,7 +336,7 @@ for (const p of parts) {
   const n = (p.html.match(/<aside class="finding"/g) ?? []).length;
   if (n > 1) say(`! ${p.id}: ${n} findings; keep the one a reader would repeat`);
 }
-for (const m of live.matchAll(/<span class="side"[^>]*>([\s\S]*?)<\/span>/g)) {
+for (const m of live.matchAll(/<span class="sidenote"[^>]*>([\s\S]*?)<\/span>/g)) {
   const w = words(text(m[1]));
   if (w > 30) say(`! margin note of ${w} words ("${text(m[1]).slice(0, 50)}…"): a note is a short aside; move the rest into the paragraph or cut it`);
 }

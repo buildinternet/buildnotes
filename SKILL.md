@@ -124,7 +124,7 @@ Copy [assets/template.html](assets/template.html) to `<work-dir>/post.html` and 
 
 Pick the style before rendering. **Plain** (the default) is the base: a white page, figures on plain ground, nothing drawn by hand; a project with its own brand restyles its tokens. **Field notes** (`data-style="field-notes"` on the article) suits a post that explains a concept or shares a discovery: a serif page, figures on a dot grid, flows drawn by hand. Ask only when the author has a house look; otherwise choose, and say which in the hand-off. Both work in light and dark. [visuals.md](references/visuals.md#styles)
 
-Beyond the figures, the template has a `finding` (what a chapter found, in one sentence; at most one per chapter), margin notes for asides (`<span class="side">`), and keyed figures that name the parts of a screenshot. [story.md](references/story.md#make-it-easy-to-scan), [visuals.md](references/visuals.md#keyed-figures)
+Beyond the figures, the template has a `finding` (what a chapter found, in one sentence; at most one per chapter), margin notes for asides (`<span class="sidenote">`), and keyed figures that name the parts of a screenshot. [story.md](references/story.md#make-it-easy-to-scan), [visuals.md](references/visuals.md#keyed-figures)
 
 ### 7. Check
 

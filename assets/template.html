@@ -328,9 +328,9 @@ figcaption a { color: var(--muted); }
 
 /* ── component: delta (viz.mjs delta) ── one number before and after, the change, and bars to scale */
 .delta { display: grid; grid-template-columns: auto auto 1fr; align-items: end; gap: 0.35rem 1.25rem; }
-.delta .side { display: grid; gap: 0.15rem; }
+.delta .sidenote { display: grid; gap: 0.15rem; }
 .delta .num { font: 600 clamp(1.75rem, 6vw, 2.5rem)/1.1 var(--font-display); letter-spacing: -0.01em; }
-.delta .side:not(.after) .num { color: var(--muted); }
+.delta .sidenote:not(.after) .num { color: var(--muted); }
 .delta .to { font: 1.5rem/1.6 var(--font-mono); color: var(--muted); }
 .delta .change { grid-column: 1 / -1; font: 0.8125rem/1.5 var(--font-mono); color: var(--muted); }
 .delta .change b { color: var(--ink); font-weight: 500; }
@@ -424,8 +424,8 @@ figcaption a { color: var(--muted); }
 
 /* margin note: a short aside (a definition, a unit, where a number came from), never part of the argument.
    It follows its paragraph on narrow screens and moves into the right margin when there is room. */
-.side { display: block; margin-top: 0.55rem; max-width: 30rem; font: 400 0.875rem/1.45 var(--font-note); color: var(--note); text-wrap: pretty; }
-@media (min-width: 76rem) { .side { float: right; clear: right; width: 12rem; margin: 0.15rem -15rem 0 0; } }
+.sidenote { display: block; margin-top: 0.55rem; max-width: 30rem; font: 400 0.875rem/1.45 var(--font-note); color: var(--note); text-wrap: pretty; }
+@media (min-width: 76rem) { .sidenote { float: right; clear: right; width: 12rem; margin: 0.15rem -15rem 0 0; } }
 
 /* finding: what the chapter found, in one sentence a reader would repeat. At most one per chapter. */
 .finding { display: grid; gap: 0.35rem; margin-block: 0.4rem 0; }
@@ -478,8 +478,8 @@ figcaption a { color: var(--muted); }
 [data-style="field-notes"] .steps .box { border-radius: 7px 5px 8px 4px / 5px 8px 4px 7px; }
 [data-style="field-notes"] :is(.shot, .strip) img { border-color: var(--ink); border-radius: 2px; box-shadow: 3px 3px 0 var(--rule); }
 [data-style="field-notes"] .flow .lbl, [data-style="field-notes"] .diagram .lbl { font-weight: 600; }
-[data-style="field-notes"] .side { font-size: 0.9375rem; }
-@media (min-width: 76rem) { [data-style="field-notes"] .side::before { content: "← " / ""; } }
+[data-style="field-notes"] .sidenote { font-size: 0.9375rem; }
+@media (min-width: 76rem) { [data-style="field-notes"] .sidenote::before { content: "← " / ""; } }
 [data-style="field-notes"] .finding .label { color: var(--muted); }
 [data-style="field-notes"] .hs .dot, [data-style="field-notes"] .keys li::before { background: var(--paper); color: var(--ink); border: 1.25px solid var(--ink); border-radius: 52% 46% 50% 48% / 47% 53% 46% 54%; font-family: var(--font-note); font-size: 0.8125rem; }
 [data-style="field-notes"] .hs:is(:hover, :focus-visible, .on) .dot { background: color-mix(in oklab, var(--mark) 16%, var(--paper)); color: var(--ink); border-color: var(--mark); }
@@ -635,7 +635,7 @@ figcaption a { color: var(--muted); }
 
     <!-- MARGIN NOTE: a short aside inside the paragraph it belongs to (a definition, a unit, where a number came
          from). It sits under the paragraph on a phone and in the right margin on a wide screen. Never the argument. -->
-    <p>The digest is long on purpose. Choosing what to leave out happens in the plan, where each cut is written down with its reason.<span class="side" role="note">A cut is anything true that doesn't serve the headline.</span></p>
+    <p>The digest is long on purpose. Choosing what to leave out happens in the plan, where each cut is written down with its reason.<span class="sidenote" role="note">A cut is anything true that doesn't serve the headline.</span></p>
 
     <!-- FINDING (optional, at most one per chapter): what the chapter found, in one sentence a reader would
          repeat. Not a summary of the chapter. Field notes draws a highlighter under it. -->
