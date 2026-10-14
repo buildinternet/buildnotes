@@ -60,7 +60,9 @@ Two full runs are kept as committed examples. Each folder holds the finished pag
 
 [`examples/walkthrough-videos/`](examples/walkthrough-videos) is a build story about walkthrough videos in [Sunny](https://app.sunnysdk.com), a furniture and space planner: one export turns a room, a floor or a project into a looping 1080p tour. The repo behind it is private, so the post quotes no code and links nothing internal; it is about the product as its users meet it. Open [`post.html`](examples/walkthrough-videos/post.html) for the post, in the field notes style, or watch its 52-second cut:
 
-The cut: [`examples/walkthrough-videos/motion.mp4`](examples/walkthrough-videos/motion.mp4).
+https://github.com/user-attachments/assets/630f699d-4134-47bc-bcb2-da6b5a755225
+
+<p align="center"><sub>The walkthrough-videos cut, 52 seconds. Its third scene is Sunny's own room export. The file is <a href="examples/walkthrough-videos/motion.mp4"><code>examples/walkthrough-videos/motion.mp4</code></a>.</sub></p>
 
 <table>
   <tr>
