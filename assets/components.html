@@ -27,6 +27,9 @@
   --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
   --font-label: var(--font-display); /* kickers, chapter numbers, tags */
   --font-code: var(--font-mono); /* code and terminal blocks */
+  --font-note: var(--font-display); /* margin notes */
+  --note: var(--muted); /* margin-note colour */
+  --highlight: none; /* the finding's highlighter */
   --label-stretch: 80%;
   --display-weight: 800;
   --display-stretch: 86%;
@@ -57,6 +60,8 @@
   --font-label: var(--font-mono);
   --font-code: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace; /* Martian is too wide for a code line */
   --font-note: "Shantell Sans", "Comic Neue", cursive; /* margin notes and annotations only */
+  --note: var(--accent); /* written in pen */
+  --highlight: linear-gradient(transparent 60%, color-mix(in oklab, var(--mark) 24%, transparent) 60% 92%, transparent 92%);
   --label-stretch: 87.5%;
   --display-weight: 600;
   --display-stretch: 100%;
@@ -67,11 +72,13 @@
   :root:not([data-theme="light"]):has(.post[data-style="field-notes"]) {
     --paper: #18181a; --ink: #ebe8e1; --muted: #9d9a92; --rule: #2d2c2a; --wash: #222220;
     --accent: #8aa6f5; --accent-wash: #1f2638; --mark: #ff3264; --dim: #55534d; --card: #1f1f1e; --card-shadow: 0 0 0 1px rgb(255 255 255 / 0.07); --dot: #3a3934;
+    --highlight: linear-gradient(transparent 60%, color-mix(in oklab, var(--mark) 40%, transparent) 60% 92%, transparent 92%);
   }
 }
 :root[data-theme="dark"]:has(.post[data-style="field-notes"]) {
   --paper: #18181a; --ink: #ebe8e1; --muted: #9d9a92; --rule: #2d2c2a; --wash: #222220;
   --accent: #8aa6f5; --accent-wash: #1f2638; --mark: #ff3264; --dim: #55534d; --card: #1f1f1e; --card-shadow: 0 0 0 1px rgb(255 255 255 / 0.07); --dot: #3a3934;
+    --highlight: linear-gradient(transparent 60%, color-mix(in oklab, var(--mark) 40%, transparent) 60% 92%, transparent 92%);
 }
 
 * { box-sizing: border-box; }
@@ -307,9 +314,9 @@ figcaption a { color: var(--muted); }
 
 /* ── component: delta (viz.mjs delta) ── one number before and after, the change, and bars to scale */
 .delta { display: grid; grid-template-columns: auto auto 1fr; align-items: end; gap: 0.35rem 1.25rem; }
-.delta .side { display: grid; gap: 0.15rem; }
+.delta .sidenote { display: grid; gap: 0.15rem; }
 .delta .num { font: 600 clamp(1.75rem, 6vw, 2.5rem)/1.1 var(--font-display); letter-spacing: -0.01em; }
-.delta .side:not(.after) .num { color: var(--muted); }
+.delta .sidenote:not(.after) .num { color: var(--muted); }
 .delta .to { font: 1.5rem/1.6 var(--font-mono); color: var(--muted); }
 .delta .change { grid-column: 1 / -1; font: 0.8125rem/1.5 var(--font-mono); color: var(--muted); }
 .delta .change b { color: var(--ink); font-weight: 500; }
@@ -401,6 +408,55 @@ figcaption a { color: var(--muted); }
 .end li::marker { font: 0.75rem var(--font-mono); color: var(--muted); }
 .colophon { color: var(--muted); font-style: italic; }
 
+/* margin note: a short aside (a definition, a unit, where a number came from), never part of the argument.
+   It follows its paragraph on narrow screens and moves into the right margin when there is room. */
+.sidenote { display: block; margin-top: 0.55rem; max-width: 30rem; font: 400 0.875rem/1.45 var(--font-note); color: var(--note); text-wrap: pretty; }
+@media (min-width: 76rem) { .sidenote { float: right; clear: right; width: 12rem; margin: 0.15rem -15rem 0 0; } }
+
+/* finding: what the chapter found, in one sentence a reader would repeat. At most one per chapter. */
+.finding { display: grid; gap: 0.35rem; margin-block: 0.4rem 0; }
+.finding .label { font: 600 0.75rem/1.4 var(--font-label); font-stretch: var(--label-stretch); letter-spacing: 0.08em; text-transform: uppercase; color: var(--mark); }
+.finding p { font: italic 400 1.375rem/1.4 var(--font-body); color: var(--ink); text-wrap: pretty; }
+.finding mark { color: inherit; background: var(--highlight); -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+
+/* keyed figure: numbered hotspots on a screenshot or drawing, and a legend under it. The legend is the
+   text; the page's script copies each entry into its hotspot's note. Place hotspots in percent (--x, --y). */
+.keyed .stage { position: relative; }
+.keyed .stage img { display: block; width: 100%; height: auto; border: 1px solid var(--rule); border-radius: 6px; background: var(--wash); }
+.hs { position: absolute; left: var(--x); top: var(--y); width: 36px; height: 36px; margin: -18px 0 0 -18px; padding: 0; border: 0; background: none; cursor: pointer; display: grid; place-items: center; -webkit-tap-highlight-color: transparent; z-index: 1; }
+.hs:focus { outline: none; }
+.hs .dot, .keys li::before { width: 22px; height: 22px; box-sizing: border-box; border-radius: 50%; display: grid; place-items: center; font: 600 0.75rem/1 var(--font-label); font-stretch: normal; background: var(--ink); color: var(--paper); }
+.hs .dot { box-shadow: 0 0 0 2px var(--paper); transition: transform 0.2s cubic-bezier(.22,1,.36,1), opacity 0.2s, background 0.15s; }
+.hs:is(:hover, :focus-visible, .on) .dot { background: var(--mark); color: #fff; transform: scale(1.14); }
+.hs:focus-visible .dot { outline: 1px solid var(--muted); outline-offset: 4px; }
+/* one active key at a time: the others shrink to an unlabelled dot */
+.keyed:has(.hs:is(:hover, .on)) .hs:not(:hover, .on) .dot,
+.keyed:not(:has(.hs:hover)):has(.hs:focus-visible) .hs:not(:focus-visible) .dot { transform: scale(0.36); color: transparent; opacity: 0.5; }
+.hs .tip { position: absolute; top: 50%; left: calc(100% - 2px); width: max-content; max-width: 15rem; transform: translate(-4px, -50%); padding: 0.55rem 0.75rem; background: var(--paper); border: 1px solid var(--rule); border-radius: 6px; box-shadow: 0 1px 0 var(--rule); font: 400 0.875rem/1.4 var(--font-body); color: var(--ink); text-align: left; opacity: 0; pointer-events: none; transition: opacity 0.15s, transform 0.2s; z-index: 2; }
+.hs.left .tip { left: auto; right: calc(100% - 2px); transform: translate(4px, -50%); }
+.hs:is(:hover, :focus-visible) .tip { opacity: 1; transform: translate(0, -50%); }
+.keyed:has(.hs:hover) .hs:not(:hover) .tip { opacity: 0; }
+.hs:is(:hover, :focus-visible) { z-index: 3; }
+.keys { list-style: none; margin: 0.6rem 0 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: 0.5rem 1.75rem; counter-reset: key; font-size: 0.9375rem; line-height: 1.45; }
+.keys li { counter-increment: key; display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 0.6rem; align-items: start; margin: -0.25rem -0.4rem; padding: 0.25rem 0.4rem; border-radius: 6px; transition: background 0.15s; }
+.keys li::before { content: attr(data-k); margin-top: 0.05rem; }
+.keys li.on { background: color-mix(in oklab, var(--mark) 9%, var(--paper)); }
+
+/* expand: the page's script wraps .shot, .strip and .keyed images shown smaller than their real size */
+.zoom-open { display: block; position: relative; width: 100%; padding: 0; border: 0; background: none; cursor: zoom-in; }
+.zoom-open[disabled] { cursor: default; }
+.zoom-open .zoom-ico { position: absolute; right: 8px; bottom: 8px; width: 26px; height: 26px; display: grid; place-items: center; border-radius: 5px; background: color-mix(in oklab, var(--paper) 90%, transparent); box-shadow: 0 0 0 1px var(--rule); color: var(--ink); opacity: 0.75; transition: opacity 0.15s; }
+.zoom-open .zoom-ico svg { display: block; width: 14px; height: 14px; }
+.zoom-open:is(:hover, :focus-visible) .zoom-ico { opacity: 1; }
+.zoom-open[disabled] .zoom-ico { display: none; }
+.zoom { margin: auto; padding: 1rem 1rem 0.75rem; border: 0; border-radius: 8px; background: var(--paper); color: var(--ink); max-width: min(1200px, 94vw); max-height: 92vh; overflow: auto; box-shadow: 0 24px 64px rgb(0 0 0 / 0.3); }
+.zoom::backdrop { background: rgb(20 20 18 / 0.6); }
+.zoom img { display: block; max-width: 100%; max-height: calc(92vh - 5.5rem); width: auto; height: auto; margin-inline: auto; }
+.zoom .bar { display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding-top: 0.75rem; font: 0.75rem/1.5 var(--font-mono); color: var(--muted); }
+.zoom .bar button { min-height: 36px; padding: 0 0.9rem; border: 1px solid var(--rule); border-radius: 18px; background: var(--paper); color: var(--ink); font: 600 0.6875rem/1 var(--font-label); letter-spacing: 0.07em; text-transform: uppercase; cursor: pointer; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) :is(.keyed .stage img, .zoom img):not(.dark-ok) { filter: brightness(0.86) contrast(1.05); } }
+:root[data-theme="dark"] :is(.keyed .stage img, .zoom img):not(.dark-ok) { filter: brightness(0.86) contrast(1.05); }
+
 /* ── field notes ── what tokens can't say: a ringed chapter number, boxes with a drawn edge, pinned screenshots */
 .post[data-style="field-notes"] { font-stretch: 87.5%; } /* Martian Mono's narrower cut, so labels fit the flow boxes */
 [data-style="field-notes"] .ch h2 .n { display: inline-grid; place-items: center; width: 2.25rem; height: 2.25rem; border: 1.25px solid var(--mark); border-radius: 52% 46% 50% 48% / 47% 53% 46% 54%; color: var(--ink); font-weight: 400; letter-spacing: 0; }
@@ -408,9 +464,17 @@ figcaption a { color: var(--muted); }
 [data-style="field-notes"] .steps .box { border-radius: 7px 5px 8px 4px / 5px 8px 4px 7px; }
 [data-style="field-notes"] :is(.shot, .strip) img { border-color: var(--ink); border-radius: 2px; box-shadow: 3px 3px 0 var(--rule); }
 [data-style="field-notes"] .flow .lbl, [data-style="field-notes"] .diagram .lbl { font-weight: 600; }
+[data-style="field-notes"] .sidenote { font-size: 0.9375rem; }
+@media (min-width: 76rem) { [data-style="field-notes"] .sidenote::before { content: "← " / ""; } }
+[data-style="field-notes"] .finding .label { color: var(--muted); }
+[data-style="field-notes"] .hs .dot, [data-style="field-notes"] .keys li::before { background: var(--paper); color: var(--ink); border: 1.25px solid var(--ink); border-radius: 52% 46% 50% 48% / 47% 53% 46% 54%; font-family: var(--font-note); font-size: 0.8125rem; }
+[data-style="field-notes"] .hs:is(:hover, :focus-visible, .on) .dot { background: color-mix(in oklab, var(--mark) 16%, var(--paper)); color: var(--ink); border-color: var(--mark); }
+[data-style="field-notes"] .hs .tip, :root:has(.post[data-style="field-notes"]) .zoom { border-color: var(--ink); border-radius: 3px; box-shadow: 3px 3px 0 var(--rule); }
+[data-style="field-notes"] .keyed .stage img { border-color: var(--ink); border-radius: 2px; box-shadow: 3px 3px 0 var(--rule); }
 
 @media (prefers-reduced-motion: reduce) {
   .diagram .flow, .flow .route, .steps .box { animation: none !important; }
+  .hs .dot, .hs .tip, .keys li { transition: none; }
   html { scroll-behavior: auto; }
 }
 @media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
@@ -1361,6 +1425,60 @@ void main() {
       canvas.addEventListener("webglcontextlost", (e) => { e.preventDefault(); fail("WebGL context lost"); });
       still();
       start();
+    }
+  })();
+  // Keyed figures: copy each legend entry into its hotspot's note, and light a hotspot and its entry together.
+  for (const fig of document.querySelectorAll(".keyed")) {
+    const entries = new Map([...fig.querySelectorAll(".keys [data-k]")].map((li) => [li.dataset.k, li]));
+    for (const hs of fig.querySelectorAll(".hs[data-k]")) {
+      const li = entries.get(hs.dataset.k);
+      if (!li) continue;
+      li.id ||= `${fig.id || "key"}-${Math.random().toString(36).slice(2, 7)}-${hs.dataset.k}`;
+      const tip = Object.assign(document.createElement("span"), { className: "tip", innerHTML: li.innerHTML });
+      tip.setAttribute("aria-hidden", "true");
+      hs.append(tip);
+      hs.setAttribute("aria-describedby", li.id);
+      if (parseFloat(hs.style.getPropertyValue("--x")) > 58) hs.classList.add("left");
+    }
+    const light = (k) => fig.querySelectorAll("[data-k]").forEach((el) => el.classList.toggle("on", el.dataset.k === k));
+    fig.addEventListener("pointerover", (e) => { const k = e.target.closest?.("[data-k]")?.dataset.k; light(k ?? null); });
+    fig.addEventListener("pointerleave", () => light(null));
+    fig.addEventListener("focusin", (e) => light(e.target.closest?.(".hs")?.dataset.k ?? null));
+    fig.addEventListener("focusout", () => light(null));
+  }
+  // Expand: a screenshot shown smaller than its real size opens full size in one shared dialog.
+  // data-no-expand on an image opts out. Without the script the image simply stays inline.
+  (() => {
+    const imgs = document.querySelectorAll(".shot img, .strip img, .keyed .stage img");
+    if (!imgs.length || !window.HTMLDialogElement) return;
+    const dlg = document.createElement("dialog");
+    dlg.className = "zoom";
+    dlg.innerHTML = '<div class="pic"></div><div class="bar"><span></span><button type="button">Close</button></div>';
+    document.body.append(dlg);
+    const [pic, cap, close] = [dlg.querySelector(".pic"), dlg.querySelector(".bar span"), dlg.querySelector("button")];
+    close.addEventListener("click", () => dlg.close());
+    dlg.addEventListener("close", () => pic.replaceChildren()); // the image exists only while the dialog is open
+    dlg.addEventListener("click", (e) => { if (e.target === dlg) dlg.close(); });
+    const ico = '<span class="zoom-ico" aria-hidden="true"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 1.5h4v4M12.5 1.5 8 6M5.5 12.5h-4v-4M1.5 12.5 6 8"/></svg></span>';
+    for (const img of imgs) {
+      if (img.hasAttribute("data-no-expand") || img.closest("a, button")) continue;
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "zoom-open";
+      btn.setAttribute("aria-label", `Expand image${img.alt ? `: ${img.alt}` : ""}`);
+      img.replaceWith(btn);
+      btn.append(img);
+      btn.insertAdjacentHTML("beforeend", ico);
+      btn.addEventListener("click", () => {
+        pic.replaceChildren(Object.assign(new Image(), { src: img.currentSrc || img.src, alt: img.alt }));
+        cap.textContent = img.closest("figure")?.querySelector("figcaption")?.textContent.trim() ?? "";
+        dlg.showModal();
+      });
+      // Worth expanding only when the image is drawn at least 15% smaller than it really is.
+      // An SVG may report no size of its own; its width attribute stands in.
+      const fit = () => { btn.disabled = !(Math.max(img.naturalWidth, Number(img.getAttribute("width")) || 0) > img.clientWidth * 1.15); };
+      if (img.complete) fit(); else img.addEventListener("load", fit, { once: true });
+      new ResizeObserver(fit).observe(img);
     }
   })();
   // Stop SVG (SMIL) motion for readers who ask for less; the resting frame still explains the diagram.

@@ -18,17 +18,22 @@ test("component checks fire on planted faults, and only then", () => {
   const clean = readFileSync(join(root, "assets/template.html"), "utf8");
   writeFileSync(join(dir, "clean.html"), clean);
   const ok = lint(join(dir, "clean.html"), "--offline");
-  assert.doesNotMatch(ok, /needs both drawings|aren't to scale|without data-label|names a commit or PR|changed since/);
+  assert.doesNotMatch(ok, /needs both drawings|aren't to scale|without data-label|names a commit or PR|changed since|keyed "|findings;|margin note of/);
   assert.match(ok, /still point at the template's example specs/);
 
   writeFileSync(join(dir, "bad.html"), clean
     .replace('<svg class="v"', '<svg class="x"')
     .replace('style="--v:0.148"', 'style="--v:0.5"')
     .replace('data-label="Why"', "")
-    .replace('<span class="tag">Before · first run</span>', '<span class="tag">Before · PR #120</span>'));
+    .replace('<span class="tag">Before · first run</span>', '<span class="tag">Before · PR #120</span>')
+    .replace(/<li data-k="3">[\s\S]*?<\/li>/, "")
+    .replace('style="--x:86%; --y:40%"', 'style="--x:86%"')
+    .replace('<aside class="finding"', '<aside class="finding" aria-label="Finding"><p>x</p></aside>\n    <aside class="finding"')
+    .replace("doesn't serve the headline.</span>", `doesn't serve the headline, ${"and more words ".repeat(10)}.</span>`));
   writeFileSync(join(dir, "specs/bars-budget.json"), readFileSync(join(dir, "specs/bars-budget.json"), "utf8") + "\n");
   const bad = lint(join(dir, "bad.html"), "--offline");
-  for (const re of [/needs both drawings/, /aren't to scale/, /1 cells without data-label/, /"Before · PR #120" names a commit or PR/, /bars-budget\.json: spec changed since the last render/]) assert.match(bad, re);
+  for (const re of [/needs both drawings/, /aren't to scale/, /1 cells without data-label/, /"Before · PR #120" names a commit or PR/, /bars-budget\.json: spec changed since the last render/,
+    /hotspot 3 has no legend entry/, /hotspot 2 needs --x and --y/, /c1: 2 findings/, /margin note of \d+ words/]) assert.match(bad, re);
 });
 
 test("a link that doesn't open is a hard failure", async () => {
