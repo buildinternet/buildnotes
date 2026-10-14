@@ -42,6 +42,8 @@
   --font-label: var(--font-display); /* kickers, chapter numbers, tags */
   --font-code: var(--font-mono); /* code and terminal blocks */
   --font-note: var(--font-display); /* margin notes */
+  --note-style: normal;
+  --font-hand: var(--font-label); /* keyed-figure numbers and short labels (a few words) */
   --note: var(--muted); /* margin-note colour */
   --highlight: none; /* the finding's highlighter */
   --label-stretch: 80%;
@@ -73,7 +75,9 @@
   --font-mono: "Martian Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
   --font-label: var(--font-mono);
   --font-code: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace; /* Martian is too wide for a code line */
-  --font-note: "Shantell Sans", "Comic Neue", cursive; /* margin notes and annotations only */
+  --font-note: var(--font-body); /* margin notes: the text face in italic, so a note of several lines reads easily */
+  --note-style: italic;
+  --font-hand: "Shantell Sans", "Comic Neue", cursive; /* keyed-figure numbers and labels of a few words only, never sentences */
   --note: var(--accent); /* written in pen */
   --highlight: linear-gradient(transparent 60%, color-mix(in oklab, var(--mark) 24%, transparent) 60% 92%, transparent 92%);
   --label-stretch: 87.5%;
@@ -452,7 +456,7 @@ figcaption a { color: inherit; }
    Put it at the end of its paragraph. On narrow screens it follows the paragraph, set off by a rule so it
    doesn't read as body text; when there is room it sits in the right margin, level with its line, without
    making the paragraph taller. */
-.sidenote { display: block; margin-top: 0.6rem; max-width: 30rem; padding: 0.05rem 0 0.05rem 0.75rem; border-left: 2px solid color-mix(in oklab, var(--note) 35%, var(--paper)); font: 400 0.875rem/1.45 var(--font-note); color: var(--note); text-wrap: pretty; }
+.sidenote { display: block; margin-top: 0.6rem; max-width: 30rem; padding: 0.05rem 0 0.05rem 0.75rem; border-left: 2px solid color-mix(in oklab, var(--note) 35%, var(--paper)); font: var(--note-style) 400 0.875rem/1.45 var(--font-note); color: var(--note); text-wrap: pretty; }
 @media (min-width: 76rem) {
   :has(> .sidenote) { position: relative; }
   /* inline, so its top sits on the line it ends (an absolute box keeps an inline box's static position) */
@@ -566,7 +570,7 @@ figcaption a { color: inherit; }
 [data-style="field-notes"] .finding .label { color: var(--muted); }
 [data-style="field-notes"] figure:not(.code) > figcaption { font-style: italic; }
 [data-style="field-notes"] figcaption .fig-n { font-style: normal; }
-[data-style="field-notes"] .hs .dot, [data-style="field-notes"] .keys li::before { background: var(--paper); color: var(--ink); border: 1.25px solid var(--ink); border-radius: 52% 46% 50% 48% / 47% 53% 46% 54%; font-family: var(--font-note); font-size: 0.8125rem; }
+[data-style="field-notes"] .hs .dot, [data-style="field-notes"] .keys li::before { background: var(--paper); color: var(--ink); border: 1.25px solid var(--ink); border-radius: 52% 46% 50% 48% / 47% 53% 46% 54%; font-family: var(--font-hand); font-size: 0.8125rem; }
 [data-style="field-notes"] .hs:is(:hover, :focus-visible, .on) .dot { background: color-mix(in oklab, var(--mark) 16%, var(--paper)); color: var(--ink); border-color: var(--mark); }
 [data-style="field-notes"] .hs .tip, :root:has(.post[data-style="field-notes"]) .zoom { border-color: var(--ink); border-radius: 3px; box-shadow: 3px 3px 0 var(--rule); }
 [data-style="field-notes"] .keyed .stage img { border-color: var(--ink); border-radius: 2px; box-shadow: 3px 3px 0 var(--rule); }

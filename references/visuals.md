@@ -164,7 +164,7 @@ The template draws one page in two styles. The markup and the specs are the same
 | | Plain (default) | Field notes (`data-style="field-notes"`) |
 |---|---|---|
 | For | Release stories, posts that live on a product's own site, any brand | Concepts and discoveries: a build story or deep dive that explains |
-| Type | Archivo headings and labels, Newsreader text, IBM Plex Mono | Source Serif 4 throughout, Martian Mono labels, IBM Plex Mono code |
+| Type | Archivo headings and labels, Newsreader text, IBM Plex Mono | Source Serif 4 throughout (margin notes in its italic, in the note colour), Martian Mono labels, IBM Plex Mono code; Shantell Sans, a handwritten face, for keyed-figure numbers only |
 | Figures | Plain ground between two rules | A dot grid; flows drawn by hand |
 | Chapter numbers | In the mark colour | Ringed |
 
@@ -175,6 +175,8 @@ Colour is by role, the same in both, so a figure reads the same way in either:
 - `--mark` for highlights and commentary only: chapter numbers, footnotes, a bracket or note that says what to see. Never a fill; a box in the mark colour drowns the page.
 - `--landmark` for a landmark release, a star or a target line. Never text.
 - `--dim` for the data that isn't the point.
+
+The handwritten face (`--font-hand`) is for a number or a label of a few words: keys, a callout on a hand drawing. Never set a sentence in it, a margin note included; past a few words it slows reading and re-wraps when the font arrives. In Plain, `--font-hand` is the label face.
 
 Field notes' strokes are drawn at render time: `viz.mjs build` reads the style from the post and draws flow boxes and wires by hand, seeded by the figure's id, so the same spec gives the same strokes on every build. Data lines (a `line` series, a bar's length) stay exact in both styles. The style is part of each marker's stamp, so switching it shows every flow as stale until you build again.
 
