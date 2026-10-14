@@ -112,11 +112,14 @@ test("a command line gets a copy button and coloured words, and copies the comma
       navigator.clipboard.writeText = (t) => { copied = t; return Promise.resolve(); };
       cmd.querySelector(".copy").click();
       const spans = [...cmd.querySelectorAll("code span")].map((s) => s.className + ":" + s.textContent);
-      return JSON.stringify({ spans, copied, buttons: cmd.querySelectorAll(".copy").length });
+      const [c, b] = [cmd.querySelector("code").getBoundingClientRect(), cmd.querySelector(".copy").getBoundingClientRect()];
+      return JSON.stringify({ spans, copied, buttons: cmd.querySelectorAll(".copy").length, display: getComputedStyle(cmd).display, oneRow: b.top < c.bottom && b.left > c.left });
     })()`));
     assert.deepEqual(r.spans, ["c-cmd:node", "c-flag:--out", "c-flag:--search", 'c-str:"rate limit"']);
     assert.equal(r.copied, 'node scripts/gather.mjs --out evidence --search "rate limit"');
     assert.equal(r.buttons, 1);
+    assert.equal(r.display, "flex"); // the classes the script sets mustn't collide with the page's own
+    assert.ok(r.oneRow, "the copy button sits beside the command");
   } finally {
     await page.close();
   }

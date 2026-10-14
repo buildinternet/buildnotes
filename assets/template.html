@@ -196,8 +196,8 @@ figcaption a { color: inherit; }
 .cmd .c-flag { color: var(--muted); }
 .cmd .c-str { color: var(--accent); }
 .cmd .copy { flex: none; margin: 0; }
-.cmd.over code { -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 2.5rem), transparent); mask-image: linear-gradient(to right, #000 calc(100% - 2.5rem), transparent); } /* more to scroll */
-.cmd.over.end code { -webkit-mask-image: none; mask-image: none; }
+.cmd.scrolls code { -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 2.5rem), transparent); mask-image: linear-gradient(to right, #000 calc(100% - 2.5rem), transparent); } /* more to scroll */
+.cmd.scrolls.scrolled code { -webkit-mask-image: none; mask-image: none; }
 .cmd.wrap code { white-space: pre-wrap; overflow-wrap: anywhere; }
 
 /* heard → changed */
@@ -904,8 +904,8 @@ figcaption a { color: inherit; }
     cmd.insertAdjacentHTML("beforeend", `<button type="button" class="copy" aria-label="Copy command">${copyIcon}</button>`);
     // A command wider than its bar fades at the right edge until it is scrolled to the end.
     const fit = () => {
-      cmd.classList.toggle("over", code.scrollWidth > code.clientWidth + 1);
-      cmd.classList.toggle("end", code.scrollLeft + code.clientWidth >= code.scrollWidth - 1);
+      cmd.classList.toggle("scrolls", code.scrollWidth > code.clientWidth + 1);
+      cmd.classList.toggle("scrolled", code.scrollLeft + code.clientWidth >= code.scrollWidth - 1);
     };
     code.addEventListener("scroll", fit, { passive: true });
     new ResizeObserver(fit).observe(code);
