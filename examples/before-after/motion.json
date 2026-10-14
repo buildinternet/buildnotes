@@ -1,0 +1,40 @@
+{
+  "title": "Before and after screenshots, side by side",
+  "dek": "The build story in under a minute: pairs that find each other in the pull request comment, and a divider on the file page.",
+  "product": "uploads.sh",
+  "scenes": [
+    { "kind": "title", "label": "Build notes",
+      "kicker": "How we built it",
+      "headline": "Before and after screenshots, side by side" },
+    { "kind": "statement", "label": "The problem",
+      "lines": ["Most pull request screenshots come in pairs.", "They showed up *one under the other*."] },
+    { "kind": "shot", "label": "01 · Pairs that find each other",
+      "kicker": "The comment",
+      "headline": "Tag the state, and the pair shares a row.",
+      "sub": "Same page, one before and one after. Anything else stays as it was.",
+      "src": "assets/comment-pair.webp",
+      "regions": [
+        { "box": [26, 660, 1148, 423], "say": "One page, before and after: one row" },
+        { "box": [26, 69, 823, 575], "say": "No before to match: it shows on its own" }
+      ] },
+    { "kind": "swap", "label": "02 · A divider instead of thumbnails",
+      "kicker": "The file page",
+      "headline": "Small thumbnails hid the change.",
+      "sub": "So the comparison moved into the main view, at full size.",
+      "from": { "src": "viz/img/file-page-round-one.webp", "say": "Round one" },
+      "to": { "src": "viz/img/file-page-compare.webp", "say": "As it ships" } },
+    { "kind": "clip", "label": "03 · Two shots that line up",
+      "kicker": "Compare",
+      "headline": "Drag the divider across both.",
+      "sub": "The before is anchored at the top-left of the after, so what moved is what changed.",
+      "src": "viz/img/compare-sweep.mp4", "from": 0, "to": 5.6,
+      "say": "The live file page", "sayAt": "top" },
+    { "kind": "statement", "label": "04 · The pair that overwrote itself",
+      "lines": ["Same page, captured twice.", "One name, so the after *replaced* the before.", "Now the state is part of the name."] },
+    { "kind": "end", "label": "Try it",
+      "kicker": "Try it",
+      "headline": "Tag each side with its state.",
+      "pills": [{ "text": "--state before", "solid": true }, "--state after"],
+      "foot": "uploads put or uploads screenshot, once for each side. Docs: uploads.sh/docs/attach-pull-request-images" }
+  ]
+}

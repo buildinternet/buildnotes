@@ -59,7 +59,8 @@ const BASE = {
   title: () => 4.5,
   statement: (d) => 1.2 + (d.lines?.length || 1) * 2.3,
   list: (d) => 3.6 + (d.items?.length || 0) * 0.45,
-  shot: (d) => 2.6 + Math.max(1, d.regions?.length || 0) * 2.2,
+  // Each region is held 2.2 s and the ring takes 0.9 s to move on; the last hold runs to the end.
+  shot: (d) => 1.3 + Math.max(1, d.regions?.length || 0) * 3.1 + 0.2,
   swap: () => 6.6,
   // The footage plays once from 0.6 s, then holds its last frame for a moment.
   clip: (d) => 1.4 + Math.max(0, (d.to ?? 0) - (d.from ?? 0)) / (d.speed || 1),

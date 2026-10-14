@@ -1,0 +1,6 @@
+{
+  "frames": [
+    { "label": "Round one", "src": "img/file-page-round-one.webp", "alt": "The file page with two small before and after thumbnails in a strip above a full-size copy of the same image.", "width": 1360, "height": 900 },
+    { "label": "As it ships", "src": "img/file-page-compare.webp", "alt": "The file page in Compare mode: one full-size stage with a vertical divider, Before on the left and After on the right, and a Comparison section in the side rail.", "width": 1360, "height": 900 }
+  ]
+}

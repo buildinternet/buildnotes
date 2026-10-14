@@ -121,7 +121,9 @@ test("the page embeds the images, carries the script safely and drops the author
   assert.ok(!html.includes("<!--"), "the authoring notes are dropped");
 });
 
-for (const [name, script, dir, needs] of [["weekly-digests", example, base, null], ["walkthrough-videos", sunny, sunnyBase, noFfmpeg]])
+const beforeAfterBase = join(root, "examples/before-after");
+const beforeAfter = JSON.parse(readFileSync(join(beforeAfterBase, "motion.json"), "utf8"));
+for (const [name, script, dir, needs] of [["weekly-digests", example, base, null], ["walkthrough-videos", sunny, sunnyBase, noFfmpeg], ["before-after", beforeAfter, beforeAfterBase, noFfmpeg]])
 test(`every scene of the ${name} cut fits the frame and stays on the stage`, { skip: noChrome || needs || false }, async () => {
   const { cut, images } = check(script, dir);
   for (const d of cut.scenes.filter((x) => x.kind === "clip")) {

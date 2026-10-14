@@ -54,13 +54,13 @@ You need `git`, an authenticated `gh`, Node 22 or later, and Chrome for the rend
 
 ## Examples
 
-Two full runs are kept as committed examples. Each folder holds the finished page (one self-contained file with every image embedded), the story plan the agent wrote before drafting, its notes, the specs behind the rendered figures, and a [motion cut](#motion-cut) with its video.
+Three full runs are kept as committed examples. Each folder holds the finished page (one self-contained file with every image embedded), the story plan the agent wrote before drafting, its notes, the specs behind the rendered figures, and a [motion cut](#motion-cut) with its video.
 
 ### Walkthrough videos
 
 [`examples/walkthrough-videos/`](examples/walkthrough-videos) is a build story about walkthrough videos in [Sunny](https://app.sunnysdk.com), a furniture and space planner: one export turns a room, a floor or a project into a looping 1080p tour. The repo behind it is private, so the post quotes no code and links nothing internal; it is about the product as its users meet it. Open [`post.html`](examples/walkthrough-videos/post.html) for the post, in the field notes style, or watch its 52-second cut:
 
-https://github.com/user-attachments/assets/630f699d-4134-47bc-bcb2-da6b5a755225
+https://github.com/user-attachments/assets/5499d909-0c1c-4c1b-a207-5e49b7a20098
 
 <p align="center"><sub>The walkthrough-videos cut, 52 seconds. Its third scene is Sunny's own room export. The file is <a href="examples/walkthrough-videos/motion.mp4"><code>examples/walkthrough-videos/motion.mp4</code></a>.</sub></p>
 
@@ -72,6 +72,25 @@ https://github.com/user-attachments/assets/630f699d-4134-47bc-bcb2-da6b5a755225
   <tr>
     <td><sub><b>A path computed by the product.</b> Chapter 1 draws the camera's route from poses the shot planner itself computed, with a dot that moves on the clip's own clock.</sub></td>
     <td><sub><b>One frame, its parts named.</b> Chapter 2 keys a real video frame: the plan in the corner, the camera on it, and the caption.</sub></td>
+  </tr>
+</table>
+
+### Before and after
+
+[`examples/before-after/`](examples/before-after) is a build story about before/after comparison on [uploads.sh](https://uploads.sh), from the public `buildinternet/uploads` repo: tag two screenshots before and after, and the pull request comment shows them in one row; open either one, and a divider slides across both. Its figures are the product in use, captured live: a real pull request comment and the file page in Compare. Open [`post.html`](examples/before-after/post.html) for the post, in the Plain style, or watch its 47-second cut:
+
+https://github.com/user-attachments/assets/5c541151-33c4-4d45-88db-3cd2f7172e4b
+
+<p align="center"><sub>The before-after cut, 47 seconds. Its fifth scene is a recording of the live file page. The file is <a href="examples/before-after/motion.mp4"><code>examples/before-after/motion.mp4</code></a>.</sub></p>
+
+<table>
+  <tr>
+    <td width="50%"><img src=".github/assets/before-after-comment.webp" alt="A pull request comment on GitHub from uploads.sh: an unpaired screenshot of an API errors page, and below it one row with two screenshots of a REST API docs page labelled Before and After."></td>
+    <td width="50%"><img src=".github/assets/before-after-compare.webp" alt="The uploads.sh file page in Compare mode: a REST API docs screenshot with a purple divider down the middle, Before on the left and After on the right."></td>
+  </tr>
+  <tr>
+    <td><sub><b>The real thing, captured.</b> Chapter 1 shows a live comment: a pair shares a row, and a shot with no before shows on its own.</sub></td>
+    <td><sub><b>The same pair in Compare.</b> Chapter 3 shows how the two shots are lined up from the top-left corner, so what moved is what changed.</sub></td>
   </tr>
 </table>
 
@@ -167,7 +186,7 @@ Also: **steps** (a numbered pipeline with a moving highlight) and **bars** (a ba
 
 Some people won't read a 1,500-word post but will watch a minute of video. The motion cut is the post as a reel of five to nine scenes that plays itself: the title, the problem, one scene for each idea, and how to try it. The agent writes a short scene script (`motion.json`) from the finished post, so every word, number and screenshot comes from the post. [`motion.mjs`](scripts/motion.mjs) checks the script, times each scene by how long its words take to read, builds one self-contained page, and exports a 1920×1080 MP4, a GIF, a still, or one scene as a short clip.
 
-https://github.com/user-attachments/assets/c18c6e27-d6c7-469a-90d7-c3f512474357
+https://github.com/user-attachments/assets/263542d1-f540-487b-9e6e-287414ff8ba6
 
 <p align="center"><sub>The weekly-digests cut, one minute. The file is <a href="examples/weekly-digests/motion.mp4"><code>examples/weekly-digests/motion.mp4</code></a>.</sub></p>
 
@@ -361,7 +380,7 @@ To keep a public run as a committed example, check it, then copy its page, plan 
 - **The record has to say it.** The skill infers angles and context, but not motives, quotes or numbers. When the record doesn't say why something was done, the reason stays out of the post and goes on the open questions.
 - **Private repos link nothing internal.** The linter fails a `--private` post that links the repo's issues, PRs or commits.
 - **No sign-ins for screenshots.** If a screen sits behind a sign-in the skill shouldn't use, it falls back to the PR's own images, a diagram or a terminal run.
-- **Two examples so far.** `examples/` holds two runs, one from a public repo and one from a private repo that quotes no code.
+- **Three examples so far.** `examples/` holds three runs: two from public repos, and one from a private repo that quotes no code.
 
 ## License
 
