@@ -1,0 +1,37 @@
+{
+  "title": "The week at a glance card for Coding Agents, week of 28 September, taken apart: four product tiles, each split into features, enhancements and fixes, and the five biggest releases below.",
+  "view": "iso",
+  "src": "img/digest-card.webp",
+  "alt": "The week at a glance card for Coding Agents: tiles for Codex, Claude Code, Devin and Grok Build, and a list of the five biggest releases.",
+  "size": [1792, 1878],
+  "frame": [33, 33, 1725, 1810],
+  "label": "The week at a glance",
+  "parts": [
+    { "id": "codex", "box": [85, 173, 667, 679], "label": "Codex", "header": 87, "split": [363, 92, 207], "lit": true },
+    { "id": "claude-code", "box": [761, 173, 476, 679], "label": "Claude Code", "header": 87, "split": [105, 48, 317] },
+    { "id": "devin", "box": [1247, 173, 460, 467], "label": "Devin", "header": 87, "split": [293, 125, 36] },
+    { "id": "grok", "box": [1247, 650, 460, 202], "label": "Grok Build", "header": 85, "split": [205, 75, 174] },
+    { "id": "list", "box": [100, 1090, 1500, 700], "rows": [
+      "OpenAI launches GPT-6.1 Sol in Codex and ChatGPT Work",
+      "Codex 0.159.1 makes GPT-6.1 Sol the default model",
+      "Devin adds cross-device view sync, keyboard navigation, and interactive HTML reports",
+      "Devin adds native Jira agent and preflight automation checks",
+      "Codex CLI 0.159.0 removes prompt suggestions and adds instant interrupt"
+    ] }
+  ],
+  "marks": [
+    { "part": "codex", "at": [474, 217], "kind": "landmark" },
+    { "part": "codex", "at": [520, 217], "kind": "major" },
+    { "part": "codex", "at": [566, 217], "kind": "major" },
+    { "part": "devin", "at": [1627, 217], "kind": "major" },
+    { "part": "devin", "at": [1673, 217], "kind": "major" },
+    { "part": "devin", "at": [1420, 380], "kind": "cursor" }
+  ],
+  "keys": [
+    { "part": "codex", "marks": true, "at": [640, 217], "text": "**Flames.** Filled is a landmark release, outlined a major one." },
+    { "part": "codex", "at": [300, 560], "text": "**Tile size.** The product's impact for the week." },
+    { "part": "claude-code", "at": [1080, 560], "text": "**Columns.** Features, enhancements and fixes, left to right." },
+    { "part": "devin", "at": [1500, 430], "text": "**Click a tile** to filter the list." },
+    { "part": "list", "at": [1700, 1290], "text": "**Biggest releases.** Five rows, each linking into the digest." }
+  ]
+}

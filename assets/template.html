@@ -435,7 +435,7 @@ figcaption a { color: var(--muted); }
 
 /* keyed figure: numbered hotspots on a screenshot or drawing, and a legend under it. The legend is the
    text; the page's script copies each entry into its hotspot's note. Place hotspots in percent (--x, --y). */
-.keyed .stage { position: relative; }
+.keyed .stage { position: relative; container-type: inline-size; }
 .keyed .stage img { display: block; width: 100%; height: auto; border: 1px solid var(--rule); border-radius: 6px; background: var(--wash); }
 .hs { position: absolute; left: var(--x); top: var(--y); width: 36px; height: 36px; margin: -18px 0 0 -18px; padding: 0; border: 0; background: none; cursor: pointer; display: grid; place-items: center; -webkit-tap-highlight-color: transparent; z-index: 1; }
 .hs:focus { outline: none; }
@@ -446,15 +446,62 @@ figcaption a { color: var(--muted); }
 /* one active key at a time: the others shrink to an unlabelled dot */
 .keyed:has(.hs:is(:hover, .on)) .hs:not(:hover, .on) .dot,
 .keyed:not(:has(.hs:hover)):has(.hs:focus-visible) .hs:not(:focus-visible) .dot { transform: scale(0.36); color: transparent; opacity: 0.5; }
-.hs .tip { position: absolute; top: 50%; left: calc(100% - 2px); width: max-content; max-width: 15rem; transform: translate(-4px, -50%); padding: 0.55rem 0.75rem; background: var(--paper); border: 1px solid var(--rule); border-radius: 6px; box-shadow: 0 1px 0 var(--rule); font: 400 0.875rem/1.4 var(--font-body); color: var(--ink); text-align: left; opacity: 0; pointer-events: none; transition: opacity 0.15s, transform 0.2s; z-index: 2; }
-.hs.left .tip { left: auto; right: calc(100% - 2px); transform: translate(4px, -50%); }
-.hs:is(:hover, :focus-visible) .tip { opacity: 1; transform: translate(0, -50%); }
-.keyed:has(.hs:hover) .hs:not(:hover) .tip { opacity: 0; }
+/* A note shows only while its hotspot is pointed at or focused; hidden, it takes no room (so it never widens the page). */
+.hs .tip { display: none; position: absolute; top: 50%; left: calc(100% - 2px); width: max-content; max-width: 15rem; transform: translateY(-50%); padding: 0.55rem 0.75rem; background: var(--paper); border: 1px solid var(--rule); border-radius: 6px; box-shadow: 0 1px 0 var(--rule); font: 400 0.875rem/1.4 var(--font-body); color: var(--ink); text-align: left; pointer-events: none; z-index: 2; }
+.hs.left .tip { left: auto; right: calc(100% - 2px); }
+.hs:is(:hover, :focus-visible) .tip { display: block; animation: tip-in 0.16s ease-out; }
+.keyed:has(.hs:hover) .hs:not(:hover) .tip { display: none; }
+@keyframes tip-in { from { opacity: 0; } }
+/* In a narrow figure the note opens below its hotspot, shifted by the hotspot's own position so it stays inside. */
+@container (max-width: 36rem) {
+  .hs .tip, .hs.left .tip { top: calc(100% + 2px); left: 50%; right: auto; max-width: min(15rem, 86cqw); transform: translateX(calc(-1 * var(--x))); }
+}
 .hs:is(:hover, :focus-visible) { z-index: 3; }
 .keys { list-style: none; margin: 0.6rem 0 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: 0.5rem 1.75rem; counter-reset: key; font-size: 0.9375rem; line-height: 1.45; }
 .keys li { counter-increment: key; display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 0.6rem; align-items: start; margin: -0.25rem -0.4rem; padding: 0.25rem 0.4rem; border-radius: 6px; transition: background 0.15s; }
 .keys li::before { content: attr(data-k); margin-top: 0.05rem; }
 .keys li.on { background: color-mix(in oklab, var(--mark) 9%, var(--paper)); }
+
+/* ── component: anatomy (viz.mjs anatomy) ── a keyed figure drawn from a parts list: flat, at an angle (iso),
+   or keys over the capture. Pointing at a part lifts it; pointing at a key or legend entry fades the other
+   parts. The iso view comes apart on "Apart": each part lifts, staggered, and its key goes with it. */
+.anatomy { --t0: color-mix(in oklab, var(--ink) 5%, var(--paper)); --landmark-edge: color-mix(in oklab, var(--landmark) 60%, var(--ink)); }
+.anatomy .stage { container-type: inline-size; }
+.anatomy svg { display: block; width: 100%; height: auto; overflow: visible; }
+.anatomy-iso svg { max-width: 46rem; margin-inline: auto; }
+.anatomy .card { fill: var(--paper); stroke: var(--ink); stroke-width: 1; vector-effect: non-scaling-stroke; }
+.anatomy .ln { fill: none; stroke: var(--ink); stroke-width: 0.8; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+.anatomy .fp { fill: var(--paper); } .anatomy .f0 { fill: var(--t0); }
+.anatomy .f1 { fill: color-mix(in oklab, var(--ink) 8%, var(--paper)); } .anatomy .f2 { fill: color-mix(in oklab, var(--ink) 16%, var(--paper)); } .anatomy .f3 { fill: color-mix(in oklab, var(--ink) 27%, var(--paper)); }
+.anatomy .l1 { fill: color-mix(in oklab, var(--accent) 14%, var(--paper)); } .anatomy .l2 { fill: color-mix(in oklab, var(--accent) 34%, var(--paper)); } .anatomy .l3 { fill: color-mix(in oklab, var(--accent) 48%, var(--paper)); }
+.anatomy .s1 { fill: color-mix(in oklab, var(--ink) 9%, var(--paper)); } .anatomy .s2 { fill: color-mix(in oklab, var(--ink) 14%, var(--paper)); }
+.anatomy .ls1 { fill: color-mix(in oklab, var(--accent) 34%, var(--paper)); } .anatomy .ls2 { fill: color-mix(in oklab, var(--accent) 48%, var(--paper)); }
+.anatomy .shadow { fill: color-mix(in oklab, var(--ink) 6%, var(--paper)); }
+.anatomy .mk-l { fill: var(--landmark); stroke: var(--landmark-edge); stroke-width: 0.9; vector-effect: non-scaling-stroke; }
+.anatomy .mk-m { fill: var(--paper); stroke: var(--landmark-edge); stroke-width: 1.1; vector-effect: non-scaling-stroke; }
+.anatomy .cur { fill: var(--paper); stroke: var(--ink); stroke-width: 0.9; stroke-linejoin: round; }
+.anatomy .t-lbl, .anatomy .t-part { font-family: var(--font-display); font-weight: 600; fill: var(--ink); }
+.anatomy .t-row { font-family: var(--font-body); fill: var(--ink); }
+.anatomy .t-mono { font-family: var(--font-code); fill: var(--muted); }
+.anatomy .pt, .anatomy .mk { transition: transform 0.42s cubic-bezier(.22,1,.36,1), opacity 0.25s, filter 0.25s; }
+.anatomy-iso .pt:hover { transform: translateY(-10px); }
+.anatomy-flat .pt:hover { transform: translateY(-4px); filter: drop-shadow(0 4px 0 color-mix(in oklab, var(--ink) 14%, transparent)); }
+.anatomy .mk.on { transform: translateY(-6px); }
+.anatomy:has(.hs:is(:hover, :focus-visible), .keys li:hover) .pt:not(.on):not(:has(.on)) { opacity: 0.22; }
+.anatomy .lift { transition: transform 0.7s cubic-bezier(.22,1,.36,1); transition-delay: var(--dc); }
+.anatomy:has(.apart:checked) .lift { transform: translateY(var(--lift)); transition-delay: var(--do); }
+.anatomy-iso .hs { transition: translate 0.7s cubic-bezier(.22,1,.36,1); transition-delay: var(--dc, 0ms); }
+.anatomy-iso:has(.apart:checked) .hs { translate: 0 var(--ex, 0); transition-delay: var(--do, 0ms); }
+.anatomy .base .fp-out { fill: none; stroke: var(--muted); stroke-width: 0.8; stroke-dasharray: 3 3; vector-effect: non-scaling-stroke; }
+.anatomy .base > .foot { opacity: 0; transition: opacity 0.5s; }
+.anatomy:has(.apart:checked) .base > .foot { opacity: 1; }
+.parts-view { display: flex; justify-content: flex-end; margin: 0 0 -0.5rem; padding: 0; border: 0; min-width: 0; font: 600 0.6875rem/1 var(--font-label); font-stretch: var(--label-stretch); letter-spacing: 0.07em; text-transform: uppercase; }
+.parts-view label { position: relative; padding: 0.4rem 0.35rem; color: var(--muted); cursor: pointer; text-decoration: underline 1.5px transparent; text-underline-offset: 5px; transition: color 0.15s, text-decoration-color 0.15s; }
+.parts-view label:hover, .parts-view label:has(input:checked) { color: var(--ink); }
+.parts-view label:has(input:checked) { text-decoration-color: var(--ink); }
+.parts-view label:has(input:focus-visible) { outline: 1px solid var(--muted); outline-offset: 1px; border-radius: 3px; }
+.parts-view input { position: absolute; opacity: 0; width: 1px; height: 1px; margin: 0; pointer-events: none; }
+.parts-view span { color: var(--rule); padding-top: 0.4rem; }
 
 /* expand: the page's script wraps .shot, .strip and .keyed images shown smaller than their real size */
 .zoom-open { display: block; position: relative; width: 100%; padding: 0; border: 0; background: none; cursor: zoom-in; }
@@ -488,7 +535,8 @@ figcaption a { color: var(--muted); }
 
 @media (prefers-reduced-motion: reduce) {
   .diagram .flow, .flow .route, .steps .box { animation: none !important; }
-  .hs .dot, .hs .tip, .keys li { transition: none; }
+  .hs .tip { animation: none; }
+  .hs .dot, .keys li, .anatomy :is(.pt, .mk, .lift, .hs, .foot) { transition: none !important; }
   html { scroll-behavior: auto; }
 }
 @media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
@@ -946,8 +994,9 @@ figcaption a { color: var(--muted); }
       btn.type = "button";
       btn.className = "zoom-open";
       btn.setAttribute("aria-label", `Expand image${img.alt ? `: ${img.alt}` : ""}`);
-      img.replaceWith(btn);
-      btn.append(img);
+      const el = img.parentElement?.tagName === "PICTURE" ? img.parentElement : img; // keep a light/dark pair together
+      el.replaceWith(btn);
+      btn.append(el);
       btn.insertAdjacentHTML("beforeend", ico);
       btn.addEventListener("click", () => {
         pic.replaceChildren(Object.assign(new Image(), { src: img.currentSrc || img.src, alt: img.alt }));

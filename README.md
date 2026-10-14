@@ -53,15 +53,15 @@ You need `git`, an authenticated `gh`, Node 22 or later, and Chrome for the rend
 
 ## Example
 
-[`examples/weekly-digests/`](examples/weekly-digests) is a full run against the public `buildinternet/releases` repo, kept as a committed example. Open [`post.html`](examples/weekly-digests/post.html) in a browser; it is one self-contained file with every image embedded. The folder also holds the story plan the agent wrote before drafting and its notes for the author.
+[`examples/weekly-digests/`](examples/weekly-digests) is a full run against the public `buildinternet/releases` repo, kept as a committed example. Open [`post.html`](examples/weekly-digests/post.html) in a browser; it is one self-contained file with every image embedded. [`post-field-notes.html`](examples/weekly-digests/post-field-notes.html) is the same post in the field notes style. The folder also holds the story plan the agent wrote before drafting, its notes for the author, and the specs behind the rendered figures.
 
 <table>
   <tr>
-    <td width="50%"><img src=".github/assets/digest-card.webp" alt="A card titled 'The week at a glance': a treemap of releases per product (Codex, Claude Code, Devin, Grok Build) split into features, enhancements and fixes, with a numbered list of the five biggest releases below."></td>
+    <td width="50%"><img src=".github/assets/digest-keyed.webp" alt="The shipped 'week at a glance' card with five numbered keys on its parts, and a legend under it: flames, tile size, columns, click a tile, and the five biggest releases."></td>
     <td width="50%"><img src=".github/assets/digest-flow.gif" alt="An animated flow diagram: Monday run, then 'week just closed?', then one message per subscriber, a delivery queue, and 'claim the week' per reader before the email is sent. A dot travels the route."></td>
   </tr>
   <tr>
-    <td><sub><b>A screenshot that is the subject.</b> Chapter 1 shows the shipped card, captioned with the collection and week it shows.</sub></td>
+    <td><sub><b>A keyed screenshot.</b> Chapter 1 shows the shipped card with its parts numbered. Pointing at a number opens its note, and the screenshot expands to full size.</sub></td>
     <td><sub><b>A flow with motion.</b> Chapter 4 explains how each reader gets exactly one email a week. The diagram is drawn by <code>viz.mjs</code> from a short JSON spec.</sub></td>
   </tr>
   <tr>
@@ -69,6 +69,12 @@ You need `git`, an authenticated `gh`, Node 22 or later, and Chrome for the rend
   </tr>
   <tr>
     <td colspan="2"><sub><b>Before and after in one figure.</b> Two frames of the week replay, mid-week and at the end.</sub></td>
+  </tr>
+  <tr>
+    <td colspan="2"><img src=".github/assets/digest-apart.webp" alt="The same card drawn at an angle in the field notes style, taken apart: the product tiles and the list of releases lifted off the base, with dashed outlines where they sat and five numbered keys."></td>
+  </tr>
+  <tr>
+    <td colspan="2"><sub><b>The same card, field notes style.</b> One parts list, measured on the capture, drawn at an angle and taken apart. The <code>anatomy</code> component draws it flat, at an angle, or as keys over the capture.</sub></td>
   </tr>
 </table>
 

@@ -1,0 +1,194 @@
+{
+  "title": "The week at a glance card for Coding Agents, week of 28 September: four product tiles, each split into features, enhancements and fixes, and the five biggest releases below.",
+  "view": "iso",
+  "src": "img/digest-card.webp",
+  "srcDark": "img/digest-card-dark.webp",
+  "alt": "The week at a glance card for Coding Agents: tiles for Codex, Claude Code, Devin and Grok Build, and a list of the five biggest releases.",
+  "size": [
+    1424,
+    1494
+  ],
+  "frame": [
+    26,
+    26,
+    1371,
+    1440
+  ],
+  "label": "The week at a glance",
+  "parts": [
+    {
+      "id": "codex",
+      "box": [
+        68,
+        138,
+        530,
+        540
+      ],
+      "label": "Codex",
+      "header": 69,
+      "split": [
+        288,
+        73,
+        164
+      ],
+      "lit": true
+    },
+    {
+      "id": "claude-code",
+      "box": [
+        605,
+        138,
+        378,
+        540
+      ],
+      "label": "Claude Code",
+      "header": 69,
+      "split": [
+        83,
+        38,
+        252
+      ]
+    },
+    {
+      "id": "devin",
+      "box": [
+        991,
+        138,
+        366,
+        372
+      ],
+      "label": "Devin",
+      "header": 69,
+      "split": [
+        233,
+        99,
+        29
+      ]
+    },
+    {
+      "id": "grok",
+      "box": [
+        991,
+        517,
+        366,
+        161
+      ],
+      "label": "Grok Build",
+      "header": 68,
+      "split": [
+        163,
+        60,
+        138
+      ]
+    },
+    {
+      "id": "list",
+      "box": [
+        79,
+        867,
+        1192,
+        557
+      ],
+      "rows": [
+        "OpenAI launches GPT-6.1 Sol in Codex and ChatGPT Work",
+        "Codex 0.159.1 makes GPT-6.1 Sol the default model",
+        "Devin adds cross-device view sync, keyboard navigation, and interactive HTML reports",
+        "Devin adds native Jira agent and preflight automation checks",
+        "Codex CLI 0.159.0 removes prompt suggestions and adds instant interrupt"
+      ]
+    }
+  ],
+  "marks": [
+    {
+      "part": "codex",
+      "at": [
+        377,
+        173
+      ],
+      "kind": "landmark"
+    },
+    {
+      "part": "codex",
+      "at": [
+        413,
+        173
+      ],
+      "kind": "major"
+    },
+    {
+      "part": "codex",
+      "at": [
+        450,
+        173
+      ],
+      "kind": "major"
+    },
+    {
+      "part": "devin",
+      "at": [
+        1293,
+        173
+      ],
+      "kind": "major"
+    },
+    {
+      "part": "devin",
+      "at": [
+        1329,
+        173
+      ],
+      "kind": "major"
+    },
+    {
+      "part": "devin",
+      "at": [
+        1128,
+        302
+      ],
+      "kind": "cursor"
+    }
+  ],
+  "keys": [
+    {
+      "part": "codex",
+      "marks": true,
+      "at": [
+        509,
+        173
+      ],
+      "text": "**Flames.** One for each major or landmark release; a landmark's is filled."
+    },
+    {
+      "part": "codex",
+      "at": [
+        238,
+        445
+      ],
+      "text": "**Tile size.** How much the product shipped, measured as impact."
+    },
+    {
+      "part": "claude-code",
+      "at": [
+        858,
+        445
+      ],
+      "text": "**Columns.** Features, enhancements and fixes, left to right."
+    },
+    {
+      "part": "devin",
+      "at": [
+        1192,
+        342
+      ],
+      "text": "**Click a tile** and the list shows only that product's releases."
+    },
+    {
+      "part": "list",
+      "at": [
+        1351,
+        1026
+      ],
+      "text": "**The five biggest releases.** Each row links to the part of the digest about it."
+    }
+  ]
+}

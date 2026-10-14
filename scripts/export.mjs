@@ -122,6 +122,8 @@ try {
   // Show only the exported element: its neighbours (a caption, the next paragraph) keep their space
   // but don't paint into the margin. The page background still shows.
   await page.evaluate(`document.body.style.visibility = "hidden"; window.__target.style.visibility = "visible"; true`);
+  // Page controls a still or a loop can't use: the expand icon on screenshots, a hotspot's hidden note.
+  await page.evaluate(`document.head.append(Object.assign(document.createElement("style"), { textContent: ".zoom-ico, .hs .tip { display: none !important; }" })); true`);
   const box = await page.evaluate(`(() => { const r = window.__target.getBoundingClientRect(); return { x: r.left + scrollX, y: r.top + scrollY, width: r.width, height: r.height }; })()`);
   const clip = { x: Math.max(0, box.x - pad), y: Math.max(0, box.y - pad), width: Math.ceil(box.width + 2 * pad), height: Math.ceil(box.height + 2 * pad) };
 

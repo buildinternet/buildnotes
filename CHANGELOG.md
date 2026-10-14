@@ -20,6 +20,12 @@ Until the first release, changes are recorded under [Unreleased].
 
 - Template components: a `finding` (one sentence a chapter found), margin notes (`<span class="sidenote">`, in the right margin on wide screens), and keyed figures (numbered hotspots on a screenshot with a legend; the page's script links the two and shows one note at a time). Screenshots in `.shot`, `.strip` and keyed figures open full size in a shared dialog when drawn smaller than their real size. `lint.mjs` checks keyed figures (hotspots and legend match, positions set, at most about six), findings (one per chapter) and margin-note length. Docs in `references/story.md` and `references/visuals.md`.
 
+- The `anatomy` component (`scripts/viz/anatomy.mjs`): the parts of one thing, named. One parts list, measured on a capture, draws as keys over the capture (`screenshot`, with an optional dark capture), a flat drawing with the object's own labels (`flat`), or an angled drawing of its structure that comes apart on request (`iso`). Each renders as a keyed figure; pointing at a part lifts it, and pointing at a key fades the rest. A spec can start from another with `from`. Example specs in `assets/specs/anatomy-card*.json`, measured on the shipped digest card; tests in `dev/test/anatomy.test.mjs`.
+- `examples/weekly-digests/post-field-notes.html`, the example in the field notes style, and `examples/weekly-digests/viz/`, the specs behind its rendered figures.
+
 ### Changed
 
+- The weekly-digests example uses the current template: the card is a keyed figure over the shipped capture, the patch-pool bars and the replay frames use the `bars` and `strip` components, chapter 2 closes with a finding, and the sentence about the card's colors now says columns, as the card has. The README shows the keyed card and the field notes version.
+- `viz.mjs build` passes the page's folder to the renderers, so an image a spec names resolves relative to the page.
+- `export.mjs` hides the expand icon and hotspot notes in exports, and the README's images are re-exported with it from the current gallery and example.
 - Plain replaces the template's previous look: Archivo, Newsreader and IBM Plex Mono on a white page, and figures (flows, steps, diagrams) on plain ground between two rules instead of a bordered dot grid.

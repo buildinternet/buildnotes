@@ -13,6 +13,7 @@ Every visual answers a question a chapter raises. Before making one, write its c
 | What a thing looked like before and after | Before/after pair | `strip` (two frames) |
 | How a design converged over several iterations | Progression strip (2–4 frames), "Round one" … "As it ships" | `strip` |
 | What the user actually sees | Screenshot of the real UI | `figure.shot` in the template |
+| What each part of one thing is (a card, a panel, a screen) | Keyed figure: the capture, a flat drawing, or an angled one that comes apart | `anatomy` |
 | An interaction or a sequence over time | Short loop (GIF/MP4/WebM) or a frame strip | `figure.shot`, or `strip` |
 | A state machine, a lifecycle, a set of rules | Small state diagram or a table | `flow` (with a back edge), or `options` |
 | Pace, when the pace is the point | Timeline, by day | template partial, from `dossier.json` → `timeline` |
@@ -57,6 +58,7 @@ Lint lists the specs behind the page, so the fact pass can tick their numbers th
 | `term` | `cmd` (one command), `out` (lines), optional `keep` ("1-3,8"; each gap becomes `…`), `dim`, `wrap` (set it for help text and other two-column output, which clips otherwise). |
 | `shader` | `label` (required), `frag` (a `.glsl` file next to the spec) or `glsl`, `loop` and `rest` (seconds; leave out `loop` for a still), optional `aspect`, `uniforms` (extra values: a number or 2–4 numbers), `labels` (text over the canvas), `fallback`. See below. |
 | `strip` | `frames`: 2–4 of `{ label, src, alt, width, height }`, `{ label, code: {…} }` or `{ label, term: { out } }`. The last frame gets the accent label unless another says `hot`. |
+| `anatomy` | `view` (`flat`, `iso` or `screenshot`), `src`, `alt`, `size` (the capture's pixels), `frame` (the object's outline in it), `label` (its own title), `parts` (`id`, `box` [x, y, w, h], optional `label`, `header`, `split` (column widths), `lit`, `rows` (a count or the row texts)), `marks` (`part`, `at`, `kind`: `landmark`, `major` or `cursor`), `keys` (`part`, `text` with **bold** allowed, optional `at`, `marks: true` for a key about the part's marks), optional `from` (another spec to start from). See below. |
 
 ## Diagrams
 
@@ -111,6 +113,16 @@ Other tools (Playwright, a browser MCP, a built-in browser pane) work the same w
 ### Keyed figures
 
 When the reader needs the parts of one screenshot named (what each tile, column or control is), key it instead of drawing arrows on it: numbered hotspots on the image and a legend under it, in a `figure.keyed` (the template has an example). The legend is the text; the page's script copies each entry into its hotspot's note, and pointing at either lights both. Place each hotspot with `--x` and `--y` in percent of the image, on empty space near its part rather than on top of a label. Key only what the text talks about: about six at most (lint checks the numbers match and warns past six).
+
+### Anatomy: the parts of one thing
+
+`anatomy` draws a keyed figure from a parts list. Measure every box on the real capture, in its own pixels (open it and read the coordinates, or measure the live page's elements while you capture it), so the drawing matches what shipped. Then pick the view:
+
+- **`screenshot`**: the keys on the capture itself. The most faithful; use it when the capture reads at column width.
+- **`flat`**: the object redrawn straight on, with its own labels and row texts, in the page's colours. Use it when the capture is busy, low-contrast or dark next to a light page.
+- **`iso`**: the object at an angle, structure only (no labels on the parts, the object's title on its base). It shows how the parts sit together; "Apart" lifts them off, staggered, with outlines where they sat. Use it where structure is the point; it is the one view that reads as a drawing rather than a record.
+
+Mark one part `lit` (the one the chapter is about): it takes the accent fills. Marks (`landmark`, `major`) are small flames in the landmark colour; `cursor` draws a pointer, for a key about clicking. A key with `"marks": true` lights the part's marks rather than the part. Pointing at a part lifts it; pointing at a key or legend entry fades the other parts. Keep to six keys. One spec can feed several views: write the parts once and give each other view its own small spec, `{ "from": "card.json", "view": "flat" }`. In field notes, the flat and iso lines are drawn by hand, like flows.
 
 ### Expanding a screenshot
 
