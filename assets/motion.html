@@ -112,6 +112,10 @@ em { font-style: normal; background: linear-gradient(var(--mark), var(--mark)) 0
 .chip { position: absolute; white-space: nowrap; background: var(--mark); color: #fff; font: 600 28px/1 var(--font-display); font-stretch: 92%; padding: 14px 20px; border-radius: 12px; }
 .wipe { position: absolute; top: 0; bottom: 0; width: 5px; margin-left: -2px; background: #fff; box-shadow: 0 0 30px 6px rgb(255 255 255 / 0.5); }
 .say-on { position: absolute; left: 24px; bottom: 24px; background: rgb(255 255 255 / 0.94); color: #161616; font: 600 28px/1 var(--font-display); padding: 12px 18px; border-radius: 10px; }
+.say-on.at-top { top: 24px; bottom: auto; } /* "sayAt": "top", when the footage has its own caption at the bottom */
+
+/* clip: the product's own footage, as frames on one sprite sheet, stepped by the clock */
+.film { position: absolute; inset: 0; background-repeat: no-repeat; }
 
 /* morph */
 .tm { position: absolute; transform-origin: 0 0; }
@@ -127,9 +131,10 @@ em { font-style: normal; background: linear-gradient(var(--mark), var(--mark)) 0
 .key span::before { content: ""; display: inline-block; width: 20px; height: 20px; border-radius: 5px; margin-right: 10px; vertical-align: -3px; background: var(--c); }
 
 /* bars */
-.bars { position: absolute; left: 900px; width: 900px; display: grid; gap: 26px; }
-.bars .row { display: grid; grid-template-columns: 230px 1fr; align-items: center; gap: 24px; }
-.bars .lbl { font: 500 30px/1.1 var(--font-mono); color: var(--muted); text-align: right; }
+/* One grid for every row, so the label column is as wide as the longest label. */
+.bars { position: absolute; left: 860px; width: 960px; display: grid; grid-template-columns: max-content 1fr; align-items: center; gap: 26px 24px; }
+.bars .row { display: contents; }
+.bars .lbl { font: 500 30px/1.1 var(--font-mono); color: var(--muted); text-align: right; white-space: nowrap; }
 .bars .row.lit .lbl { color: var(--ink); }
 .bars .trk { position: relative; height: 74px; }
 .bars .b { position: absolute; left: 0; top: 0; bottom: 0; background: var(--dim); border-radius: 0 10px 10px 0; }
@@ -311,6 +316,31 @@ em { font-style: normal; background: linear-gradient(var(--mark), var(--mark)) 0
       } };
     },
 
+    clip(d) {
+      const el = frame(d);
+      const c = copy(d);
+      const f = fitBox(d.size, SIDE);
+      const pic = h("div", "pic");
+      place(pic, f.x, f.y, f.w, f.h);
+      const film = h("div", "film");
+      film.style.backgroundImage = `url("${asset(d.sprite)}")`;
+      film.style.backgroundSize = `${d.cols * 100}% ${d.rows * 100}%`;
+      const say = d.say ? h("div", "say-on" + (d.sayAt === "top" ? " at-top" : ""), esc(d.say)) : null;
+      pic.append(film);
+      if (say) pic.append(say);
+      el.append(c.el, pic);
+      return { el, render(t) {
+        c.render(t);
+        const p = seg(t, 0.3, 1.0);
+        pic.style.opacity = p; pic.style.transform = `translateY(${(1 - p) * 60}px)`;
+        // Frame k of the clip at this moment; it plays once from 0.6 s and holds its last frame.
+        const k = clamp(Math.floor(Math.max(0, t - 0.6) * d.fps * (d.speed || 1)), 0, d.frames - 1);
+        const col = k % d.cols, row = Math.floor(k / d.cols);
+        film.style.backgroundPosition = `${d.cols > 1 ? (col / (d.cols - 1)) * 100 : 0}% ${d.rows > 1 ? (row / (d.rows - 1)) * 100 : 0}%`;
+        if (say) say.style.opacity = seg(t, 1.2, 1.6);
+      } };
+    },
+
     swap(d) {
       const el = frame(d);
       const c = copy(d);
@@ -319,7 +349,7 @@ em { font-style: normal; background: linear-gradient(var(--mark), var(--mark)) 0
       place(pic, f.x, f.y, f.w, f.h);
       const a = h("img"); a.src = asset(d.from.src); a.alt = "";
       const b = h("img"); b.src = asset(d.to.src); b.alt = "";
-      const wipe = h("div", "wipe"), say = h("div", "say-on");
+      const wipe = h("div", "wipe"), say = h("div", "say-on" + (d.sayAt === "top" ? " at-top" : ""));
       pic.append(a, b, wipe, say);
       el.append(c.el, pic);
       return { el, render(t) {
@@ -395,27 +425,29 @@ em { font-style: normal; background: linear-gradient(var(--mark), var(--mark)) 0
       const c = copy(d);
       const box = h("div", "bars");
       const max = d.max || Math.max(...d.rows.map((r) => r.value), d.cap?.value || 0) * 1.1;
-      const dec = d.decimals ?? (d.rows.every((r) => Number.isInteger(r.value)) ? 0 : 2);
-      const trackW = 900 - 230 - 24 - 120;
+      // Each value counts up with as many decimals as it has (or the script's "decimals"), then the unit.
+      const decOf = (v) => d.decimals ?? (Number.isInteger(v) ? 0 : Math.min(2, String(v).split(".")[1].length));
       const rows = d.rows.map((r) => {
         const row = h("div", "row" + (r.lit ? " lit" : ""), `<div class="lbl">${esc(r.label)}</div><div class="trk"><div class="b"></div><div class="v"></div></div>`);
         box.append(row);
         return { row, b: row.querySelector(".b"), v: row.querySelector(".v"), val: r.value };
       });
       let cap;
-      if (d.cap) { cap = h("div", "cap", `<span>${esc(d.cap.label || "")}</span>`); place(cap, 230 + 24 + (trackW * d.cap.value) / max, 0); cap.style.top = "0"; cap.style.bottom = "0"; box.append(cap); }
+      if (d.cap) { cap = h("div", "cap", `<span>${esc(d.cap.label || "")}</span>`); cap.style.top = "0"; cap.style.bottom = "0"; box.append(cap); }
       el.append(c.el, box);
       box.style.top = (H - (rows.length * 100 - 26)) / 2 + 40 + "px";
       return { el, render(t) {
         c.render(t);
+        // The track is what the labels leave, less room for the value at the end of the bar.
+        const trk = rows[0].b.parentElement, trackW = trk.clientWidth - 130;
         rows.forEach((r, i) => {
           const a = 1.0 + i * 0.4, p = seg(t, a, a + 1.0);
           r.row.style.opacity = seg(t, a - 0.3, a);
           const w = (trackW * r.val) / max * p;
           r.b.style.width = w + "px"; r.v.style.left = w + 16 + "px";
-          r.v.textContent = (r.val * p).toFixed(dec);
+          r.v.textContent = (r.val * p).toFixed(decOf(r.val)) + (d.unit || "");
         });
-        if (cap) { const a = 1.0 + rows.length * 0.4 + 0.6; cap.style.opacity = seg(t, a, a + 0.6); }
+        if (cap) { const a = 1.0 + rows.length * 0.4 + 0.6; cap.style.left = trk.offsetLeft + (trackW * d.cap.value) / max + "px"; cap.style.opacity = seg(t, a, a + 0.6); }
       } };
     },
 

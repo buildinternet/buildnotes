@@ -48,7 +48,7 @@
         { "label": "40 patches", "value": 3.11 },
         { "label": "1 landmark", "value": 4, "lit": true }
       ],
-      "max": 4.4, "cap": { "value": 4, "label": "the pool never passes 4" } },
+      "max": 4.4, "decimals": 2, "cap": { "value": 4, "label": "the pool never passes 4" } },
     { "kind": "swap", "label": "03 · Playing the week back",
       "kicker": "The replay",
       "headline": "Play the week back, day by day.",

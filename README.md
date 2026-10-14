@@ -4,7 +4,7 @@
 
 <p align="center">
   <a href="#quick-start">Quick start</a> ·
-  <a href="#example">Example</a> ·
+  <a href="#examples">Examples</a> ·
   <a href="#flavors">Flavors</a> ·
   <a href="#visual-components">Visual components</a> ·
   <a href="#motion-cut">Motion cut</a> ·
@@ -52,9 +52,32 @@ Then, in Claude Code, inside the repo the feature lives in:
 
 You need `git`, an authenticated `gh`, Node 22 or later, and Chrome for the render pass and figure export. The scripts use only Node's built-in modules: there is nothing to `npm install`.
 
-## Example
+## Examples
 
-[`examples/weekly-digests/`](examples/weekly-digests) is a full run against the public `buildinternet/releases` repo, kept as a committed example. Open [`post.html`](examples/weekly-digests/post.html) in a browser; it is one self-contained file with every image embedded. [`post-field-notes.html`](examples/weekly-digests/post-field-notes.html) is the same post in the field notes style, and [`motion.html`](examples/weekly-digests/motion.html) is its [motion cut](#motion-cut), a one-minute reel built from [`motion.json`](examples/weekly-digests/motion.json) and exported as [`motion.mp4`](examples/weekly-digests/motion.mp4). The folder also holds the story plan the agent wrote before drafting, its notes for the author, and the specs behind the rendered figures.
+Two full runs are kept as committed examples. Each folder holds the finished page (one self-contained file with every image embedded), the story plan the agent wrote before drafting, its notes, the specs behind the rendered figures, and a [motion cut](#motion-cut) with its video.
+
+### Walkthrough videos
+
+[`examples/walkthrough-videos/`](examples/walkthrough-videos) is a build story about walkthrough videos in [Sunny](https://app.sunnysdk.com), a furniture and space planner: one export turns a room, a floor or a project into a looping 1080p tour. The repo behind it is private, so the post quotes no code and links nothing internal; it is about the product as its users meet it. Open [`post.html`](examples/walkthrough-videos/post.html) for the post, in the field notes style, or watch its 52-second cut:
+
+https://github.com/user-attachments/assets/630f699d-4134-47bc-bcb2-da6b5a755225
+
+<p align="center"><sub>The walkthrough-videos cut, 52 seconds. Its third scene is Sunny's own room export. The file is <a href="examples/walkthrough-videos/motion.mp4"><code>examples/walkthrough-videos/motion.mp4</code></a>.</sub></p>
+
+<table>
+  <tr>
+    <td width="50%"><img src=".github/assets/walkthrough-path.webp" alt="A camera path drawn over the plan of the Reception Lounge, seen from above: an orbit from outside the room, a glide down into the back-right corner, eye level with a shaded view wedge, a rise to the plan, and back to the first frame. Five numbered stops carry their times."></td>
+    <td width="50%"><img src=".github/assets/walkthrough-keyed.webp" alt="One frame of a floor tour at eye level in the Boardroom, with five numbered keys: the shot, the mini-map in the top-right corner, the tinted room, the camera's dot and wedge, and the caption with the room's name and size."></td>
+  </tr>
+  <tr>
+    <td><sub><b>A path computed by the product.</b> Chapter 1 draws the camera's route from poses the shot planner itself computed, with a dot that moves on the clip's own clock.</sub></td>
+    <td><sub><b>One frame, its parts named.</b> Chapter 2 keys a real video frame: the plan in the corner, the camera on it, and the caption.</sub></td>
+  </tr>
+</table>
+
+### Weekly digests
+
+[`examples/weekly-digests/`](examples/weekly-digests) is a build story about the weekly collection digests on Release Notes Index, from the public `buildinternet/releases` repo. Open [`post.html`](examples/weekly-digests/post.html) for the post in the Plain style, or [`post-field-notes.html`](examples/weekly-digests/post-field-notes.html) for the same post in field notes. Its one-minute cut is [`motion.html`](examples/weekly-digests/motion.html), built from [`motion.json`](examples/weekly-digests/motion.json) and exported as [`motion.mp4`](examples/weekly-digests/motion.mp4); it plays in the [Motion cut](#motion-cut) section below. 
 
 <table>
   <tr>
@@ -165,9 +188,15 @@ https://github.com/user-attachments/assets/c18c6e27-d6c7-469a-90d7-c3f512474357
     <td><sub><b>shot</b>: a ring moves across a screenshot's parts, naming each.</sub></td>
     <td><sub><b>swap</b>: one frame of a screen wipes over another.</sub></td>
   </tr>
+  <tr>
+    <td colspan="2"><img src=".github/assets/motion-clip.webp" alt="A scene from the walkthrough-videos cut: the headline 'The room decides the shots' beside a real room export from Sunny playing in the frame, orbiting the Reception Lounge and gliding down to eye level."></td>
+  </tr>
+  <tr>
+    <td colspan="2"><sub><b>clip</b>: the feature's own footage, from a GIF or video in the pull request, played inside the frame. This one is from the walkthrough-videos cut.</sub></td>
+  </tr>
 </table>
 
-Also: **title**, **statement** (the problem, line by line), **list**, **bars** and **end** (where to go and what to press). Each clip above is one scene of the weekly-digests cut, exported with `--scene`:
+Also: **title**, **statement** (the problem, line by line), **list**, **bars** and **end** (where to go and what to press). Each clip above is one scene of an example's cut, exported with `--scene`:
 
 ```bash
 node scripts/motion.mjs examples/weekly-digests/motion.json --mp4                       # the whole cut → export/motion.mp4
@@ -332,7 +361,7 @@ To keep a public run as a committed example, check it, then copy its page, plan 
 - **The record has to say it.** The skill infers angles and context, but not motives, quotes or numbers. When the record doesn't say why something was done, the reason stays out of the post and goes on the open questions.
 - **Private repos link nothing internal.** The linter fails a `--private` post that links the repo's issues, PRs or commits.
 - **No sign-ins for screenshots.** If a screen sits behind a sign-in the skill shouldn't use, it falls back to the PR's own images, a diagram or a terminal run.
-- **One example so far.** `examples/` holds a single public run.
+- **Two examples so far.** `examples/` holds two runs, one from a public repo and one from a private repo that quotes no code.
 
 ## License
 
