@@ -35,6 +35,7 @@ Each rule carries the fault that taught it, and links to the reference that hold
 - **References are rare and reachable.** Link only what the reader can open and would want: public docs, the product, an open-source repo, a few key PRs in a public deep dive. In a private repo, link nothing internal. The text never depends on a link. [story.md](references/story.md#references) *(Fault: a superscript issue number on every other paragraph of a post about a closed-source product.)*
 - **Confirm every URL before you use it.** Link to or measure only an address you have seen: in the record, the code's routes, the sitemap, or a link on the live site. Open it and get a 200 first. Never build one by guessing a slug or an id; `lint.mjs` opens every link and fails on one that doesn't load. *(Fault: a speed check on a made-up collection address, whose 404 then became a question for the author.)*
 - **Every number has a source, and earns its place.** It comes from the dossier, a file, or a command you ran for this post. Prefer numbers about the product ("a preview is ready about 40 seconds after you push") over numbers about the process (lines changed, PRs merged). Masthead stats are off by default; keep one only if a stranger gets it cold. [evidence.md](references/evidence.md#numbers-worth-having) *(Fault: "cut latency by ~40%" with no measurement anywhere; a masthead reading "Write paths: 1".)*
+- **Understood beats exact.** Better a reader who gets the idea from a detail that's close enough than one who gets every detail right and misses the idea. Never mislead, but don't chase precision a reader wouldn't notice. If confirming a claim would take production data, the beat is about running the service: cut it or say less before you investigate. [evidence.md](references/evidence.md#how-far-to-check) *(Fault: a chapter about a cache's hit rate in a post for the product's users, and a trip into server logs to back it up.)*
 - **Name ideas, not identifiers.** In the story, say what a thing does; save function names, flags and enum values for the try-it section and code blocks. [story.md](references/story.md#name-ideas-not-identifiers) *(Fault: a chapter whose sentences are strung between `flush()`, `commit()` and `edit_rev`.)*
 - **Real code, only where the code is the idea.** Copied from the shipped commit, at most about 15 lines, captioned with the file name only, cuts marked `…`. Never present illustrative code as the real thing. *(Fault: a tidy snippet that matches nothing in the repo.)*
 - **One visual per chapter, at most, and it must explain.** Decoration goes. [visuals.md](references/visuals.md) *(Fault: a diagram that restates the heading.)*
@@ -50,7 +51,7 @@ Pick one in Scope. It sets the reader, the level of detail and the defaults belo
 |---|---|---|---|
 | Reader | Users and prospective users | Developers who know the product | Engineers who want the mechanism |
 | Answers | What's new, why it matters, how to use it | What we built, how it works, what shaped it | How it works inside, the trade-offs, the edge cases |
-| Detail | Product and outcomes; internals in a sentence | Concepts and decisions; internals where they explain | Mechanisms, data structures, failure modes |
+| Detail | Product and outcomes; internals in a sentence | Concepts and decisions; internals only where they explain something the reader sees | Mechanisms, data structures, failure modes |
 | Visuals | Screenshots, before/after, one simple flow | Diagrams, motion, before/after | Diagrams, terminal runs, charts |
 | Code | A usage example at most | Only where the code is the idea | Where it helps |
 | Process detail | None | Only where it explains a design | Where it teaches |
@@ -136,7 +137,7 @@ The linter reports words per chapter, banned and writerly phrasing, process deta
 
 - **Detail pass.** Apply *earn every detail* to each paragraph. A linter flag is a prompt to cut, not a count to hit.
 - **Craft pass.** Read the title, the dek and the headings alone, against [craft.md](references/craft.md): about the reader, no self-naming, concrete. Then cut the open questions to the three that would change the post.
-- **Fact pass.** Tick each number against the dossier, a file or your own run. Test counts come from running the tests, never from grep. Check every shipped/live claim against the code, the release and the docs; record any gap under Notes for the author.
+- **Fact pass.** Tick each number against the dossier, a file or your own run. Test counts come from running the tests, never from grep. Check every shipped/live claim against the code, the release and the docs; record any gap under Notes for the author. Check what would mislead the reader if it were wrong, not every detail.
 - **Safety pass.** Read every safety hit, reread each code and terminal block, and open every image.
 - **Render pass.** `node <skill-dir>/scripts/render.mjs <work-dir>/post.html` renders desktop and phone width, light and dark, saves the screenshots and fails on sideways scroll, clipped code and broken images. Then look at the screenshots once. [visuals.md](references/visuals.md#checking-the-render)
 

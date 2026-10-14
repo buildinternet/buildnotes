@@ -70,6 +70,12 @@ Issues stay open after the work ships; docs lag the code; a PR body states the p
 
 **Writing ahead of launch is fine.** Posts are often drafted while the work is still landing, and they can describe the product as it will be when the post goes out. Know where the gaps are (merged but not deployed, still in review, planned) and list them under **Notes for the author** in `plan.md`, with which source is stale. Don't block on them, and don't fill the post with hedges. Only an outright contradiction is worth raising before the draft: the post would promise something the code doesn't do, and no work is under way.
 
+## How far to check
+
+Check a claim in proportion to what a wrong one would cost the reader. A wrong limit, price, step or default misleads them; check it. A rounded duration, an approximate count or a simplified description of how something works doesn't, as long as the reader comes away with the right idea. Being understood matters more than being exact.
+
+A claim that only production data can confirm (hit rates, latency in the field, error counts, traffic) is a sign the beat is about running the service. In a release or build story, cut the beat or drop the claim rather than go and measure. In a deep dive it can be the point; then measure it, or say what the record shows and stop there.
+
 ## Things the record can't tell you
 
 Motive, surprises, what the author would do differently, and anything decided in a meeting or a chat. Write around the gap rather than inventing an answer, and put it on the open questions that go with the draft ([brief.md](brief.md#asking-the-author-as-little-as-possible)).
