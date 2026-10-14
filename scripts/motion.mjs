@@ -1,0 +1,268 @@
+#!/usr/bin/env node
+// motion.mjs — a build story's motion cut: the post cut down to a short reel that plays itself,
+// built from a scene script, as one self-contained page and, on request, a video.
+//
+// Usage:
+//   node motion.mjs <motion.json>                      check the script, write motion.html next to it
+//   node motion.mjs <motion.json> --mp4 | --webm | --gif   and export the reel to <dir>/export/motion.<ext>
+//   node motion.mjs <motion.json> --poster [--at <s>]  and one still frame as PNG (default: the end of the first scene)
+//   node motion.mjs <motion.json> --check              check the script only; exit 1 on an error
+//
+// Options:
+//   --out <page.html>   default: motion.html next to the script
+//   --theme light|dark  for the export; default light
+//   --fps <n>           for the export; default 30 (15 for a GIF)
+//   --no-render         skip the headless pass that checks every scene's text fits the frame
+//
+// The script format and the scene kinds are in references/motion.md. Each scene's length comes from its
+// kind and from how long its words take to read; a "dur" in the script overrides it. Image paths are
+// relative to the script, and the page embeds them. The page is assets/motion.html with the script filled
+// in. Video is 1920×1080: export.mjs steps the stage frame by frame on a virtual clock, so it needs Chrome
+// and ffmpeg. Warnings go to stderr.
+
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { spawnSync } from "node:child_process";
+import { basename, dirname, extname, join, resolve } from "node:path";
+import { fileURLToPath, pathToFileURL } from "node:url";
+
+const here = dirname(fileURLToPath(import.meta.url));
+const TEMPLATE = join(here, "../assets/motion.html");
+const TYPES = { ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".webp": "image/webp", ".gif": "image/gif" };
+export const COLORS = ["green", "blue", "red", "yellow", "gray", "accent", "dim"];
+export const ICONS = ["grid", "play", "mail", "check", "clock", "code", "bolt"];
+// The screen is 64rem (1024 px) wide on a 1280 px page; this scale makes the exported stage 1920×1080.
+const EXPORT = { width: 1280, scale: 1920 / 1024 };
+
+const words = (s) => String(s ?? "").replace(/\*/g, "").split(/\s+/).filter(Boolean).length;
+const round = (x) => Math.round(x * 10) / 10;
+
+// The text a scene shows: its lines, which are read in full, and the rest (sub, labels, notes), which is skimmed.
+function textOf(d) {
+  const lines = [d.headline, ...(d.lines || []), d.before?.headline, d.after?.headline].filter(Boolean);
+  const rest = [d.sub, d.foot, d.before?.tag, d.after?.tag, d.from?.say, d.to?.say];
+  for (const it of d.items || []) rest.push(it.title, it.text);
+  for (const r of d.regions || []) rest.push(r.say);
+  for (const n of d.nodes || []) rest.push(n.text, n.small);
+  for (const r of d.runs || []) rest.push(r.say);
+  for (const p of d.pills || []) rest.push(typeof p === "string" ? p : p.text);
+  return { lines: lines.join(" "), rest: rest.filter(Boolean).join(" ") };
+}
+
+// How long each kind's own motion takes, in seconds. These follow the timings in assets/motion.html.
+const BASE = {
+  title: () => 4.5,
+  statement: (d) => 1.2 + (d.lines?.length || 1) * 2.3,
+  list: (d) => 3.6 + (d.items?.length || 0) * 0.45,
+  shot: (d) => 2.6 + Math.max(1, d.regions?.length || 0) * 2.2,
+  swap: () => 6.6,
+  morph: () => 6.8,
+  bars: (d) => 3.2 + (d.rows?.length || 0) * 0.4 + (d.cap ? 1.2 : 0),
+  flow: (d) => 2.6 + (d.runs?.length || 1) * 2.8,
+  end: () => 4.2,
+};
+export const KINDS = Object.keys(BASE);
+// A viewer reads a line at about three and a half words a second and skims the rest at about five,
+// after the text has had a second to arrive. Kickers, bar labels and tile names are scanned, not read.
+export const readingTime = (d) => { const t = textOf(d); return 1 + words(t.lines) / 3.5 + words(t.rest) / 5; };
+
+// Width and height of a PNG, JPEG, GIF or WebP, from its header.
+export function imageSize(buf) {
+  if (buf.readUInt32BE(0) === 0x89504e47) return [buf.readUInt32BE(16), buf.readUInt32BE(20)];
+  if (buf.toString("ascii", 0, 3) === "GIF") return [buf.readUInt16LE(6), buf.readUInt16LE(8)];
+  if (buf.toString("ascii", 0, 4) === "RIFF" && buf.toString("ascii", 8, 12) === "WEBP") {
+    const chunk = buf.toString("ascii", 12, 16);
+    if (chunk === "VP8X") return [1 + buf.readUIntLE(24, 3), 1 + buf.readUIntLE(27, 3)];
+    if (chunk === "VP8L") { const b = buf.readUInt32LE(21); return [(b & 0x3fff) + 1, ((b >> 14) & 0x3fff) + 1]; }
+    if (chunk === "VP8 ") return [buf.readUInt16LE(26) & 0x3fff, buf.readUInt16LE(28) & 0x3fff];
+  }
+  if (buf[0] === 0xff && buf[1] === 0xd8) {
+    for (let i = 2; i < buf.length - 9;) {
+      if (buf[i] !== 0xff) { i++; continue; }
+      const m = buf[i + 1];
+      if (m >= 0xc0 && m <= 0xcf && ![0xc4, 0xc8, 0xcc].includes(m)) return [buf.readUInt16BE(i + 7), buf.readUInt16BE(i + 5)];
+      i += 2 + buf.readUInt16BE(i + 2);
+    }
+  }
+  return null;
+}
+
+// Check a script and resolve it: each scene gets its length, each image its size.
+// Returns { cut, errors, warnings, images } where images maps each path in the script to its file.
+export function check(input, base) {
+  const errors = [], warnings = [], images = {};
+  const cut = structuredClone(input);
+  const err = (i, m) => errors.push(i == null ? m : `scene ${i + 1}: ${m}`);
+  const warn = (i, m) => warnings.push(i == null ? m : `scene ${i + 1}: ${m}`);
+  if (!cut.title) err(null, `the script needs a "title" (the post's title)`);
+  if (!Array.isArray(cut.scenes) || !cut.scenes.length) { err(null, `the script needs "scenes"`); return { cut, errors, warnings, images }; }
+  const n = cut.scenes.length;
+  if (n < 5 || n > 9) warn(null, `${n} scenes: a cut usually has 5 to 9 (a title, the problem, one scene per idea, how to try it)`);
+
+  const image = (i, path, what) => {
+    if (typeof path !== "string" || !path) { err(i, `${what} needs an image path`); return null; }
+    if (/^(https?:|data:)/.test(path)) { err(i, `${what}: use a local file, not ${path.slice(0, 30)}`); return null; }
+    const file = resolve(base, path);
+    if (!TYPES[extname(file).toLowerCase()]) { err(i, `${what}: ${path} isn't a PNG, JPEG, WebP or GIF`); return null; }
+    if (!existsSync(file)) { err(i, `${what}: no file at ${path}`); return null; }
+    images[path] = file;
+    const size = imageSize(readFileSync(file));
+    if (!size) err(i, `${what}: can't read the size of ${path}`);
+    return size;
+  };
+  const need = (i, d, ...keys) => keys.every((k) => (d[k] == null || d[k] === "" ? (err(i, `${d.kind} needs "${k}"`), false) : true));
+  const count = (i, what, arr, lo, hi) => { if (!Array.isArray(arr) || arr.length < lo || arr.length > hi) { err(i, `${what}: ${lo} to ${hi} of them`); return false; } return true; };
+
+  cut.scenes.forEach((d, i) => {
+    if (!BASE[d.kind]) { err(i, `unknown kind "${d.kind}" (kinds: ${KINDS.join(", ")})`); return; }
+    const heads = [d.headline, d.before?.headline, d.after?.headline, ...(d.lines || [])].filter(Boolean);
+    for (const hd of heads) if (words(hd) > 12) warn(i, `"${hd.slice(0, 40)}…" is ${words(hd)} words; a scene is read at a glance, so keep a line to about 10`);
+    if (/#\d+|\bPR\b|\bcommit\b/.test(Object.values(textOf(d)).join(" ") + " " + (d.kicker || ""))) warn(i, "names a PR, issue or commit; the cut is for people outside the team");
+    switch (d.kind) {
+      case "title": need(i, d, "headline"); break;
+      case "statement": count(i, "statement lines", d.lines, 1, 3); break;
+      case "list":
+        need(i, d, "headline");
+        if (count(i, "list items", d.items, 2, 4)) d.items.forEach((it, j) => {
+          if (!it.title) err(i, `item ${j + 1} needs a "title"`);
+          if (it.icon && !ICONS.includes(it.icon)) err(i, `item ${j + 1}: icon "${it.icon}" (icons: ${ICONS.join(", ")})`);
+          if (it.img) image(i, it.img, `item ${j + 1}`);
+        });
+        break;
+      case "shot": {
+        need(i, d, "headline");
+        const size = image(i, d.src, "shot");
+        if (d.srcDark) image(i, d.srcDark, "shot (dark)");
+        if (size) d.size = size;
+        (d.regions || []).forEach((r, j) => {
+          const [x, y, w, hh] = r.box || [];
+          if (![x, y, w, hh].every(Number.isFinite)) err(i, `region ${j + 1} needs "box": [x, y, width, height] in image pixels`);
+          else if (size && (x < 0 || y < 0 || x + w > size[0] + 1 || y + hh > size[1] + 1)) err(i, `region ${j + 1} runs off the ${size[0]}×${size[1]} image`);
+        });
+        if ((d.regions || []).length > 3) warn(i, `${d.regions.length} regions; two or three is plenty for one shot`);
+        break;
+      }
+      case "swap": {
+        need(i, d, "headline", "from", "to");
+        const a = image(i, d.from?.src, "swap from"), b = image(i, d.to?.src, "swap to");
+        if (a) d.size = a;
+        if (a && b && Math.abs(a[0] / a[1] - b[0] / b[1]) > 0.01) warn(i, "the two images have different shapes; the wipe works best on two frames of one screen");
+        break;
+      }
+      case "morph": {
+        need(i, d, "before", "after");
+        if (!d.before?.headline || !d.after?.headline) err(i, `morph needs "before" and "after", each with a "headline"`);
+        if (count(i, "morph tiles", d.tiles, 2, 8)) d.tiles.forEach((t, j) => {
+          if (!t.name) err(i, `tile ${j + 1} needs a "name"`);
+          if (!(t.before > 0) || !(t.after > 0)) err(i, `tile ${j + 1} needs "before" and "after" sizes above 0`);
+        });
+        if (d.columns) {
+          const flat = d.columns.flat().sort((a, b) => a - b);
+          if (flat.join() !== (d.tiles || []).map((_, j) => j).join()) err(i, `"columns" must list each tile index once`);
+        }
+        for (const k of d.key || []) if (!COLORS.includes(k.color)) err(i, `key colour "${k.color}" (colours: ${COLORS.join(", ")})`);
+        break;
+      }
+      case "bars":
+        need(i, d, "headline");
+        if (count(i, "bars rows", d.rows, 2, 7)) d.rows.forEach((r, j) => { if (!r.label || !Number.isFinite(r.value)) err(i, `row ${j + 1} needs a "label" and a numeric "value"`); });
+        if (d.cap && !Number.isFinite(d.cap.value)) err(i, `"cap" needs a numeric "value"`);
+        break;
+      case "flow":
+        need(i, d, "headline");
+        if (count(i, "flow nodes", d.nodes, 2, 5)) d.nodes.forEach((nd, j) => { if (!nd.text) err(i, `node ${j + 1} needs "text"`); });
+        if (d.runs && count(i, "flow runs", d.runs, 1, 3)) d.runs.forEach((r, j) => {
+          if (r.to != null && !(r.to >= 1 && r.to < (d.nodes?.length || 0))) err(i, `run ${j + 1}: "to" is a node index from 1 to ${(d.nodes?.length || 1) - 1}`);
+        });
+        break;
+      case "end": need(i, d, "headline"); break;
+    }
+    const base = BASE[d.kind](d), read = readingTime(d);
+    if (d.dur != null) {
+      if (!(d.dur > 0)) err(i, `"dur" must be a number of seconds`);
+      else if (d.dur < base) warn(i, `dur ${d.dur} s cuts off the motion, which takes ${round(base)} s`);
+      else if (d.dur < read) warn(i, `dur ${d.dur} s is short for its words; about ${round(read)} s to read`);
+    } else d.dur = round(Math.max(base, read));
+  });
+  if (cut.scenes[0]?.kind !== "title") warn(null, `the first scene is usually a "title"`);
+  if (cut.scenes.at(-1)?.kind !== "end") warn(null, `the last scene is usually an "end": how to try it`);
+  const total = cut.scenes.reduce((a, d) => a + (d.dur || 0), 0);
+  cut.total = round(total);
+  if (total > 75) warn(null, `${Math.round(total)} s in all; aim for under a minute. Cut a scene before shortening the rest`);
+  return { cut, errors, warnings, images };
+}
+
+const json = (v) => JSON.stringify(v).replace(/</g, "\\u003c");
+const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+// The page: the template with the script and its images filled in, and the authoring notes dropped.
+export function build(cut, images, template = readFileSync(TEMPLATE, "utf8")) {
+  const assets = {};
+  for (const [path, file] of Object.entries(images)) assets[path] = `data:${TYPES[extname(file).toLowerCase()]};base64,${readFileSync(file).toString("base64")}`;
+  return template
+    .replace(/<title>[^<]*<\/title>/, `<title>${esc(cut.title)}</title>`)
+    .replace(/<!--[\s\S]*?-->\n?/g, "")
+    .replace(/(<script type="application\/json" id="assets">)[\s\S]*?(<\/script>)/, (_, a, b) => a + json(assets) + b)
+    .replace(/(<script type="application\/json" id="cut">)[\s\S]*?(<\/script>)/, (_, a, b) => a + json(cut) + b);
+}
+
+// Open the page headless and ask it which scenes' text didn't fit, and which images didn't load.
+async function renderCheck(page) {
+  const { openPage, chromePath } = await import("./chrome.mjs");
+  if (!chromePath()) return ["no Chrome found, so nothing checked that the text fits (set CHROME_PATH)"];
+  const tab = await openPage(pathToFileURL(page).href, { width: EXPORT.width, height: 900, scale: 1 });
+  try {
+    await tab.evaluate(`document.fonts.ready.then(() => new Promise((r) => setTimeout(r, 300)))`);
+    return await tab.evaluate(`[...window.__cut.problems, ...[...document.images].filter((i) => !i.naturalWidth).map((i) => "an image didn't load: " + i.src.slice(0, 60))]`);
+  } finally { await tab.close(); }
+}
+
+async function main(argv) {
+  const has = (k) => argv.includes(`--${k}`);
+  const opt = (k) => { const i = argv.indexOf(`--${k}`); return i >= 0 ? argv[i + 1] : undefined; };
+  const file = argv.find((a, i) => !a.startsWith("--") && !["--out", "--theme", "--fps", "--at"].includes(argv[i - 1]));
+  if (!file || has("help")) {
+    console.error("usage: motion.mjs <motion.json> [--check] [--mp4 | --webm | --gif] [--poster [--at s]] [--out page.html] [--theme light|dark] [--fps n] [--no-render]");
+    return has("help") ? 0 : 2;
+  }
+  const base = dirname(resolve(file));
+  let input;
+  try { input = JSON.parse(readFileSync(file, "utf8")); } catch (e) { console.error(`can't read ${file}: ${e.message}`); return 1; }
+  const { cut, errors, warnings, images } = check(input, base);
+  for (const w of warnings) console.error(`warning: ${w}`);
+  for (const e of errors) console.error(`error: ${e}`);
+  if (errors.length) return 1;
+  const lengths = cut.scenes.map((d) => `${d.kind} ${d.dur}`).join(", ");
+  if (has("check")) { console.log(`ok: ${cut.scenes.length} scenes, ${cut.total} s (${lengths})`); return 0; }
+
+  const page = resolve(opt("out") ?? join(base, "motion.html"));
+  const html = build(cut, images);
+  writeFileSync(page, html);
+  console.log(`wrote ${page} (${cut.scenes.length} scenes, ${cut.total} s, ${Math.round(html.length / 1024)} KB)`);
+  if (!has("no-render")) {
+    const problems = await renderCheck(page);
+    for (const p of problems) console.error(`warning: ${p}`);
+  }
+
+  const theme = opt("theme") ?? "light";
+  const exportOne = (fmt, extra) => {
+    const out = join(dirname(page), "export", `${basename(page, ".html")}.${fmt === "png" ? "png" : fmt}`);
+    const args = [join(here, "export.mjs"), page, "--select", "#stage", `--${fmt}`, "--width", String(EXPORT.width), "--pad", "0", "--theme", theme, "--out", out, ...extra];
+    const r = spawnSync(process.execPath, args, { stdio: ["ignore", "inherit", "inherit"] });
+    return r.status ?? 1;
+  };
+  const video = ["mp4", "webm", "gif"].find(has);
+  if (video) {
+    const gif = video === "gif";
+    // A GIF at full size is tens of megabytes; half size at 15 fps keeps it shareable.
+    const status = exportOne(video, ["--scale", String(gif ? EXPORT.scale / 2 : EXPORT.scale), "--fps", opt("fps") ?? (gif ? "15" : "30"), "--seconds", String(cut.total)]);
+    if (status) return status;
+  }
+  if (has("poster")) {
+    const at = opt("at") ?? String(round(cut.scenes[0].dur - 0.5));
+    const status = exportOne("png", ["--scale", String(EXPORT.scale), "--at", at]);
+    if (status) return status;
+  }
+  return 0;
+}
+
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) process.exit(await main(process.argv.slice(2)));

@@ -1,0 +1,77 @@
+{
+  "title": "Making the weekly digest worth opening",
+  "dek": "The build story in under a minute: a picture of the week, a replay, and a Monday email.",
+  "product": "Release Notes Index",
+  "scenes": [
+    { "kind": "title", "label": "Build notes",
+      "kicker": "How we built it",
+      "headline": "Making the weekly digest worth opening",
+      "ticks": ["Mon 28", "Tue 29", "Wed 30", "Thu 1", "Fri 2", "Sat 3", "Sun 4"] },
+    { "kind": "statement", "label": "The problem",
+      "lines": ["The digest was our most readable page.", "But you only saw it if you *went looking*."] },
+    { "kind": "list", "label": "What we added",
+      "headline": "So we added three things.",
+      "items": [
+        { "icon": "grid", "title": "A card", "text": "that sums up the week" },
+        { "icon": "play", "title": "A replay", "text": "that plays the week back, day by day" },
+        { "icon": "mail", "title": "An email", "text": "on Monday, for people who subscribe" }
+      ] },
+    { "kind": "shot", "label": "01 · The week at a glance",
+      "kicker": "The card",
+      "headline": "Who shipped the most? What should I read first?",
+      "sub": "The card answers both before the first paragraph.",
+      "src": "viz/img/digest-card.webp", "srcDark": "viz/img/digest-card-dark.webp",
+      "regions": [
+        { "box": [40, 114, 1344, 566], "say": "Tile size: how much each product shipped" },
+        { "box": [36, 790, 1352, 668], "say": "The five biggest releases, linked into the digest" }
+      ] },
+    { "kind": "morph", "label": "02 · What counts as impact",
+      "kicker": "Tile size",
+      "before": { "headline": "Counting releases rewards busy weeks.", "tag": "Sized by release count" },
+      "after": { "headline": "Counting impact rewards big ones.", "tag": "Sized by impact" },
+      "key": [{ "label": "Features", "color": "green" }, { "label": "Enhancements", "color": "blue" }, { "label": "Fixes", "color": "red" }],
+      "columns": [[0], [1], [2, 3]],
+      "tiles": [
+        { "name": "Codex", "note": "4 releases", "before": 4, "after": 286, "parts": [288, 73, 164], "say": "12 features" },
+        { "name": "Claude Code", "note": "6 releases", "before": 6, "after": 204, "parts": [83, 38, 252], "say": "194 fixes" },
+        { "name": "Devin", "note": "2 releases", "before": 2, "after": 136, "parts": [233, 99, 29], "say": "28 features" },
+        { "name": "Grok Build", "note": "2 releases", "before": 2, "after": 59, "parts": [163, 60, 138] }
+      ] },
+    { "kind": "bars", "label": "02 · What counts as impact",
+      "kicker": "Small releases",
+      "headline": "Forty patches still weigh less than one landmark.",
+      "sub": "A product's minor releases share one pool that levels off before 4 points.",
+      "rows": [
+        { "label": "1 patch", "value": 0.15 },
+        { "label": "10 patches", "value": 1.25 },
+        { "label": "20 patches", "value": 2.11 },
+        { "label": "40 patches", "value": 3.11 },
+        { "label": "1 landmark", "value": 4, "lit": true }
+      ],
+      "max": 4.4, "cap": { "value": 4, "label": "the pool never passes 4" } },
+    { "kind": "swap", "label": "03 · Playing the week back",
+      "kicker": "The replay",
+      "headline": "Play the week back, day by day.",
+      "sub": "Five seconds a day, 35 seconds a week. The last frame is the card.",
+      "from": { "src": "viz/img/replay-tue.webp", "say": "Tuesday" },
+      "to": { "src": "viz/img/replay-end.webp", "say": "End of the week" } },
+    { "kind": "flow", "label": "04 · One email per reader per week",
+      "kicker": "The email",
+      "headline": "One email per reader, per week.",
+      "nodes": [
+        { "text": "Monday run" },
+        { "text": "Week just closed?", "small": "older weeks never email" },
+        { "text": "Claim the week", "small": "only if still behind", "lit": true },
+        { "text": "Send" }
+      ],
+      "runs": [
+        { "say": "Sent" },
+        { "to": 2, "stop": true, "say": "Already claimed. Stops." }
+      ] },
+    { "kind": "end", "label": "Try it",
+      "kicker": "Try it",
+      "headline": "Open any collection's latest digest.",
+      "pills": [{ "text": "Replay the week", "solid": true }, "Email me this digest weekly"],
+      "foot": "Full build notes: Making the weekly digest worth opening." }
+  ]
+}

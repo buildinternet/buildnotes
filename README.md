@@ -53,7 +53,7 @@ You need `git`, an authenticated `gh`, Node 22 or later, and Chrome for the rend
 
 ## Example
 
-[`examples/weekly-digests/`](examples/weekly-digests) is a full run against the public `buildinternet/releases` repo, kept as a committed example. Open [`post.html`](examples/weekly-digests/post.html) in a browser; it is one self-contained file with every image embedded. [`post-field-notes.html`](examples/weekly-digests/post-field-notes.html) is the same post in the field notes style. The folder also holds the story plan the agent wrote before drafting, its notes for the author, and the specs behind the rendered figures.
+[`examples/weekly-digests/`](examples/weekly-digests) is a full run against the public `buildinternet/releases` repo, kept as a committed example. Open [`post.html`](examples/weekly-digests/post.html) in a browser; it is one self-contained file with every image embedded. [`post-field-notes.html`](examples/weekly-digests/post-field-notes.html) is the same post in the field notes style, and [`motion.html`](examples/weekly-digests/motion.html) is its motion cut, a one-minute reel built from [`motion.json`](examples/weekly-digests/motion.json). The folder also holds the story plan the agent wrote before drafting, its notes for the author, and the specs behind the rendered figures.
 
 <table>
   <tr>
@@ -155,6 +155,7 @@ Also: **steps** (a numbered pipeline with a moving highlight) and **bars** (a ba
 6. **Write.** Fill in [`assets/template.html`](assets/template.html). Most posts use four or five of its components and delete the rest. The page comes in two styles: Plain, the default and the one to rebrand, and field notes, a serif page with figures on a dot grid and flows drawn by hand ([styles](references/visuals.md#styles)).
 7. **Check.** [`lint.mjs`](scripts/lint.mjs) does the mechanical half; then detail, craft, fact, safety and render passes.
 8. **Publish.** [`inline-assets.mjs`](scripts/inline-assets.mjs) embeds the images, and the page goes up as a private Artifact with the open questions alongside.
+9. **Motion cut (optional).** For people who would rather watch than read, [`motion.mjs`](scripts/motion.mjs) turns a short scene script into a reel of the post that plays itself in under a minute, and exports it as an MP4.
 
 Every rule in `SKILL.md` names the fault that taught it, for example a tidy code snippet that matched nothing in the repo, or a link built by guessing a slug. The detail lives in [`references/`](references):
 
@@ -164,6 +165,7 @@ Every rule in `SKILL.md` names the fault that taught it, for example a tidy code
 | [`evidence.md`](references/evidence.md) | What to read, what to skip, numbers worth having, sources that disagree |
 | [`story.md`](references/story.md) | Shapes, beats, altitude, references, voice, length |
 | [`visuals.md`](references/visuals.md) | Diagram, motion, screenshot and chart patterns; spec formats; the render check |
+| [`motion.md`](references/motion.md) | The motion cut: when to make one, choosing scenes, the script, build and export |
 | [`modules.md`](references/modules.md) | Opt-in appendix modules: build log, numbers, timeline, review notes, how-made, sources |
 | [`craft.md`](references/craft.md) | Titles, naming the product, anti-patterns, the hand-off |
 
@@ -257,6 +259,7 @@ Each script runs on its own and prints usage with `--help` or no arguments.
 | [`render.mjs`](scripts/render.mjs) | Screenshots at 1280 and 390 px, light and dark. Fails on sideways scroll, clipped code and broken images. |
 | [`export.mjs`](scripts/export.mjs) | One figure as PNG, GIF, MP4/WebM or standalone SVG, for slides or another blog (`--list` numbers them) |
 | [`module.mjs`](scripts/module.mjs) | An opt-in appendix module (`build-log`, `numbers`, `timeline`) from the dossier |
+| [`motion.mjs`](scripts/motion.mjs) | The motion cut: checks a scene script (`motion.json`), builds a reel page that plays itself, and exports it as a 1920×1080 MP4, WebM, GIF or still |
 | [`inline-assets.mjs`](scripts/inline-assets.mjs) | Embeds local images and video as data URIs, so the page is one file |
 
 ```bash

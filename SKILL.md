@@ -151,6 +151,17 @@ node <skill-dir>/scripts/inline-assets.mjs <work-dir>/post.html > <work-dir>/pos
 
 Publish `post.published.html` as a private Artifact (title = the post's name) when the host has an Artifact tool; otherwise leave it in the work dir and give its absolute path. Hand the author the link or path with the open questions and notes: three questions and two notes at most, one line each. The rest stays in `plan.md`. For their own site, add `--standalone` (doctype and viewport meta) or hand over `post.html` plus `assets/`. The chapters convert cleanly to Markdown/MDX on request.
 
+### 9. Motion cut (optional)
+
+A short reel of the post, for people who would rather watch than read: a title, the problem, one scene per idea, and how to try it, in under a minute. Make one when the author asks for a video, a reel or a quick version; otherwise offer it in one line in the hand-off when the post has two or more visuals that move or compare. Write `<work-dir>/motion.json` from `plan.md` and the finished page (every word, number and screenshot comes from the post), then build and export it:
+
+```bash
+node <skill-dir>/scripts/motion.mjs <work-dir>/motion.json --check
+node <skill-dir>/scripts/motion.mjs <work-dir>/motion.json --mp4 --poster   # → motion.html, export/motion.mp4, export/motion.png
+```
+
+Play it once and scrub to the end of each scene before handing it over. Publish `motion.html` as its own private Artifact and give the author the MP4. Scene kinds, the script format and what the checks catch: [motion.md](references/motion.md).
+
 ## Files
 
 - `scripts/gather.mjs`: evidence dossier from git and GitHub
@@ -160,12 +171,15 @@ Publish `post.published.html` as a private Artifact (title = the post's name) wh
 - `scripts/viz.mjs`: visual components rendered from small specs (`scripts/viz/`, one file per kind)
 - `scripts/render.mjs`: the render pass: both widths and themes, screenshots, and the fit faults
 - `scripts/export.mjs`: one figure as PNG, GIF, MP4/WebM or standalone SVG, for slides or another blog ([visuals.md](references/visuals.md#exporting-a-figure))
+- `scripts/motion.mjs`: the motion cut: checks a scene script, builds the reel page from `assets/motion.html`, and exports it as MP4, WebM, GIF or a still
 - `scripts/inline-assets.mjs`: embed local images and video (`src`, `poster`, `srcset`) as data URIs and drop authoring comments
 - `assets/template.html`: page template and component toolbox
+- `assets/motion.html`: the reel page the motion cut fills in
 - `assets/components.html`: every component with its spec; the specs are in `assets/specs/`
 - `references/brief.md`: angles, the brief, and how little to ask the author
 - `references/evidence.md`: what to read, what to skip, numbers, terminal blocks, sources that disagree
 - `references/story.md`: shapes, beats, altitude, references, voice, length
 - `references/visuals.md`: diagram, motion, screenshot and chart patterns
 - `references/modules.md`: the opt-in module menu and placement rules
+- `references/motion.md`: the motion cut: when to make one, choosing scenes, the script, build and export
 - `references/craft.md`: what makes a post read as crafted: titles, naming the product, anti-patterns, the hand-off
