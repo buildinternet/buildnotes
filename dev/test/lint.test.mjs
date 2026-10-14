@@ -18,7 +18,7 @@ test("component checks fire on planted faults, and only then", () => {
   const clean = readFileSync(join(root, "assets/template.html"), "utf8");
   writeFileSync(join(dir, "clean.html"), clean);
   const ok = lint(join(dir, "clean.html"), "--offline");
-  assert.doesNotMatch(ok, /needs both drawings|aren't to scale|without data-label|names a commit or PR|changed since|keyed "|findings;|margin note of/);
+  assert.doesNotMatch(ok, /needs both drawings|aren't to scale|without data-label|names a commit or PR|changed since|keyed "|findings;|margin note of|one-line command/);
   assert.match(ok, /still point at the template's example specs/);
 
   writeFileSync(join(dir, "bad.html"), clean
@@ -29,11 +29,12 @@ test("component checks fire on planted faults, and only then", () => {
     .replace(/<li data-k="3">[\s\S]*?<\/li>/, "")
     .replace('style="--x:86%; --y:40%"', 'style="--x:86%"')
     .replace('<aside class="finding"', '<aside class="finding" aria-label="Finding"><p>x</p></aside>\n    <aside class="finding"')
-    .replace("doesn't serve the headline.</span>", `doesn't serve the headline, ${"and more words ".repeat(10)}.</span>`));
+    .replace("doesn't serve the headline.</span>", `doesn't serve the headline, ${"and more words ".repeat(10)}.</span>`)
+    .replace('<div class="cmd"><code>node scripts/gather.mjs', '<pre><code>node scripts/gather.mjs').replace('"rate limit"</code></div>', '"rate limit"</code></pre>'));
   writeFileSync(join(dir, "specs/bars-budget.json"), readFileSync(join(dir, "specs/bars-budget.json"), "utf8") + "\n");
   const bad = lint(join(dir, "bad.html"), "--offline");
   for (const re of [/needs both drawings/, /aren't to scale/, /1 cells without data-label/, /"Before · PR #120" names a commit or PR/, /bars-budget\.json: spec changed since the last render/,
-    /hotspot 3 has no legend entry/, /hotspot 2 needs --x and --y/, /c1: 2 findings/, /margin note of \d+ words/]) assert.match(bad, re);
+    /hotspot 3 has no legend entry/, /hotspot 2 needs --x and --y/, /c1: 2 findings/, /margin note of \d+ words/, /one-line command in a bare <pre> \("node scripts\/gather\.mjs/]) assert.match(bad, re);
 });
 
 test("a link that doesn't open is a hard failure", async () => {
@@ -103,4 +104,15 @@ test("pull request as product vocabulary isn't process talk; the record still is
   assert.match(out, /process talk: The pull request was approved/);
   assert.match(out, /colon reveal\?: The fix: a cache/);
   assert.doesNotMatch(out, /colon reveal\?: We already had a way/);
+});
+
+test("a margin note mid-paragraph or mid-item is flagged; one at the end is not", () => {
+  const dir = mkdtempSync(join(tmpdir(), "lint-"));
+  const note = (s) => `<span class="sidenote" role="note">${s}</span>`;
+  writeFileSync(join(dir, "p.html"), `<article class="post"><section class="ch" id="c1"><h2>A</h2>
+    <p>One.${note("Mid.")} Two.</p><ul><li>Item.${note("Mid item.")} More.</li><li>Fine.${note("End.")}</li></ul><p>Ok.${note("End too.")}</p></section></article>`);
+  const out = lint(join(dir, "p.html"), "--offline");
+  assert.match(out, /margin note mid-paragraph \(before "Two\."\)/);
+  assert.match(out, /margin note mid-paragraph \(before "More\."\)/);
+  assert.equal((out.match(/mid-paragraph/g) ?? []).length, 2);
 });

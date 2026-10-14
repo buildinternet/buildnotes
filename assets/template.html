@@ -3,7 +3,7 @@
   Build story page template.
   Copy to <work-dir>/post.html, replace the example content, delete components you don't use.
   Components: masthead + stats · lede · contents · chapter · ref · margin note · finding · heard→changed ·
-  keyed figure · shot · timeline · module slot · notes · further reading · colophon, plus the rendered ones: options · steps · flow ·
+  keyed figure · shot · command line · timeline · module slot · notes · further reading · colophon, plus the rendered ones: options · steps · flow ·
   code · term · strip · bars (and delta, line, matrix and shader, a WebGL figure, not shown here).
   Rendered components come from small specs: write one in <work-dir>/viz/, point a marker comment at it
   ("viz kind viz/name.json" … "/viz", as below), and run scripts/viz.mjs build post.html.
@@ -42,6 +42,8 @@
   --font-label: var(--font-display); /* kickers, chapter numbers, tags */
   --font-code: var(--font-mono); /* code and terminal blocks */
   --font-note: var(--font-display); /* margin notes */
+  --note-style: normal;
+  --font-hand: var(--font-label); /* keyed-figure numbers and short labels (a few words) */
   --note: var(--muted); /* margin-note colour */
   --highlight: none; /* the finding's highlighter */
   --label-stretch: 80%;
@@ -73,7 +75,9 @@
   --font-mono: "Martian Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
   --font-label: var(--font-mono);
   --font-code: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace; /* Martian is too wide for a code line */
-  --font-note: "Shantell Sans", "Comic Neue", cursive; /* margin notes and annotations only */
+  --font-note: var(--font-body); /* margin notes: the text face in italic, so a note of several lines reads easily */
+  --note-style: italic;
+  --font-hand: "Shantell Sans", "Comic Neue", cursive; /* keyed-figure numbers and labels of a few words only, never sentences */
   --note: var(--accent); /* written in pen */
   --highlight: linear-gradient(transparent 60%, color-mix(in oklab, var(--mark) 24%, transparent) 60% 92%, transparent 92%);
   --label-stretch: 87.5%;
@@ -185,6 +189,20 @@ figcaption a { color: inherit; }
 .copy[data-done] .idle { opacity: 0; transform: scale(0.5); }
 .copy[data-done] .done { opacity: 1; transform: none; color: var(--accent); }
 .term.wrap pre, .code.wrap pre { white-space: pre-wrap; overflow-wrap: anywhere; }
+
+/* command line: one command the reader will copy (an install, a CLI call), written by hand as
+   <div class="cmd"><code>…</code></div>. The page's script adds the copy button and sets the command
+   name in full ink, flags quieter and quoted strings in the accent. A long one scrolls inside its bar. */
+.cmd { display: flex; align-items: center; gap: 0.75rem; padding: 0.55rem 0.55rem 0.55rem 1rem; border-radius: 10px; background: var(--card); box-shadow: var(--card-shadow); }
+.cmd code { flex: 1; min-width: 0; overflow-x: auto; scrollbar-width: none; white-space: pre; background: none; padding: 0.15rem 0; font: 0.8125rem/1.6 var(--font-code); color: color-mix(in oklab, var(--ink) 80%, var(--paper)); }
+.cmd code::-webkit-scrollbar { display: none; }
+.cmd .c-cmd { color: var(--ink); font-weight: 600; }
+.cmd .c-flag { color: var(--muted); }
+.cmd .c-str { color: var(--accent); }
+.cmd .copy { flex: none; margin: 0; }
+.cmd.scrolls code { -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 2.5rem), transparent); mask-image: linear-gradient(to right, #000 calc(100% - 2.5rem), transparent); } /* more to scroll */
+.cmd.scrolls.scrolled code { -webkit-mask-image: none; mask-image: none; }
+.cmd.wrap code { white-space: pre-wrap; overflow-wrap: anywhere; }
 
 /* heard → changed */
 .heard { display: grid; gap: 0; border-top: 1px solid var(--rule); }
@@ -340,9 +358,9 @@ figcaption a { color: inherit; }
 
 /* ── component: delta (viz.mjs delta) ── one number before and after, the change, and bars to scale */
 .delta { display: grid; grid-template-columns: auto auto 1fr; align-items: end; gap: 0.35rem 1.25rem; }
-.delta .sidenote { display: grid; gap: 0.15rem; }
+.delta .side { display: grid; gap: 0.15rem; }
 .delta .num { font: 600 clamp(1.75rem, 6vw, 2.5rem)/1.1 var(--font-display); letter-spacing: -0.01em; }
-.delta .sidenote:not(.after) .num { color: var(--muted); }
+.delta .side:not(.after) .num { color: var(--muted); }
 .delta .to { font: 1.5rem/1.6 var(--font-mono); color: var(--muted); }
 .delta .change { grid-column: 1 / -1; font: 0.8125rem/1.5 var(--font-mono); color: var(--muted); }
 .delta .change b { color: var(--ink); font-weight: 500; }
@@ -435,9 +453,15 @@ figcaption a { color: inherit; }
 .colophon { color: var(--muted); font-style: italic; }
 
 /* margin note: a short aside (a definition, a unit, where a number came from), never part of the argument.
-   It follows its paragraph on narrow screens and moves into the right margin when there is room. */
-.sidenote { display: block; margin-top: 0.55rem; max-width: 30rem; font: 400 0.875rem/1.45 var(--font-note); color: var(--note); text-wrap: pretty; }
-@media (min-width: 76rem) { .sidenote { float: right; clear: right; width: 12rem; margin: 0.15rem -15rem 0 0; } }
+   Put it at the end of its paragraph. On narrow screens it follows the paragraph, set off by a rule so it
+   doesn't read as body text; when there is room it sits in the right margin, level with its line, without
+   making the paragraph taller. */
+.sidenote { display: block; margin-top: 0.6rem; max-width: 30rem; padding: 0.05rem 0 0.05rem 0.75rem; border-left: 2px solid color-mix(in oklab, var(--note) 35%, var(--paper)); font: var(--note-style) 400 0.875rem/1.45 var(--font-note); color: var(--note); text-wrap: pretty; }
+@media (min-width: 76rem) {
+  :has(> .sidenote) { position: relative; }
+  /* inline, so its top sits on the line it ends (an absolute box keeps an inline box's static position) */
+  .sidenote { display: inline; position: absolute; right: -15rem; width: 12rem; margin: 0; padding: 0; border: 0; }
+}
 
 /* finding: what the chapter found, in one sentence a reader would repeat. At most one per chapter. */
 .finding { display: grid; gap: 0.35rem; margin-block: 0.4rem 0; }
@@ -546,7 +570,7 @@ figcaption a { color: inherit; }
 [data-style="field-notes"] .finding .label { color: var(--muted); }
 [data-style="field-notes"] figure:not(.code) > figcaption { font-style: italic; }
 [data-style="field-notes"] figcaption .fig-n { font-style: normal; }
-[data-style="field-notes"] .hs .dot, [data-style="field-notes"] .keys li::before { background: var(--paper); color: var(--ink); border: 1.25px solid var(--ink); border-radius: 52% 46% 50% 48% / 47% 53% 46% 54%; font-family: var(--font-note); font-size: 0.8125rem; }
+[data-style="field-notes"] .hs .dot, [data-style="field-notes"] .keys li::before { background: var(--paper); color: var(--ink); border: 1.25px solid var(--ink); border-radius: 52% 46% 50% 48% / 47% 53% 46% 54%; font-family: var(--font-hand); font-size: 0.8125rem; }
 [data-style="field-notes"] .hs:is(:hover, :focus-visible, .on) .dot { background: color-mix(in oklab, var(--mark) 16%, var(--paper)); color: var(--ink); border-color: var(--mark); }
 [data-style="field-notes"] .hs .tip, :root:has(.post[data-style="field-notes"]) .zoom { border-color: var(--ink); border-radius: 3px; box-shadow: 3px 3px 0 var(--rule); }
 [data-style="field-notes"] .keyed .stage img { border-color: var(--ink); border-radius: 2px; box-shadow: 3px 3px 0 var(--rule); }
@@ -830,6 +854,12 @@ figcaption a { color: inherit; }
     </ol>
       <figcaption>Fig. 5. Only use a timeline when the pace is part of the story, and give days, not times.</figcaption>
     </figure>
+
+    <!-- COMMAND LINE: one command the reader will copy, usually in the last chapter's try-it. Write the
+         command as it should be typed, without a "$ ". The page's script adds the copy button. For a
+         command whose output matters, use a term block instead. -->
+    <p>To run the gatherer on your own work, from the repository:</p>
+    <div class="cmd"><code>node scripts/gather.mjs --out evidence --search "rate limit"</code></div>
   </section>
 
   <!-- ── MODULES (opt-in, off by default) ── appendix asides go here, after the last chapter.
@@ -866,13 +896,38 @@ figcaption a { color: inherit; }
 <script>
   // Copy buttons on code and terminal blocks: a terminal copies its command, a code block its excerpt.
   document.documentElement.classList.add("js");
+  // A command line (.cmd) gets its button here, and its words are coloured: the command, flags, strings.
+  const copyIcon = '<svg class="idle" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5.5" y="5.5" width="8" height="8" rx="2"/><path d="M10.5 5.5V4A1.5 1.5 0 0 0 9 2.5H4A1.5 1.5 0 0 0 2.5 4v5A1.5 1.5 0 0 0 4 10.5h1.5"/></svg><svg class="done" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7"/></svg>';
+  for (const cmd of document.querySelectorAll(".cmd")) {
+    const code = cmd.querySelector("code");
+    if (!code || cmd.querySelector(".copy")) continue;
+    if (!code.children.length) {
+      let first = true;
+      const parts = code.textContent.trim().match(/"[^"]*"?|'[^']*'?|\s+|[^\s"']+/g) ?? [];
+      code.replaceChildren(...parts.map((t) => {
+        if (/^\s/.test(t)) return t;
+        const cls = first ? "c-cmd" : /^["']/.test(t) ? "c-str" : /^--?[\w-]/.test(t) ? "c-flag" : "";
+        first = false;
+        return cls ? Object.assign(document.createElement("span"), { className: cls, textContent: t }) : t;
+      }));
+    }
+    cmd.insertAdjacentHTML("beforeend", `<button type="button" class="copy" aria-label="Copy command">${copyIcon}</button>`);
+    // A command wider than its bar fades at the right edge until it is scrolled to the end.
+    const fit = () => {
+      cmd.classList.toggle("scrolls", code.scrollWidth > code.clientWidth + 1);
+      cmd.classList.toggle("scrolled", code.scrollLeft + code.clientWidth >= code.scrollWidth - 1);
+    };
+    code.addEventListener("scroll", fit, { passive: true });
+    new ResizeObserver(fit).observe(code);
+  }
   document.addEventListener("click", (e) => {
     const btn = e.target.closest?.(".copy");
-    const pre = btn?.closest("figure")?.querySelector("pre");
+    const line = btn?.closest(".cmd")?.querySelector("code");
+    const pre = line ?? btn?.closest("figure")?.querySelector("pre");
     if (!pre) return;
     const lines = pre.textContent.split("\n");
     const cmds = lines.filter((l) => l.startsWith("$ ")).map((l) => l.slice(2));
-    const text = btn.closest(".term") && cmds.length ? cmds.join("\n") : pre.textContent;
+    const text = line ? line.textContent.trim() : btn.closest(".term") && cmds.length ? cmds.join("\n") : pre.textContent;
     const label = btn.getAttribute("aria-label");
     const done = () => {
       btn.dataset.done = ""; btn.setAttribute("aria-label", "Copied");

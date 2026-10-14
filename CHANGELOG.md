@@ -22,11 +22,13 @@ Until the first release, changes are recorded under [Unreleased].
 
 - The `anatomy` component (`scripts/viz/anatomy.mjs`): the parts of one thing, named. One parts list, measured on a capture, draws as keys over the capture (`screenshot`, with an optional dark capture), a flat drawing with the object's own labels (`flat`), or an angled drawing of its structure that comes apart on request (`iso`). Each renders as a keyed figure; pointing at a part lifts it, and pointing at a key fades the rest. A spec can start from another with `from`. Example specs in `assets/specs/anatomy-card*.json`, measured on the shipped digest card; tests in `dev/test/anatomy.test.mjs`.
 - `examples/weekly-digests/post-field-notes.html`, the example in the field notes style, and `examples/weekly-digests/viz/`, the specs behind its rendered figures.
+- A command line in the template, `<div class="cmd"><code>…</code></div>`, for a command the reader will copy: a bar with a copy button, the command name in full ink, flags quieter and quoted strings in the accent. A long command scrolls inside the bar with a fade at the edge. `lint.mjs` points at a one-line `<pre>` that should be one. Docs in `references/visuals.md#components`.
 
 ### Changed
 
 - Each beat now passes a reader test: what would a reader see differently if this had gone the other way? In a release or build story, a beat that only shows in the service's logs, costs or dashboards is cut. The build flavor keeps internals only where they explain something the reader sees.
 - `SKILL.md` adds *understood beats exact*, and `references/evidence.md` a section on how far to check a claim: check what would mislead, and treat a claim only production data can confirm as a sign the beat is about running the service.
+- Field notes sets margin notes in Source Serif 4 italic, in the note colour, instead of a handwritten face. The handwritten face (`--font-hand`, Shantell Sans) is kept for keyed-figure numbers and labels of a few words: no editorial site we checked sets sidenotes in one, and past a few words it reads slowly and re-wraps when the font loads. Margin notes have their own `--font-note` and `--note-style` tokens.
 - The weekly-digests example uses the current template: the card is a keyed figure over the shipped capture, the patch-pool bars and the replay frames use the `bars` and `strip` components, chapter 2 closes with a finding, and the sentence about the card's colors now says columns, as the card has. The README shows the keyed card and the field notes version.
 - `viz.mjs build` passes the page's folder to the renderers, so an image a spec names resolves relative to the page.
 - `export.mjs` hides the expand icon and hotspot notes in exports, and the README's images are re-exported with it from the current gallery and example.
@@ -40,6 +42,8 @@ Until the first release, changes are recorded under [Unreleased].
 
 ### Fixed
 
+- Margin notes: on a narrow screen a note is set off from the text by a rule, so it doesn't read as body text; on a wide one it sits level with its line without making the paragraph taller (it was floated, and a paragraph in the chapter grid grew to hold it, leaving a gap). `lint.mjs` flags a note placed mid-paragraph or mid-item, which splits the text on a phone; the example's one note moves to the end of its item.
+- The `delta` component's before and after values lost their layout when the margin note class was renamed; the template styles `.delta .side` again.
 - A keyed figure's legend lost its own spacing to the chapter's list rule (no gap above it, an indent, rows packed tight); the list rule now leaves the legend alone.
 - Image paths in `strip` specs are relative to the spec, as they already were in `anatomy` specs; both now share one rule, and a path that only resolves from the page still renders, with a warning.
 - `gather.mjs` no longer looks up placeholder references such as `owner/repo#123` in PR bodies.

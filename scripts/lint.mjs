@@ -258,6 +258,10 @@ if (stats.length) {
 for (const m of raw.replace(/<!--[\s\S]*?-->/g, "").matchAll(/<figure class="code(?! term)[^"]*">\s*<figcaption>([\s\S]*?)<\/figcaption>/g)) {
   if ((m[1].match(/<span>/g) ?? []).length > 1) say(`! code caption "${text(m[1]).slice(0, 80)}": the file name is enough; drop the side note`);
 }
+// A one-line command in a bare <pre> works, but the command-line component gives the reader a copy button.
+for (const m of raw.replace(/<!--[\s\S]*?-->/g, "").replace(/<figure class="code[\s\S]*?<\/figure>/g, "").matchAll(/<pre>\s*<code>([^\n<]+)<\/code>\s*<\/pre>/g)) {
+  say(`! one-line command in a bare <pre> ("${text(m[1]).slice(0, 50)}"): use <div class="cmd"><code>…</code></div> for a copy button`);
+}
 let ti = 0;
 for (const m of raw.replace(/<!--[\s\S]*?-->/g, "").matchAll(/<figure class="code term[^"]*">([\s\S]*?)<\/figure>/g)) {
   ti++;
@@ -343,6 +347,10 @@ for (const m of live.matchAll(/<(?:figure|div) class="[^"]*\bkeyed\b[^"]*"[^>]*>
 for (const p of parts) {
   const n = (p.html.match(/<aside class="finding"/g) ?? []).length;
   if (n > 1) say(`! ${p.id}: ${n} findings; keep the one a reader would repeat`);
+}
+// A note mid-paragraph splits the paragraph on a phone, where notes follow the text they sit in.
+for (const m of live.matchAll(/<span class="sidenote"[^>]*>[\s\S]*?<\/span>([\s\S]*?)<\/(?:p|li)>/g)) {
+  if (text(m[1]).trim()) say(`! margin note mid-paragraph (before "${text(m[1]).trim().slice(0, 40)}"): move it to the end of the paragraph, or split the paragraph there`);
 }
 for (const m of live.matchAll(/<span class="sidenote"[^>]*>([\s\S]*?)<\/span>/g)) {
   const w = words(text(m[1]));

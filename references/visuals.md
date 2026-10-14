@@ -44,6 +44,8 @@ Each kind in the table renders from a small spec into static HTML or SVG, with n
 
 `code` and `term` render as a light card with a copy button: a terminal copies its command, a code block its excerpt. The button needs the template's script and stays hidden without it.
 
+A command the reader will copy, with no output worth showing (an install, the one command in a try-it), takes no spec: write `<div class="cmd"><code>uploads feed create --repo owner/repo</code></div>` in the chapter. The page's script adds the copy button and sets the command name in full ink, flags quieter and quoted strings in the accent. Write the command as it should be typed, with no `$ `. A command wider than the bar scrolls inside it, with a fade at the edge. `lint.mjs` points at a one-line `<pre>` that should be one.
+
 Lint lists the specs behind the page, so the fact pass can tick their numbers there. It also warns when a marker is empty or its spec changed since the last render, and fails while a marker still points at the template's `specs/…` examples. The rendered markup is ordinary HTML: a hand edit is fine, but the next `build` replaces it, so edit the spec when you can.
 
 | Kind | Spec, in short |
@@ -162,7 +164,7 @@ The template draws one page in two styles. The markup and the specs are the same
 | | Plain (default) | Field notes (`data-style="field-notes"`) |
 |---|---|---|
 | For | Release stories, posts that live on a product's own site, any brand | Concepts and discoveries: a build story or deep dive that explains |
-| Type | Archivo headings and labels, Newsreader text, IBM Plex Mono | Source Serif 4 throughout, Martian Mono labels, IBM Plex Mono code |
+| Type | Archivo headings and labels, Newsreader text, IBM Plex Mono | Source Serif 4 throughout (margin notes in its italic, in the note colour), Martian Mono labels, IBM Plex Mono code; Shantell Sans, a handwritten face, for keyed-figure numbers only |
 | Figures | Plain ground between two rules | A dot grid; flows drawn by hand |
 | Chapter numbers | In the mark colour | Ringed |
 
@@ -173,6 +175,8 @@ Colour is by role, the same in both, so a figure reads the same way in either:
 - `--mark` for highlights and commentary only: chapter numbers, footnotes, a bracket or note that says what to see. Never a fill; a box in the mark colour drowns the page.
 - `--landmark` for a landmark release, a star or a target line. Never text.
 - `--dim` for the data that isn't the point.
+
+The handwritten face (`--font-hand`) is for a number or a label of a few words: keys, a callout on a hand drawing. Never set a sentence in it, a margin note included; past a few words it slows reading and re-wraps when the font arrives. In Plain, `--font-hand` is the label face.
 
 Field notes' strokes are drawn at render time: `viz.mjs build` reads the style from the post and draws flow boxes and wires by hand, seeded by the figure's id, so the same spec gives the same strokes on every build. Data lines (a `line` series, a bar's length) stay exact in both styles. The style is part of each marker's stamp, so switching it shows every flow as stale until you build again.
 
