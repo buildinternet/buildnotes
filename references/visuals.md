@@ -108,6 +108,14 @@ agent-browser screenshot "$PWD/assets/feature-docs.png"   # absolute path: the d
 
 Other tools (Playwright, a browser MCP, a built-in browser pane) work the same way: fixed viewport, scroll the target into view, capture, then look at the file. agent-browser's element screenshots (`screenshot <selector> <path>`) can come out wrong for elements below the first screen; hide what is above the element, or capture the full page and crop.
 
+### Keyed figures
+
+When the reader needs the parts of one screenshot named (what each tile, column or control is), key it instead of drawing arrows on it: numbered hotspots on the image and a legend under it, in a `figure.keyed` (the template has an example). The legend is the text; the page's script copies each entry into its hotspot's note, and pointing at either lights both. Place each hotspot with `--x` and `--y` in percent of the image, on empty space near its part rather than on top of a label. Key only what the text talks about: about six at most (lint checks the numbers match and warns past six).
+
+### Expanding a screenshot
+
+Nothing to write: the page's script lets a reader open any `.shot`, `.strip` or keyed image full size when it is drawn at least 15% smaller than it really is (a corner icon, then a dialog with the caption). So capture at full resolution even when the figure is narrow. `data-no-expand` on an image opts out. Without the script, the image stays inline as before.
+
 ### Dark mode
 
 A light screenshot glares on a dark page. The template dims `.shot` and `.strip` images slightly in dark mode; add `class="dark-ok"` to opt out. For a hero image, capture both themes and ship a pair:

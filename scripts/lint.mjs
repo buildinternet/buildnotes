@@ -78,7 +78,7 @@ const GENERIC_HEAD = /^(overview|background|introduction|intro|conclusion|summar
 const IDENT_HEAD = /<code\b|`|\w\(\)|\b[a-z]+[A-Z]\w*\b|\b[a-z]+_[a-z_]+\b|\bv?\d+\.\d+(\.\d+)?\b/;
 // The record narrated item by item: "The same PR also…", "A later release fixed…".
 const BY_ITEM = /^(the same|a later|an earlier|that|the next|the following|a follow-up|a second) (pr|pull request|release|commit|patch|version)\b/i;
-const LEFTOVER = ["Author Name", "OWNER/REPO", "Turning a pile of PRs", "Build Story Template", "Umbrella issue title", "PR title —", "{{"];
+const LEFTOVER = ["Author Name", "OWNER/REPO", "Turning a pile of PRs", "Build Story Template", "Umbrella issue title", "PR title —", "{{", "A cut is anything true", "most of the writing.", "A keyed figure, on a sample card"];
 const SAFETY = [
   [/\b(sk-[A-Za-z0-9]{8,}|ghp_[A-Za-z0-9]{10,}|gho_[A-Za-z0-9]{10,}|xox[bp]-[A-Za-z0-9-]{8,}|AKIA[A-Z0-9]{12,})/g, "token-shaped string"],
   [/\b[a-z]{2,6}_[A-Za-z0-9]{16,}\b/g, "long prefixed id (real object id or token?)"],
@@ -316,6 +316,29 @@ for (const m of live.matchAll(/<div class="strip"[^>]*>([\s\S]*?)<\/div><\/div>/
   const labels = [...m[1].matchAll(/<div class="frame"><span class="tag[^"]*">([^<]*)</g)].map((x) => x[1]);
   if (labels.length < 2 || labels.length > 4) say(`! strip: ${labels.length} frames; use 2 to 4`);
   for (const l of labels) if (NAMES_COMMIT.test(l)) say(`! strip label "${l}" names a commit or PR; label the iteration ("Round two", "As it ships")`);
+}
+
+// Keyed figures: every hotspot has a legend entry and a place, every entry a hotspot, and few enough to read.
+for (const m of live.matchAll(/<figure class="[^"]*\bkeyed\b[^"]*"[^>]*>([\s\S]*?)<\/figure>/g)) {
+  const spots = [...m[1].matchAll(/<button\b[^>]*class="hs\b[^"]*"[^>]*>/g)].map((b) => b[0]);
+  const ks = spots.map((b) => b.match(/\bdata-k="([^"]+)"/)?.[1]);
+  const keys = [...m[1].matchAll(/<li\b[^>]*\bdata-k="([^"]+)"/g)].map((x) => x[1]);
+  const name = m[1].match(/\balt="([^"]{0,40})/)?.[1] ?? "keyed figure";
+  const lost = ks.filter((k) => !keys.includes(k)), bare = keys.filter((k) => !ks.includes(k));
+  if (lost.length) say(`! keyed "${name}": hotspot ${lost.join(", ")} has no legend entry (data-k)`);
+  if (bare.length) say(`! keyed "${name}": legend entry ${bare.join(", ")} has no hotspot`);
+  if (new Set(ks).size !== ks.length) say(`! keyed "${name}": two hotspots share a number`);
+  for (const b of spots) if (!/--x:\s*[\d.]+%/.test(b) || !/--y:\s*[\d.]+%/.test(b)) say(`! keyed "${name}": hotspot ${b.match(/\bdata-k="([^"]+)"/)?.[1] ?? "?"} needs --x and --y in percent`);
+  if (spots.length > 6) say(`! keyed "${name}": ${spots.length} hotspots; past about six the numbers stop helping (split the figure, or key only what the text needs)`);
+}
+// Findings and margin notes: one finding per chapter at most, and a margin note stays an aside.
+for (const p of parts) {
+  const n = (p.html.match(/<aside class="finding"/g) ?? []).length;
+  if (n > 1) say(`! ${p.id}: ${n} findings; keep the one a reader would repeat`);
+}
+for (const m of live.matchAll(/<span class="side"[^>]*>([\s\S]*?)<\/span>/g)) {
+  const w = words(text(m[1]));
+  if (w > 30) say(`! margin note of ${w} words ("${text(m[1]).slice(0, 50)}…"): a note is a short aside; move the rest into the paragraph or cut it`);
 }
 
 const leftovers = LEFTOVER.filter((t) => raw.includes(t));
