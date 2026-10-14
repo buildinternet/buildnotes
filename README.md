@@ -144,7 +144,9 @@ Also: **steps** (a numbered pipeline with a moving highlight) and **bars** (a ba
 
 Some people won't read a 1,500-word post but will watch a minute of video. The motion cut is the post as a reel of five to nine scenes that plays itself: the title, the problem, one scene for each idea, and how to try it. The agent writes a short scene script (`motion.json`) from the finished post, so every word, number and screenshot comes from the post. [`motion.mjs`](scripts/motion.mjs) checks the script, times each scene by how long its words take to read, builds one self-contained page, and exports a 1920×1080 MP4, a GIF, a still, or one scene as a short clip.
 
-The whole cut, one minute: [`examples/weekly-digests/motion.mp4`](examples/weekly-digests/motion.mp4).
+https://github.com/user-attachments/assets/c18c6e27-d6c7-469a-90d7-c3f512474357
+
+<p align="center"><sub>The weekly-digests cut, one minute. The file is <a href="examples/weekly-digests/motion.mp4"><code>examples/weekly-digests/motion.mp4</code></a>.</sub></p>
 
 <table>
   <tr>
