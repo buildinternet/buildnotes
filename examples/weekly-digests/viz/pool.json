@@ -1,0 +1,26 @@
+{
+  "rows": [
+    {
+      "label": "1 patch",
+      "value": 0.15
+    },
+    {
+      "label": "10 patches",
+      "value": 1.25
+    },
+    {
+      "label": "20 patches",
+      "value": 2.11
+    },
+    {
+      "label": "40 patches",
+      "value": 3.11
+    },
+    {
+      "label": "1 landmark",
+      "value": 4,
+      "hot": true
+    }
+  ],
+  "decimals": 2
+}

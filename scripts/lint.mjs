@@ -319,11 +319,11 @@ for (const m of live.matchAll(/<div class="strip"[^>]*>([\s\S]*?)<\/div><\/div>/
 }
 
 // Keyed figures: every hotspot has a legend entry and a place, every entry a hotspot, and few enough to read.
-for (const m of live.matchAll(/<figure class="[^"]*\bkeyed\b[^"]*"[^>]*>([\s\S]*?)<\/figure>/g)) {
+for (const m of live.matchAll(/<(?:figure|div) class="[^"]*\bkeyed\b[^"]*"[^>]*>([\s\S]*?<ol class="keys">[\s\S]*?<\/ol>)/g)) {
   const spots = [...m[1].matchAll(/<button\b[^>]*class="hs\b[^"]*"[^>]*>/g)].map((b) => b[0]);
   const ks = spots.map((b) => b.match(/\bdata-k="([^"]+)"/)?.[1]);
   const keys = [...m[1].matchAll(/<li\b[^>]*\bdata-k="([^"]+)"/g)].map((x) => x[1]);
-  const name = m[1].match(/\balt="([^"]{0,40})/)?.[1] ?? "keyed figure";
+  const name = m[1].match(/\b(?:alt|aria-label)="([^"]{0,40})/)?.[1] ?? "keyed figure";
   const lost = ks.filter((k) => !keys.includes(k)), bare = keys.filter((k) => !ks.includes(k));
   if (lost.length) say(`! keyed "${name}": hotspot ${lost.join(", ")} has no legend entry (data-k)`);
   if (bare.length) say(`! keyed "${name}": legend entry ${bare.join(", ")} has no hotspot`);

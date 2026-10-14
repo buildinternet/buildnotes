@@ -6,7 +6,7 @@
 //   node viz.mjs build <post.html> [--check]      render every viz marker in the post, in place
 //   node viz.mjs kinds                            list the kinds
 //
-// Kinds: flow, steps, bars, delta, line, options, matrix (Markdown tables), code, term, strip, shader.
+// Kinds: flow, steps, bars, delta, line, options, matrix (Markdown tables), code, term, strip, shader, anatomy.
 // A marker names the kind and the spec, relative to the post:
 //   <!-- viz flow viz/pipeline.json -->
 //   <!-- /viz -->
@@ -33,8 +33,9 @@ import * as term from "./viz/term.mjs";
 import * as strip from "./viz/strip.mjs";
 import * as steps from "./viz/steps.mjs";
 import * as shader from "./viz/shader.mjs";
+import * as anatomy from "./viz/anatomy.mjs";
 
-export const KINDS = { flow, bars, delta, line, options, matrix, code, term, strip, steps, shader };
+export const KINDS = { flow, bars, delta, line, options, matrix, code, term, strip, steps, shader, anatomy };
 export const MARKER = /<!-- viz (\w+) (\S+?)(?: #([0-9a-f]{6}))? -->([\s\S]*?)<!-- \/viz -->/g;
 
 const parseSpec = (mod, text) => (mod.parse ? mod.parse(text) : JSON.parse(text));
@@ -76,7 +77,7 @@ export function build(html, base, { check = false } = {}) {
       return all;
     }
     try {
-      const frag = renderKind(kind, text, { id: nameOf(path), base: specBase, style });
+      const frag = renderKind(kind, text, { id: nameOf(path), base: specBase, style, page: base });
       for (const w of takeWarnings()) problems.push(`${kind} ${path}: ${w}`);
       return `<!-- viz ${kind} ${path} #${h} -->\n${frag}\n<!-- /viz -->`;
     } catch (err) {
