@@ -11,11 +11,11 @@ import { spawnSync } from "node:child_process";
 import { chromePath, openPage } from "../../skills/buildnotes/scripts/chrome.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
-const base = join(root, "examples/weekly-digests");
+const base = join(root, "examples/releases-weekly-digests");
 const example = JSON.parse(readFileSync(join(base, "motion.json"), "utf8"));
 const noChrome = !chromePath() && "no Chrome";
 const noFfmpeg = spawnSync("ffmpeg", ["-version"]).status !== 0 && "no ffmpeg";
-const sunnyBase = join(root, "examples/walkthrough-videos");
+const sunnyBase = join(root, "examples/sunny-walkthrough-videos");
 const sunny = JSON.parse(readFileSync(join(sunnyBase, "motion.json"), "utf8"));
 const scene = (kind) => structuredClone(example.scenes.find((s) => s.kind === kind));
 const one = (...scenes) => check({ title: "T", scenes }, base);
@@ -121,7 +121,7 @@ test("the page embeds the images, carries the script safely and drops the author
   assert.ok(!html.includes("<!--"), "the authoring notes are dropped");
 });
 
-const beforeAfterBase = join(root, "examples/before-after");
+const beforeAfterBase = join(root, "examples/uploads-before-after");
 const beforeAfter = JSON.parse(readFileSync(join(beforeAfterBase, "motion.json"), "utf8"));
 for (const [name, script, dir, needs] of [["weekly-digests", example, base, null], ["walkthrough-videos", sunny, sunnyBase, noFfmpeg], ["before-after", beforeAfter, beforeAfterBase, noFfmpeg]])
 test(`every scene of the ${name} cut fits the frame and stays on the stage`, { skip: noChrome || needs || false }, async () => {

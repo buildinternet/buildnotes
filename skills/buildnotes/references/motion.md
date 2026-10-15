@@ -78,7 +78,7 @@ Every scene takes `kind`, an optional `label` (top right, usually the chapter: `
 
 On `clip` and `swap`, `"sayAt": "top"` moves the label to the top-left corner, for footage with its own caption at the bottom.
 
-`examples/weekly-digests/motion.json` uses most kinds; `examples/walkthrough-videos/motion.json` adds a `clip`.
+`examples/releases-weekly-digests/motion.json` uses most kinds; `examples/sunny-walkthrough-videos/motion.json` adds a `clip`.
 
 ## Build, check and export
 

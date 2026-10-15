@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { build, SHARE, EXAMPLES, wrapPost } from "../../site/build.mjs";
+import { build, SHARE, EXAMPLES, wrapPost, footer } from "../../site/build.mjs";
 import { drawing, NAMES } from "../../site/iso.mjs";
 
 test("the site builds: markers filled, files copied, every command copyable", () => {
@@ -25,24 +25,48 @@ test("the site builds: markers filled, files copied, every command copyable", ()
     assert.match(html, /<code data-copy>npx skills add buildinternet\/buildnotes<\/code>/);
     // local references point at copied files, and .github/assets is published as assets/
     for (const f of files) assert.ok(existsSync(join(out, f)), f);
-    assert.ok(files.includes("assets/digest-keyed.webp"));
+    assert.ok(files.includes("assets/digest-apart.webp"));
     assert.doesNotMatch(html, /\.github\//);
     assert.match(html, /<html lang="en" data-theme="light">/);
-    // every example is served with its video, and its post is wrapped in a document and the site shell
+    // every example is served as a folder with its video, its post wrapped in a document and the site shell
     assert.equal(EXAMPLES.length, 3);
     for (const ex of EXAMPLES) {
-      assert.ok(files.includes(`examples/${ex.slug}/post.html`), ex.slug);
+      assert.ok(files.includes(`examples/${ex.slug}/index.html`), ex.slug);
       assert.ok(files.includes(`examples/${ex.slug}/motion.mp4`), ex.slug);
-      const post = readFileSync(join(out, `examples/${ex.slug}/post.html`), "utf8");
+      assert.match(html, new RegExp(`href="examples/${ex.slug}/"`), `home links ${ex.slug}`);
+      const post = readFileSync(join(out, `examples/${ex.slug}/index.html`), "utf8");
       assert.match(post, /^<!doctype html>\n<html lang="en" data-theme="light">\n<head>\n<meta charset="utf-8">/);
       assert.match(post, /<title>[^<]+ · buildnotes example<\/title>/);
       assert.equal(post.match(/<title>/g).length, 1);
       assert.match(post, /<header class="site-bar site-top">/);
       assert.match(post, /<video src="motion\.mp4" controls/);
-      for (const o of EXAMPLES) if (o !== ex) assert.match(post, new RegExp(`href="\\.\\./${o.slug}/post\\.html"`), `${ex.slug} links ${o.slug}`);
-      assert.doesNotMatch(post, /href="\.\.\/${ex.slug}\//);
+      for (const o of EXAMPLES) if (o !== ex) assert.match(post, new RegExp(`href="\\.\\./${o.slug}/"`), `${ex.slug} links ${o.slug}`);
+      assert.doesNotMatch(post, new RegExp(`href="\\.\\./${ex.slug}/`));
     }
+    // the weekly-digests example is the field-notes page, the one with the card taken apart
+    const digests = readFileSync(join(out, "examples/releases-weekly-digests/index.html"), "utf8");
+    assert.match(digests, /class="keyed anatomy anatomy-iso"/);
     assert.throws(() => wrapPost("nope", "<style></style>"), /not in EXAMPLES/);
+    // the examples page: one card per example, the home page's stylesheet, links one folder up
+    const list = readFileSync(join(out, "examples/index.html"), "utf8");
+    assert.ok(files.includes("examples/index.html"));
+    assert.match(list, /<meta charset="utf-8">/);
+    assert.doesNotMatch(list, /\/\* site: css \*\/|<!-- examples -->|<!-- footer -->|<!-- canonical -->/);
+    assert.match(list, /\.show-head \{/, "shares the home page's CSS");
+    for (const ex of EXAMPLES) {
+      assert.match(list, new RegExp(`<h2><a href="${ex.slug}/">`), ex.slug);
+      assert.match(list, new RegExp(`href="${ex.slug}/motion\\.mp4"`), ex.slug);
+    }
+    assert.match(list, /src="\.\.\/assets\/digest-apart\.webp"/);
+    assert.match(list, /href="\.\.\/#install"/);
+    // the footer, on both pages: columns and the maintained-by line
+    for (const page of [html, list]) {
+      assert.match(page, /<footer>\s*<div class="cols">/);
+      assert.match(page, /Maintained by <a href="https:\/\/zachdunn\.com">Zach Dunn<\/a>/);
+      assert.match(page, /href="https:\/\/releases\.sh"/);
+      assert.match(page, /href="https:\/\/uploads\.sh"/);
+    }
+    assert.match(footer("../"), /href="\.\.\/examples\/"/);
   } finally {
     rmSync(out, { recursive: true, force: true });
   }
@@ -69,6 +93,7 @@ test("link previews: description, Open Graph and Twitter tags, favicon", () => {
     // with --url: canonical, og:url, and an absolute image inside the site
     ({ html } = build({ out, url: "https://example.com/buildnotes" }));
     assert.match(html, /<link rel="canonical" href="https:\/\/example\.com\/buildnotes\/">/);
+    assert.match(readFileSync(join(out, "examples/index.html"), "utf8"), /<link rel="canonical" href="https:\/\/example\.com\/buildnotes\/examples\/">/);
     assert.equal(meta(html, "property", "og:url"), "https://example.com/buildnotes/");
     assert.equal(meta(html, "property", "og:image"), "https://example.com/buildnotes/assets/og.png");
     assert.equal(meta(html, "name", "twitter:image"), "https://example.com/buildnotes/assets/og.png");

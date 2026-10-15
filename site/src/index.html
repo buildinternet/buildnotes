@@ -156,9 +156,21 @@ td:last-child { color: var(--muted); }
 pre.block { font-family: var(--font-code); font-size: 0.8125rem; line-height: 1.7; border: 1px solid var(--rule); border-radius: 4px; padding: 12px 14px; background: var(--card); overflow-x: auto; white-space: pre; }
 pre.block .c { color: var(--muted); }
 
-footer { padding-top: 28px; border-top: 1px solid var(--rule); font-size: 0.8125rem; color: var(--muted); display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 20px; }
+/* Footer: a brand column and link columns, then a maintained-by line, as on releases.sh and uploads.sh */
+footer { padding-top: 36px; border-top: 1px solid var(--rule); font-size: 0.875rem; color: var(--muted); display: grid; gap: 28px; }
+footer .cols { display: grid; gap: 24px 20px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+footer .brand { grid-column: 1 / -1; display: grid; gap: 6px; align-content: start; }
+footer .brand b { color: var(--ink); font-weight: 600; }
+footer .brand p { font-family: var(--font-body); font-size: 1rem; max-width: 24rem; }
+footer h4 { font-family: var(--font-mono); font-size: 0.6875rem; font-stretch: 87.5%; letter-spacing: 0.02em; font-weight: 400; margin-bottom: 8px; }
+footer ul { list-style: none; display: grid; gap: 6px; }
 footer a { color: var(--ink); text-decoration: none; }
 footer a:hover { text-decoration: underline; }
+footer .by { padding-block: 20px 36px; border-top: 1px solid var(--rule); display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 20px; font-size: 0.8125rem; }
+@media (min-width: 720px) {
+  footer .cols { grid-template-columns: minmax(0, 1.6fr) repeat(3, minmax(0, 1fr)); }
+  footer .brand { grid-column: auto; }
+}
 
 /* Post panel: rests on the post's first figure; pointing at it scrolls the whole post past */
 .scroller { position: relative; display: block; aspect-ratio: 16 / 10; overflow: hidden; border: 1px solid var(--rule); border-radius: 4px; background: #fcfcfa; }
@@ -220,7 +232,7 @@ section > * { min-width: 0; }
   <header class="top">
     <a class="name" href="#top" id="top">buildnotes</a>
     <nav aria-label="Site">
-      <a href="#example">Example</a>
+      <a href="examples/">Examples</a>
       <a href="#how">How it works</a>
       <a href="#makes">Outputs</a>
       <a href="#install">Install</a>
@@ -237,30 +249,30 @@ section > * { min-width: 0; }
 
   <section id="example" aria-labelledby="ex-h">
     <div class="show-head">
-      <p class="label">Example · Sunny</p>
-      <h2 id="ex-h">Walkthrough videos, written up</h2>
-      <p class="sub">Sunny is a furniture and space planner. From the pull requests behind one feature, buildnotes made these:</p>
+      <p class="label">Example 1 of 3 · Sunny, a furniture and space planner</p>
+      <h2 id="ex-h">One run, start to finish</h2>
+      <p class="sub">Point buildnotes at the pull requests behind one feature, walkthrough videos in Sunny. It wrote the post and cut the video, start to finish:</p>
     </div>
     <div class="two">
       <figure>
-        <a class="scroller" href="examples/walkthrough-videos/post.html" style="--rest:-21.4%;--end:-90.8%" aria-label="The post, opened at its first figure. Point at it to scroll through the whole post.">
+        <a class="scroller" href="examples/sunny-walkthrough-videos/" style="--rest:-21.4%;--end:-90.8%" aria-label="The post, opened at its first figure. Point at it to scroll through the whole post.">
           <img src="assets/sunny-post-full.webp" alt="The Sunny post, at chapter 1's figure: the camera's route drawn over the room's plan, with five numbered stops and their times." loading="lazy">
           <span class="hint">point to scroll</span>
         </a>
         <figcaption><b>The post.</b> Five chapters, each with a figure drawn for it.</figcaption>
       </figure>
       <figure>
-        <video src="examples/walkthrough-videos/motion.mp4" autoplay muted loop playsinline aria-label="The 52-second video cut of the post."></video>
+        <video src="examples/sunny-walkthrough-videos/motion.mp4" autoplay muted loop playsinline aria-label="The 52-second video cut of the post."></video>
         <figcaption><b>The video.</b> The same story in 52 seconds.</figcaption>
       </figure>
     </div>
     <figure class="live">
       <p class="cap-top">A frame from chapter 2. Point at a number.</p>
-      <div class="plate"><!-- figure anatomy examples/walkthrough-videos/viz/frame-anatomy.json -->
+      <div class="plate"><!-- figure anatomy examples/sunny-walkthrough-videos/viz/frame-anatomy.json -->
 </div>
     </figure>
 
-    <div class="links"><a href="examples/walkthrough-videos/post.html">Read the post</a><a href="examples/walkthrough-videos/motion.mp4">Watch the video</a><a href="https://github.com/buildinternet/buildnotes/blob/main/examples/walkthrough-videos/plan.md">See the plan behind it</a></div>
+    <div class="links"><a href="examples/sunny-walkthrough-videos/">Read the post</a><a href="examples/sunny-walkthrough-videos/motion.mp4">Watch the video</a><a href="https://github.com/buildinternet/buildnotes/blob/main/examples/sunny-walkthrough-videos/plan.md">See the plan behind it</a><a href="examples/">All three examples</a></div>
   </section>
 
   <section id="how" aria-labelledby="how-h">
@@ -320,7 +332,7 @@ section > * { min-width: 0; }
     <p class="sub">Drawn from measurements, not sketched.</p>
     <figure class="live">
       <p class="cap-top">From the weekly digests example. Point at a part to lift it, or take it apart.</p>
-      <div class="plate"><!-- figure anatomy examples/weekly-digests/viz/card.json -->
+      <div class="plate"><!-- figure anatomy examples/releases-weekly-digests/viz/card.json -->
 </div>
     </figure>
     <table>
@@ -335,11 +347,12 @@ section > * { min-width: 0; }
   </section>
 
   <section id="more" aria-labelledby="more-h">
-    <h2 id="more-h">More examples</h2>
+    <h2 id="more-h">The other two examples</h2>
     <div class="others">
-      <div><a href="examples/before-after/post.html"><img src=".github/assets/before-after-compare.webp" alt=""></a><div><h3><a href="examples/before-after/post.html">Before and after, side by side</a></h3><p>uploads.sh: tag two screenshots and the pull request comment shows them in one row.</p><p class="links"><a href="examples/before-after/post.html">Read the post</a><a href="examples/before-after/motion.mp4">Watch the 47-second video</a></p></div></div>
-      <div><a href="examples/weekly-digests/post.html"><img src=".github/assets/digest-keyed.webp" alt=""></a><div><h3><a href="examples/weekly-digests/post.html">Weekly digests</a></h3><p>Release Notes Index: a card, a replay and one email a week per reader.</p><p class="links"><a href="examples/weekly-digests/post.html">Read the post</a><a href="examples/weekly-digests/motion.mp4">Watch the one-minute video</a></p></div></div>
+      <div><a href="examples/uploads-before-after/"><img src=".github/assets/before-after-compare.webp" alt=""></a><div><p class="label">Example 2 of 3 · uploads.sh</p><h3><a href="examples/uploads-before-after/">Before and after, side by side</a></h3><p>Tag two screenshots and the pull request comment shows them in one row.</p><p class="links"><a href="examples/uploads-before-after/">Read the post</a><a href="examples/uploads-before-after/motion.mp4">Watch the 47-second video</a></p></div></div>
+      <div><a href="examples/releases-weekly-digests/"><img src=".github/assets/digest-apart.webp" alt=""></a><div><p class="label">Example 3 of 3 · Release Notes Index</p><h3><a href="examples/releases-weekly-digests/">Weekly digests</a></h3><p>A card, a replay and one email a week per reader. Its first figure is the shipped card, taken apart.</p><p class="links"><a href="examples/releases-weekly-digests/">Read the post</a><a href="examples/releases-weekly-digests/motion.mp4">Watch the one-minute video</a></p></div></div>
     </div>
+    <div class="links"><a href="examples/">All examples, with the plan behind each</a></div>
   </section>
 
   <section id="install" aria-labelledby="in-h">
@@ -350,10 +363,7 @@ section > * { min-width: 0; }
     <div class="cmd wide"><code data-copy>/buildnotes write up how we built preview links, from PRs 120, 131 and 140</code><button class="copy" type="button">copy</button></div>
   </section>
 
-  <footer>
-    <span>MIT · <a href="https://github.com/buildinternet/buildnotes">github.com/buildinternet/buildnotes</a></span>
-    <span>Also from <a href="https://github.com/buildinternet">Build Internet</a>: <a href="https://releases.sh">Release Notes Index</a> · <a href="https://uploads.sh">uploads.sh</a></span>
-  </footer>
+<!-- footer -->
 </div>
 
 <script>

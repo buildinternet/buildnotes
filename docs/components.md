@@ -49,7 +49,7 @@ The images on this page were exported with the skill's own [`scripts/export.mjs`
     <td colspan="2"><img src="../.github/assets/digest-apart.webp" alt="The 'week at a glance' card drawn at an angle in the field notes style, taken apart: the product tiles and the list of releases lifted off the base, with dashed outlines where they sat and five numbered keys."></td>
   </tr>
   <tr>
-    <td colspan="2"><sub><b>anatomy</b>: one parts list, measured on a capture, drawn flat, at an angle and taken apart, or as keys over the capture itself. This one is from <code>examples/weekly-digests</code>.</sub></td>
+    <td colspan="2"><sub><b>anatomy</b>: one parts list, measured on a capture, drawn flat, at an angle and taken apart, or as keys over the capture itself. This one is from <code>examples/releases-weekly-digests</code>.</sub></td>
   </tr>
 </table>
 
@@ -77,10 +77,10 @@ Also: **steps** (a numbered pipeline with a moving highlight) and **bars** (a ba
     <td><sub><b>swap</b>: one frame of a screen wipes over another.</sub></td>
   </tr>
   <tr>
-    <td colspan="2"><img src="../.github/assets/motion-clip.webp" alt="A scene from the walkthrough-videos cut: the headline 'The room decides the shots' beside a real room export from Sunny playing in the frame, orbiting the Reception Lounge and gliding down to eye level."></td>
+    <td colspan="2"><img src="../.github/assets/motion-clip.webp" alt="A scene from the sunny-walkthrough-videos cut: the headline 'The room decides the shots' beside a real room export from Sunny playing in the frame, orbiting the Reception Lounge and gliding down to eye level."></td>
   </tr>
   <tr>
-    <td colspan="2"><sub><b>clip</b>: the feature's own footage, from a GIF or video in the pull request, played inside the frame. This one is from the walkthrough-videos cut.</sub></td>
+    <td colspan="2"><sub><b>clip</b>: the feature's own footage, from a GIF or video in the pull request, played inside the frame. This one is from the sunny-walkthrough-videos cut.</sub></td>
   </tr>
 </table>
 

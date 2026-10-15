@@ -35,7 +35,7 @@ export const CLIPS = [[1.4, 3.4], [11, 13], [24.4, 26.4], [32.2, 34.2], [49.2, 5
 export const SPEED = 1.5;
 // One still from the middle of each of the cut's seven scenes, for the filmstrip under the player.
 export const THUMBS = [2, 7, 15, 24, 32, 41, 49];
-const CUT = join(root, "examples/walkthrough-videos/motion.mp4");
+const CUT = join(root, "examples/sunny-walkthrough-videos/motion.mp4");
 
 function frames() {
   if (spawnSync("ffmpeg", ["-version"]).status !== 0) throw new Error("the Sunny clip needs ffmpeg (brew install ffmpeg)");

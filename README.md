@@ -17,7 +17,7 @@
   <img src=".github/assets/digest-card-hero.webp" width="720" alt="An isometric line drawing of the 'week at a glance' card from a weekly digest: product tiles split into columns, the largest one in blue, flame marks on two tiles, and five release rows below. Five numbered keys name its parts: flames, tile size, columns, click a tile, and the five biggest releases. Above it, an Assembled / Apart toggle; below it, the post's figure caption.">
 </p>
 
-<p align="center"><sub><code>examples/weekly-digests</code>: Fig. 1 of a build story the skill wrote from a public repo's PRs. Its parts are measured from the shipped card, and on the page they lift, come apart and explain themselves.</sub></p>
+<p align="center"><sub><code>examples/releases-weekly-digests</code>: Fig. 1 of a build story the skill wrote from a public repo's PRs. Its parts are measured from the shipped card, and on the page they lift, come apart and explain themselves.</sub></p>
 
 ---
 
@@ -59,7 +59,7 @@ You need Node 22 or later, `git`, and Chrome for the render pass and figure expo
 
 ## Examples
 
-Three full runs are kept as committed examples. Each folder holds the finished page (one self-contained file with every image embedded), the story plan the agent wrote before drafting, its notes, the specs behind the rendered figures, and a [motion cut](#motion-cut) with its video. All three are also on the [website](https://buildnotes.releases.sh).
+Three full runs are kept as committed examples. Each folder holds the finished page (one self-contained file with every image embedded), the story plan the agent wrote before drafting, its notes, the specs behind the rendered figures, and a [motion cut](#motion-cut) with its video. All three are also on the [website](https://buildnotes.releases.sh/examples/).
 
 <table>
   <tr>
@@ -67,14 +67,14 @@ Three full runs are kept as committed examples. Each folder holds the finished p
     <td width="50%"><img src=".github/assets/before-after-compare.webp" alt="The uploads.sh file page in Compare mode: a REST API docs screenshot with a purple divider down the middle, Before on the left and After on the right."></td>
   </tr>
   <tr>
-    <td><sub><b><a href="examples/walkthrough-videos">Walkthrough videos</a></b>: a build story about room, floor and project tours in <a href="https://app.sunnysdk.com">Sunny</a>, a furniture and space planner. The repo is private, so the post quotes no code and links nothing internal. Field notes style. <a href="https://buildnotes.releases.sh/examples/walkthrough-videos/post">Read it on the site</a>, or watch its <a href="examples/walkthrough-videos/motion.mp4">52-second cut</a>.</sub></td>
-    <td><sub><b><a href="examples/before-after">Before and after</a></b>: a build story about before/after comparison on <a href="https://uploads.sh">uploads.sh</a>, from the public <code>buildinternet/uploads</code> repo. Its figures are the product in use, captured live. Plain style. <a href="https://buildnotes.releases.sh/examples/before-after/post">Read it on the site</a>, or watch its <a href="examples/before-after/motion.mp4">47-second cut</a>.</sub></td>
+    <td><sub><b><a href="examples/sunny-walkthrough-videos">Walkthrough videos</a></b>: a build story about room, floor and project tours in <a href="https://app.sunnysdk.com">Sunny</a>, a furniture and space planner. The repo is private, so the post quotes no code and links nothing internal. Field notes style. <a href="https://buildnotes.releases.sh/examples/sunny-walkthrough-videos/">Read it on the site</a>, or watch its <a href="examples/sunny-walkthrough-videos/motion.mp4">52-second cut</a>.</sub></td>
+    <td><sub><b><a href="examples/uploads-before-after">Before and after</a></b>: a build story about before/after comparison on <a href="https://uploads.sh">uploads.sh</a>, from the public <code>buildinternet/uploads</code> repo. Its figures are the product in use, captured live. Plain style. <a href="https://buildnotes.releases.sh/examples/uploads-before-after/">Read it on the site</a>, or watch its <a href="examples/uploads-before-after/motion.mp4">47-second cut</a>.</sub></td>
   </tr>
   <tr>
     <td colspan="2"><img src=".github/assets/digest-keyed.webp" alt="The shipped 'week at a glance' card with five numbered keys on its parts, and a legend under it: flames, tile size, columns, click a tile, and the five biggest releases."></td>
   </tr>
   <tr>
-    <td colspan="2"><sub><b><a href="examples/weekly-digests">Weekly digests</a></b>: a build story about the weekly collection digests on Release Notes Index, from the public <code>buildinternet/releases</code> repo. <a href="https://buildnotes.releases.sh/examples/weekly-digests/post">Read it on the site</a> in the Plain style, or open <a href="examples/weekly-digests/post-field-notes.html"><code>post-field-notes.html</code></a> for the same post in field notes. Its <a href="examples/weekly-digests/motion.mp4">one-minute cut</a> plays in the <a href="#motion-cut">Motion cut</a> section below.</sub></td>
+    <td colspan="2"><sub><b><a href="examples/releases-weekly-digests">Weekly digests</a></b>: a build story about the weekly collection digests on Release Notes Index, from the public <code>buildinternet/releases</code> repo. <a href="https://buildnotes.releases.sh/examples/releases-weekly-digests/">Read it on the site</a> in field notes, with the card above as its first figure, or open <a href="examples/releases-weekly-digests/post.html"><code>post.html</code></a> for the same post in the Plain style. Its <a href="examples/releases-weekly-digests/motion.mp4">one-minute cut</a> plays in the <a href="#motion-cut">Motion cut</a> section below.</sub></td>
   </tr>
 </table>
 
@@ -102,7 +102,7 @@ Some people won't read a 1,500-word post but will watch a minute of video. The m
 
 https://github.com/user-attachments/assets/71d8e409-987b-4ecc-bd23-531934297078
 
-<p align="center"><sub>The weekly-digests cut, one minute. The file is <a href="examples/weekly-digests/motion.mp4"><code>examples/weekly-digests/motion.mp4</code></a>.</sub></p>
+<p align="center"><sub>The weekly-digests cut, one minute. The file is <a href="examples/releases-weekly-digests/motion.mp4"><code>examples/releases-weekly-digests/motion.mp4</code></a>.</sub></p>
 
 The scene kinds are **title**, **statement**, **list**, **morph**, **flow**, **shot**, **swap**, **clip**, **bars** and **end**; each is shown as a clip in [Visual components](docs/components.md#motion-scenes). The script format and when to make a cut are in [`references/motion.md`](skills/buildnotes/references/motion.md).
 
