@@ -123,7 +123,7 @@ ${head}
 </head><body>
 <article class="post"${style === "plain" ? "" : ` data-style="${style}"`}>
   <header class="mast">
-    <p class="kicker">build-story · assets/components.html</p>
+    <p class="kicker">buildnotes · assets/components.html</p>
     <h1>Components</h1>
     <p class="dek">Every visual the skill can render from a spec, drawn by the same CSS as the page template.</p>
     <p class="byline">Write a spec in the post's <code>viz/</code> folder, put a marker where the figure goes, and run <code>node scripts/viz.mjs build post.html</code>. Regenerate this page with <code>node dev/gallery.mjs --publish</code>.</p>

@@ -1,6 +1,6 @@
 # Install
 
-build-story is a standard [Agent Skill](https://agentskills.io): a folder with a `SKILL.md` at its root. This repository is that folder. It is written for Claude Code, and OpenCode and Codex load it too; on those hosts the finished page stays as a file in the work dir instead of going up as an Artifact.
+buildnotes is a standard [Agent Skill](https://agentskills.io): a folder with a `SKILL.md` at its root. This repository is that folder. It is written for Claude Code, and OpenCode and Codex load it too; on those hosts the finished page stays as a file in the work dir instead of going up as an Artifact.
 
 ## With the skills CLI
 
@@ -8,26 +8,26 @@ build-story is a standard [Agent Skill](https://agentskills.io): a folder with a
 npx skills add buildinternet/buildnotes -g -a claude-code
 ```
 
-The [`skills`](https://github.com/vercel-labs/skills) CLI finds the `SKILL.md` at the root of this repository and installs it as `build-story`. `-g` installs it for your user; leave it out to install into the current project, and the CLI asks which agents to set up. `-a` picks the agent:
+The [`skills`](https://github.com/vercel-labs/skills) CLI finds the `SKILL.md` at the root of this repository and installs it as `buildnotes`. `-g` installs it for your user; leave it out to install into the current project, and the CLI asks which agents to set up. `-a` picks the agent:
 
 | Agent | `-g` installs to | Project install goes to | Run it with |
 |---|---|---|---|
-| Claude Code (`-a claude-code`) | `~/.claude/skills/build-story` | `.claude/skills/build-story` | `/build-story` |
-| OpenCode (`-a opencode`) | `~/.config/opencode/skills/build-story` | `.agents/skills/build-story` | `/build-story` |
-| Codex (`-a codex`) | `~/.agents/skills/build-story` | `.agents/skills/build-story` | `$build-story` (listed under `/skills`) |
+| Claude Code (`-a claude-code`) | `~/.claude/skills/buildnotes` | `.claude/skills/buildnotes` | `/buildnotes` |
+| OpenCode (`-a opencode`) | `~/.config/opencode/skills/buildnotes` | `.agents/skills/buildnotes` | `/buildnotes` |
+| Codex (`-a codex`) | `~/.agents/skills/buildnotes` | `.agents/skills/buildnotes` | `$buildnotes` (listed under `/skills`) |
 
 ## With git
 
 Clone into the folder from the table above, for example:
 
 ```bash
-git clone https://github.com/buildinternet/buildnotes.git ~/.claude/skills/build-story
+git clone https://github.com/buildinternet/buildnotes.git ~/.claude/skills/buildnotes
 ```
 
 Update by running `git pull` in that folder. If you already keep a checkout elsewhere, link it in instead, so the skill stays in step with it:
 
 ```bash
-ln -s /path/to/buildnotes ~/.claude/skills/build-story
+ln -s /path/to/buildnotes ~/.claude/skills/buildnotes
 ```
 
 Claude Code picks up new skills in a running session. Restart OpenCode or Codex if the skill doesn't show.
