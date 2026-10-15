@@ -93,7 +93,7 @@ node <skill-dir>/scripts/motion.mjs <work-dir>/motion.json --gif --scene 5 --siz
 
 Building writes `motion.html` with the images embedded (a `clip`'s footage becomes one sheet of frames, which needs `ffmpeg`), then opens it in headless Chrome to check that every scene's text fits the frame. A headline shrinks to fit before it is reported; a reported scene needs fewer words.
 
-`--mp4` (or `--webm`, or `--gif` at half size) writes `<work-dir>/export/motion.mp4` at 1920×1080 and 30 fps. `--poster` writes a still from the end of the title scene, for a thumbnail; `--at <seconds>` picks another moment. `--theme dark` exports the dark theme. Export needs Chrome and `ffmpeg` and takes a couple of minutes for a one-minute cut.
+`--mp4` (or `--webm`, or `--gif` at half size) writes `<work-dir>/export/motion.mp4` at 1920×1080 and 30 fps. `--poster` writes a still from the end of the title scene, for a thumbnail; `--at <seconds>` picks another moment. The video opens on that same frame, held for one frame, because GitHub and most players show the first frame before play and ignore a poster; the MP4 also carries it as cover art for Finder and QuickTime. `--theme dark` exports the dark theme. Export needs Chrome and `ffmpeg` and takes a couple of minutes for a one-minute cut.
 
 `--scene <n>` exports one scene alone, counted from 1, as `export/motion-scene-<n>.<ext>`. It stops just before the scene fades out, so a GIF loops on the scene. A clip is the right size for a README, a reply in a thread or a changelog entry; the `morph` and `flow` scenes make the best ones. `--size <px>` sets the width (default 1920, or 960 for a GIF): `--gif --scene 5 --size 720` gives a clip of a few hundred kilobytes. With `--poster`, `--scene` gives that scene's last frame.
 
