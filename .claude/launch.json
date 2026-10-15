@@ -3,9 +3,10 @@
   "configurations": [
     {
       "name": "site",
-      "runtimeExecutable": "python3",
-      "runtimeArgs": ["-m", "http.server", "8787", "--directory", "site/dist"],
-      "port": 8787
+      "runtimeExecutable": "sh",
+      "runtimeArgs": ["-c", "node site/build.mjs && npx --yes wrangler@4 dev --port \"${PORT:-8787}\""],
+      "port": 8787,
+      "autoPort": true
     }
   ]
 }
