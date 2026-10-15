@@ -4,7 +4,7 @@ The skill's scripts live in [`scripts/`](../scripts). Each one runs on its own a
 
 | Script | What it does |
 |---|---|
-| [`gather.mjs`](../scripts/gather.mjs) | Evidence dossier from git and GitHub: by `--issue`, `--pr`, `--search`, `--range`, `--since`, `--path` or `--grep`, with `--prior` and `--also-repo`. Needs `gh` for anything beyond commits ([without it](install.md#without-the-github-cli)). |
+| [`gather.mjs`](../scripts/gather.mjs) | Evidence dossier from git and GitHub: by `--issue`, `--pr`, `--search`, `--range`, `--since`, `--path` or `--grep`, with `--prior` and `--also-repo`. Needs `gh` for anything beyond commits ([without it](install.md#without-the-github-cli)); `--visibility` records a visibility confirmed elsewhere. |
 | [`workdir.mjs`](../scripts/workdir.mjs) | Makes a work dir under `$BUILD_STORY_DIR` and prints the house-style path when one exists |
 | [`viz.mjs`](../scripts/viz.mjs) | Renders every `<!-- viz … -->` marker in a page from its spec (`build <post.html>`) |
 | [`lint.mjs`](../scripts/lint.mjs) | Words per chapter, banned and writerly phrasing, process detail against the flavor's budget, numbers, sentence length, passive voice, identifiers, the product name in headings, a safety scan and a link check. Exits 1 on a hard failure. |

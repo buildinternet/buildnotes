@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 // gather.mjs — build an evidence dossier for a feature from git + GitHub.
 //
-// Needs only `git` and an authenticated `gh`. No npm dependencies.
+// Needs `git`, and an authenticated `gh` for --issue, --pr and --search. No npm dependencies.
+// Without `gh`, the git-only selectors still work: the repo comes from the origin remote.
 //
 // Usage:
 //   node gather.mjs --out <dir> [selectors…] [options]
@@ -17,7 +18,9 @@
 //   --grep "limit"            commits whose message matches
 //
 // Options:
-//   --repo owner/name   default: the current checkout's GitHub repo
+//   --repo owner/name   default: the current checkout's GitHub repo (from gh, else the origin remote)
+//   --visibility public|private  record the repo's visibility yourself (e.g. confirmed through a
+//                       GitHub MCP server); default: ask gh, else "unknown", which is treated as private
 //   --also-repo a/b,c/d with --search: run the same merged-PR search in these repos too
 //   --tz America/New_York  add a local-time column to the timeline (UTC stays the base)
 //   --download          download images found in PR/issue bodies into <out>/assets/
@@ -45,7 +48,7 @@ function realCommand(cmd, a) {
 }
 function sh(cmd, a) { return command(cmd, a); }
 
-let args, BODY_CHARS, repo, TZ, visibility, dossier, seenPr, seenIssue, renames, headFiles;
+let args, BODY_CHARS, repo, TZ, visibility, dossier, seenPr, seenIssue, renames, headFiles, ghDown;
 
 // Bots whose top-level comments are boilerplate. Their inline review comments are kept,
 // because automated reviewers sometimes raise the point that changed the design.
@@ -837,7 +840,34 @@ function priorQuery(v) {
 function list(v) { return v && v !== true ? String(v).split(",").map((s) => s.trim()).filter(Boolean) : []; }
 function guessExt(u) { const e = extname(new URL(u).pathname).toLowerCase(); return /^\.(png|jpe?g|gif|webp|svg|mp4|webm)$/.test(e) ? e : ".bin"; }
 function extFromType(t = "") { return { "image/png": ".png", "image/jpeg": ".jpg", "image/gif": ".gif", "image/webp": ".webp", "image/svg+xml": ".svg", "video/mp4": ".mp4", "video/webm": ".webm" }[t?.split(";")[0]]; }
-function ghJson(a) { return JSON.parse(sh("gh", a)); }
+function ghJson(a) {
+  let out;
+  try { out = sh("gh", a); } catch (err) {
+    const why = ghUnavailable(err);
+    if (why) die(`${why}; --issue, --pr and --search need it. Install gh and run \`gh auth login\`, or use the git-only selectors (--since, --range, --grep, --path). See docs/install.md#without-the-github-cli`);
+    throw err;
+  }
+  return JSON.parse(out);
+}
+// Why gh can't answer at all (not installed, not logged in), or null for an ordinary failure.
+function ghUnavailable(err) {
+  if (err?.code === "ENOENT") return "gh is not installed";
+  if (err?.status === 4 || /gh auth login|not logged in/i.test(String(err?.stderr ?? ""))) return "gh is not logged in";
+  return null;
+}
+// owner/name from the origin remote, for https and ssh GitHub URLs.
+function repoFromRemote() {
+  let url;
+  try { url = sh("git", ["remote", "get-url", "origin"]).trim(); } catch { return null; }
+  const m = url.match(/github\.com[/:]([\w.-]+)\/([\w.-]+?)(?:\.git)?\/?$/);
+  return m ? `${m[1]}/${m[2]}` : null;
+}
+function currentRepo() {
+  try { return sh("gh", ["repo", "view", "--json", "nameWithOwner", "-q", ".nameWithOwner"]).trim(); } catch (err) {
+    ghDown ??= ghUnavailable(err);
+    return repoFromRemote() ?? die("could not tell the GitHub repo from gh or the origin remote; pass --repo owner/name");
+  }
+}
 // Issues a PR body names as its parent: "Part of #12", "Refs #12", "Related to #12", "Follow-up to #12",
 // "Tracking: #12". Same-repo numbers only; closing keywords are GitHub's own list (closes).
 function partOf(body = "", self) {
@@ -853,7 +883,7 @@ function ghJsonSafe(a) {
     try { return JSON.parse(out); } catch { /* fall through to the --paginate form */ }
     // --paginate concatenates JSON arrays: "][" → ","
     return JSON.parse(out.replace(/\]\s*\[/g, ","));
-  } catch { return null; }
+  } catch (err) { ghDown ??= ghUnavailable(err); return null; }
 }
 function die(msg) { console.error(`gather: ${msg}`); process.exit(2); }
 function parseArgs(argv) {
@@ -881,12 +911,16 @@ async function run(argv) {
   if (!args.out) die("missing --out <dir> (see --help)");
   if (args.show) return show(String(args.show));
   BODY_CHARS = Number(args["body-chars"] ?? 2500);
-  repo = args.repo ?? sh("gh", ["repo", "view", "--json", "nameWithOwner", "-q", ".nameWithOwner"]).trim();
+  ghDown = null;
+  if (args.visibility !== undefined && !["public", "private"].includes(args.visibility)) die("--visibility takes public or private");
+  repo = args.repo ?? currentRepo();
   TZ = typeof args.tz === "string" ? args.tz : null;
   if (TZ) {
     try { new Intl.DateTimeFormat("en-US", { timeZone: TZ }); } catch { die(`unknown time zone ${TZ}`); }
   }
-  visibility = (() => { try { return sh("gh", ["repo", "view", repo, "--json", "visibility", "-q", ".visibility"]).trim().toLowerCase() || "unknown"; } catch { return "unknown"; } })();
+  visibility = args.visibility ?? (() => {
+    try { return sh("gh", ["repo", "view", repo, "--json", "visibility", "-q", ".visibility"]).trim().toLowerCase() || "unknown"; } catch (err) { ghDown ??= ghUnavailable(err); return "unknown"; }
+  })();
   dossier = { repo, visibility, generatedAt: new Date().toISOString(), selectors: args, issues: [], prs: [], commits: [], crossRepo: [] };
   seenPr = new Set();
   seenIssue = new Set();
@@ -929,6 +963,7 @@ async function run(argv) {
     `dossier: ${dossier.issues.length} issues · ${dossier.prs.length} PRs · ${dossier.commits.length} loose commits · ` +
       `${dossier.summary.images} images → ${join(args.out, "dossier.md")}`,
   );
+  if (ghDown) console.error(`${ghDown}: visibility is ${visibility}${args.visibility ? "" : " (pass --visibility if you know it)"}, and prior, nearby and later PRs were skipped`);
   return dossier;
 }
 
