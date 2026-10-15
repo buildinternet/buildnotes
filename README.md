@@ -1,4 +1,4 @@
-<h1 align="center">build-story</h1>
+<h1 align="center">buildnotes</h1>
 
 <p align="center"><b>A Claude Code skill that turns the history of a feature into a post about how it was built and why.</b><br>It reads the issues, PRs, commits, reviews and screenshots, finds the two or three decisions that shaped the feature,<br>and publishes a self-contained page with diagrams, motion, before/after visuals and real code.</p>
 
@@ -24,7 +24,7 @@
 
 ---
 
-Point Claude at an issue, a few PRs, a search phrase or a commit range, and ask it to write up how the feature was built. build-story gathers the record into a dossier, zooms out to the product as users meet it, picks an angle, and plans one chapter per idea, not per day. Then it draws the visuals from small specs, writes the page, and checks it: a linter for length, phrasing, process detail and safety, a link check, and a render pass at desktop and phone width in light and dark.
+Point Claude at an issue, a few PRs, a search phrase or a commit range, and ask it to write up how the feature was built. buildnotes gathers the record into a dossier, zooms out to the product as users meet it, picks an angle, and plans one chapter per idea, not per day. Then it draws the visuals from small specs, writes the page, and checks it: a linter for length, phrasing, process detail and safety, a link check, and a render pass at desktop and phone width in light and dark.
 
 The skill exists to prevent three kinds of post:
 
@@ -45,13 +45,16 @@ For OpenCode or Codex, swap the agent: `-a opencode` or `-a codex`. Cloning with
 Then, inside the repo the feature lives in, ask in plain words. The skill triggers on any request to write up how a feature was built, even one that never says "blog":
 
 ```text
-/build-story write up how we built the weekly digests (#412)
-/build-story how we built preview links, from PRs 120, 131 and 140
-/build-story a release story for the rate-limit work (search "rate limit", the CLI half is in acme/cli)
-/build-story a technical deep dive on the sync engine since v1.2.0, with the build log module
+/buildnotes write up how we built the weekly digests (#412)
+/buildnotes how we built preview links, from PRs 120, 131 and 140
+/buildnotes a release story for the rate-limit work (search "rate limit", the CLI half is in acme/cli)
+/buildnotes a technical deep dive on the sync engine since v1.2.0, with the build log module
+/buildnotes video tech explainer of our latest PR
 ```
 
-OpenCode takes the same `/build-story` command; in Codex, type `$build-story`.
+Open with `post` or `video` to name the output; with neither, the skill writes the post and works out the rest from your words. `video` writes the post first, then cuts the [motion cut](#motion-cut) from it.
+
+OpenCode takes the same `/buildnotes` command; in Codex, type `$buildnotes`.
 
 You get back a link to a private Artifact page, plus at most three open questions and two notes, one line each. The plan, notes, dossier and `post.html` stay in the work dir. Ask for `--standalone` HTML for your own site, or for the chapters as Markdown or MDX.
 
@@ -189,7 +192,7 @@ Also: **steps** (a numbered pipeline with a moving highlight) and **bars** (a ba
 
 ## Motion cut
 
-Some people won't read a 1,500-word post but will watch a minute of video. The motion cut is the post as a reel of five to nine scenes that plays itself: the title, the problem, one scene for each idea, and how to try it. The agent writes a short scene script (`motion.json`) from the finished post, so every word, number and screenshot comes from the post. [`motion.mjs`](scripts/motion.mjs) checks the script, times each scene by how long its words take to read, builds one self-contained page, and exports a 1920×1080 MP4, a GIF, a still, or one scene as a short clip.
+Some people won't read a 1,500-word post but will watch a minute of video. The motion cut is the post as a reel of five to nine scenes that plays itself: the title, the problem, one scene for each idea, and how to try it. The agent writes a short scene script (`motion.json`) from the finished post, so every word, number and screenshot comes from the post. [`motion.mjs`](scripts/motion.mjs) checks the script, times each scene by how long its words take to read, builds one self-contained page, and exports a 1920×1080 MP4, a GIF, a still, or one scene as a short clip. Ask for one with `/buildnotes video …`, or after a post.
 
 https://github.com/user-attachments/assets/263542d1-f540-487b-9e6e-287414ff8ba6
 

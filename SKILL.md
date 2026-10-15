@@ -1,13 +1,14 @@
 ---
-name: build-story
-description: Turn the real history of a feature (its issues, PRs, commits, reviews, design docs and screenshots) into a public-facing post about how it was built and why, with diagrams, simple motion, before/after visuals and code where it helps, published as a page. Three flavors, from a release-notes-style launch story to a technical deep dive. Use when asked to write up how a feature was built, the thinking or design behind a change, a technical blog post, devlog, case study, launch post or behind-the-scenes piece about work in a git repo, even when the request never says "blog".
+name: buildnotes
+description: Turn the real history of a feature (its issues, PRs, commits, reviews, design docs and screenshots) into a public-facing post about how it was built and why, with diagrams, simple motion, before/after visuals and code where it helps, published as a page, plus a short video cut on request. Three flavors, from a release-notes-style launch story to a technical deep dive. Use when asked to write up how a feature was built, the thinking or design behind a change, a technical blog post, devlog, case study, launch post or behind-the-scenes piece about work in a git repo, even when the request never says "blog".
+argument-hint: "[post|video] [what to write about]"
 license: MIT
 compatibility: Written for Claude Code; also runs in OpenCode and Codex. Needs Node.js 22 or later, git, and Chrome or Chromium for the render pass. An authenticated gh is best for GitHub data; a GitHub MCP server or public GitHub pages also work.
 metadata:
   opencode/slash: "true"
 ---
 
-# Build story
+# Buildnotes
 
 A build story explains a feature to someone who knows what the product does but wasn't in the room: what problem it solves, how it works, and the two or three decisions that shaped it. It is written for people outside the team.
 
@@ -20,6 +21,16 @@ Three failures this skill exists to prevent:
 - **The press release.** Confident claims with nothing behind them.
 
 The cure for all three is the same. Find the few ideas and decisions that made the feature what it is, explain each at the level the reader needs, and back each one with real evidence.
+
+## Output
+
+The request may open with the output it wants, as in `/buildnotes video tech explainer of our latest PR`. Read the first word:
+
+- **`post`**: the page. This is the default.
+- **`video`**: the page and its motion cut. The cut is made from the finished post, so write the post first, then go straight on to step 9 without offering it.
+- **Anything else**: there is no output word. The whole request is the brief, and a request for a video, a reel or a quick version still means `video`.
+
+The rest of the request is the brief: the subject, plus anything about flavor, reader or style, in plain words. "Tech explainer" or "deep dive" means the technical deep dive, and "launch post" or "release notes" means the release story. Read these as you would any other request; they are not fixed values. When it's unclear whether the author wants a video, don't ask: write the post and offer the cut in the hand-off, as step 9 says.
 
 ## The rules
 
@@ -77,7 +88,7 @@ Settle these from the request, the repo and the defaults. Don't ask about scope 
 
 ### 2. Gather the evidence
 
-Make a work dir outside the repo, so it survives worktrees and never lands in tracked files. `<work-dir>` below means this path, or the author's own place if they name one. `<skill-dir>` means the folder this `SKILL.md` was loaded from (for example `~/.claude/skills/build-story`, `~/.agents/skills/build-story` or `~/.config/opencode/skills/build-story`).
+Make a work dir outside the repo, so it survives worktrees and never lands in tracked files. `<work-dir>` below means this path, or the author's own place if they name one. `<skill-dir>` means the folder this `SKILL.md` was loaded from (for example `~/.claude/skills/buildnotes`, `~/.agents/skills/buildnotes` or `~/.config/opencode/skills/buildnotes`).
 
 ```bash
 WORK=$(node <skill-dir>/scripts/workdir.mjs preview-links)   # → $BUILD_STORY_DIR (default ~/.build-stories)/<repo>/<date>-preview-links
@@ -159,7 +170,7 @@ Publish `post.published.html` as a private Artifact (title = the post's name) wh
 
 ### 9. Motion cut (optional)
 
-A short reel of the post, for people who would rather watch than read: a title, the problem, one scene per idea, and how to try it, in under a minute. Make one when the author asks for a video, a reel or a quick version; otherwise offer it in one line in the hand-off when the post has two or more visuals that move or compare. Write `<work-dir>/motion.json` from `plan.md` and the finished page (every word, number and screenshot comes from the post), then build and export it:
+A short reel of the post, for people who would rather watch than read: a title, the problem, one scene per idea, and how to try it, in under a minute. Make one when the request opens with `video` or asks for a video, a reel or a quick version ([Output](#output)); otherwise offer it in one line in the hand-off when the post has two or more visuals that move or compare. Write `<work-dir>/motion.json` from `plan.md` and the finished page (every word, number and screenshot comes from the post), then build and export it:
 
 ```bash
 node <skill-dir>/scripts/motion.mjs <work-dir>/motion.json --check

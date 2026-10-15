@@ -53,7 +53,7 @@ function portOf(chrome) {
 export async function openPage(url, { width = 1280, height = 800, scale = 2, theme, reduced = false, init } = {}) {
   const binary = chromePath();
   if (!binary) throw new Error("no Chrome found; set CHROME_PATH to a Chrome or Chromium binary");
-  const profile = mkdtempSync(join(tmpdir(), "build-story-chrome-"));
+  const profile = mkdtempSync(join(tmpdir(), "buildnotes-chrome-"));
   const chrome = spawn(binary, [
     "--headless=new", ...(process.platform === "linux" ? ["--no-sandbox"] : []),
     "--remote-debugging-port=0", `--user-data-dir=${profile}`,

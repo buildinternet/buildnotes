@@ -157,7 +157,7 @@ try {
   if (missed.length) console.error(`! this page uses ${missed.join(" and ")}, which runs on real time; those parts may step unevenly`);
   if (spawnSync("ffmpeg", ["-version"]).status !== 0) await done(1, "GIF and video need ffmpeg (brew install ffmpeg); --png works without it");
 
-  const frames = mkdtempSync(join(tmpdir(), "build-story-frames-"));
+  const frames = mkdtempSync(join(tmpdir(), "buildnotes-frames-"));
   for (let k = 0; k < count; k++) {
     await page.evaluate(`window.__seek(${(from + k / fps).toFixed(4)})`);
     writeFileSync(join(frames, `frame-${String(k).padStart(4, "0")}.png`), await page.screenshot(clip));

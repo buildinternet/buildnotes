@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// lint.mjs — the mechanical half of the Check step for a build-story page.
+// lint.mjs — the mechanical half of the Check step for a buildnotes page.
 //
 // Usage: node lint.mjs post.html [--flavor note|release|build|deep] [--avoid "a,b"] [--product "Name"] [--private] [--ste] [--offline]
 //
@@ -375,7 +375,7 @@ if (!argv.includes("--offline")) {
   const status = async (url) => {
     for (const method of ["HEAD", "GET"]) {
       try {
-        const r = await fetch(url, { method, redirect: "follow", signal: AbortSignal.timeout(10000), headers: { "user-agent": "build-story-lint" } });
+        const r = await fetch(url, { method, redirect: "follow", signal: AbortSignal.timeout(10000), headers: { "user-agent": "buildnotes-lint" } });
         if (r.ok || method === "GET") return r.status;
       } catch (err) { if (method === "GET") return err.name === "TimeoutError" ? "timeout" : "no answer"; }
     }
