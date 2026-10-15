@@ -102,6 +102,12 @@ header.top nav { display: flex; flex-wrap: wrap; gap: 4px 20px; }
 .out { grid-template-columns: minmax(0, 1fr); }
 .cmd.sm { width: 100%; }
 .hero .agents { font-size: 0.8125rem; color: var(--muted); }
+/* The request's shape: the command, the output word (one of three) and the brief. A template, so no copy button. */
+.usage { display: grid; gap: 6px; justify-items: center; }
+.usage .label { font-family: var(--font-body); font-size: 0.8125rem; color: var(--muted); }
+.usage code { font-family: var(--font-mono); font-size: clamp(0.875rem, 0.8rem + 0.4vw, 1.0625rem); color: var(--ink); overflow-wrap: anywhere; }
+.usage b { font-weight: inherit; color: var(--accent); }
+.usage i { font-style: normal; color: var(--muted); }
 
 section { padding-block: 48px; display: grid; gap: 20px; border-top: 1px solid var(--rule); }
 section > h2 { font-family: var(--font-display); font-size: 1.5rem; }
@@ -242,6 +248,7 @@ section > * { min-width: 0; }
     <p>A skill for coding agents. It reads a feature's issues, PRs and reviews, and finds the few decisions that shaped it.</p>
     <div class="cmd"><code data-copy>npx skills add buildinternet/buildnotes</code><button class="copy" type="button">copy</button></div>
     <p class="agents">For Claude Code, Codex and OpenCode</p>
+    <div class="usage"><span class="label">Then, inside your repo:</span><code>/buildnotes <b>[post | video | deck]</b> <i>what to write about</i></code></div>
   </div>
 
   <section id="example" aria-labelledby="ex-h">
@@ -284,7 +291,7 @@ section > * { min-width: 0; }
 
   <section id="makes" aria-labelledby="mk-h">
     <h2 id="mk-h">What it makes</h2>
-    <p class="sub">Ask in plain words, inside the repo. The first word can name the output.</p>
+    <p class="sub">Ask in plain words, inside the repo. The first word names the output; leave it out and you get the post.</p>
     <div class="outs">
   <div class="out">
     <div class="plate"><!-- iso post --></div>
@@ -320,7 +327,7 @@ section > * { min-width: 0; }
     <div class="plate"><!-- iso deck --></div>
     <h3>Deck</h3>
     <p>The video as slides you click through, and a PDF.</p>
-    <div class="cmd sm"><code data-copy>node scripts/deck.mjs motion.json --pdf</code><button class="copy" type="button">copy</button></div>
+    <div class="cmd sm"><code data-copy>/buildnotes deck slides on the new billing flow</code><button class="copy" type="button">copy</button></div>
   </div>
 </div>
   </section>
