@@ -117,3 +117,14 @@ test("a margin note mid-paragraph or mid-item is flagged; one at the end is not"
   assert.match(out, /margin note mid-paragraph \(before "More\."\)/);
   assert.equal((out.match(/mid-paragraph/g) ?? []).length, 2);
 });
+
+test("a deep dive past 3,000 words gets a soft warning", () => {
+  const dir = mkdtempSync(join(tmpdir(), "lint-len-"));
+  const post = (n) => `<article class="post"><section class="ch" id="c1"><h2>One</h2><p>${"The cache keeps each entry small. ".repeat(n / 6)}</p></section></article>`;
+  writeFileSync(join(dir, "long.html"), post(3120));
+  writeFileSync(join(dir, "fits.html"), post(2880));
+  const long = lint(join(dir, "long.html"), "--flavor", "deep", "--offline");
+  assert.match(long, /deep: usually under 3000/);
+  assert.match(long, /long for a deep dive/);
+  assert.doesNotMatch(lint(join(dir, "fits.html"), "--flavor", "deep", "--offline"), /long for a deep dive/);
+});

@@ -45,7 +45,9 @@ const MAX_SENT = argv.includes("--ste") ? 20 : 25;
 const PASSIVE = /\b(is|are|was|were|be|been|being|gets|got)\s+(\w+ly\s+)?(\w+ed|built|done|made|kept|held|sent|set|shown|seen|known|given|taken|written|found|left|run|read|told|put|cut|bound|chosen|drawn|met|paid|stored|thrown)\b/i;
 const plain = { sents: 0, words: 0, passive: 0, long: [] };
 const scan = [];
-const RANGE = { note: [0, 400], release: [0, 1200], build: [0, 2500], deep: [0, Infinity] }[flavor];
+const RANGE = { note: [0, 400], release: [0, 1200], build: [0, 2500], deep: [0, 3000] }[flavor];
+// The deep-dive limit is soft: past it the lint warns, and the author can let it stand.
+const SOFT = flavor === "deep";
 // Process-detail budget for the whole post's prose: refs = issue/PR/commit references,
 // talk = sentences about reviews, merges, PRs, commits and the tools that made them.
 const BUDGET = { note: { refs: 0, talk: 0, dates: 0 }, release: { refs: 0, talk: 1, dates: 1 }, build: { refs: 0, talk: 4, dates: 3 }, deep: { refs: 8, talk: 10, dates: 6 } }[flavor];
@@ -389,8 +391,9 @@ const imgs = (raw.replace(/<!--[\s\S]*?-->/g, "").match(/<img\b|<source\b[^>]*\b
 if (imgs) say(`Images: ${imgs}. The scan cannot see inside them; open each one and look for names, emails, tokens and internal URLs.`);
 
 const [lo, hi] = RANGE;
-say(`Total prose: ${total} words (${flavor}: ${hi === Infinity ? "no limit" : `up to ${hi}`}, no minimum). Captions, code, terminals, diagrams and end matter are not counted.`);
-if (total > hi * 1.15) say("! long for this flavor; cut beats, not sentences (there is no minimum)");
+say(`Total prose: ${total} words (${flavor}: ${SOFT ? `usually under ${hi}` : `up to ${hi}`}, no minimum). Captions, code, terminals, diagrams and end matter are not counted.`);
+if (SOFT && total > hi) say("! long for a deep dive; check that every chapter serves the headline, or split it into two posts (fine to keep if each one earns its place)");
+else if (!SOFT && total > hi * 1.15) say("! long for this flavor; cut beats, not sentences (there is no minimum)");
 
 console.log(out.join("\n"));
 process.exit(hard ? 1 : 0);

@@ -10,7 +10,7 @@ PRs and issues are a sliver of the story. They record what engineers needed to s
 
 Look beyond the record:
 - **The product as users meet it.** Its site, docs, README, pricing or plans page, and the live product (public pages only; never sign in).
-- **What came before.** The changelog, earlier posts and docs for this area. What did users already have, and what did they complain about?
+- **What came before.** The changelog, earlier posts and docs for this area. What did users already have, and what did they complain about? Read the release it shipped in too: a sibling feature is often the next step ("measure first, then turn on parallel rendering") and earns a line that tells the reader where this one fits.
 - **The category.** How do other tools handle the same job? A familiar pattern ("the way hosting platforms give every branch its own URL") makes a feature click. Only use comparisons you can check, and don't knock other products unless the author wants that.
 
 Then run the work through a few lenses. Write a line for each one that applies:

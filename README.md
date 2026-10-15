@@ -88,7 +88,7 @@ Three flavors. The skill picks one from the request and the size of the change, 
 | Answers | What's new, why it matters, how to use it | What we built, how it works, what shaped it | How it works inside, the trade-offs, the edge cases |
 | Visuals | Screenshots, before/after, one simple flow | Diagrams, motion, before/after | Diagrams, terminal runs, charts |
 | Code | A usage example at most | Only where the code is the idea | Where it helps |
-| Length | Up to 1,200 words | Up to 2,500 words | As long as it needs |
+| Length | Up to 1,200 words | Up to 2,500 words | Usually under 3,000 words |
 
 Word counts are ceilings, not targets. A small change gets a **note** of a paragraph or three. A typo fix or a dependency bump gets an honest "not worth a post", and if it is one piece of a bigger idea, the skill names that idea and asks whether to write about it instead.
 
