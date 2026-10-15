@@ -2,7 +2,7 @@
   "$schema": "https://unpkg.com/wrangler@4.151.0/config-schema.json",
   // The website: an assets-only Worker serving site/dist (built by site/build.mjs) at buildnotes.releases.sh.
   // There is no Worker script. releases.sh is a zone on the Build Internet account, so the custom domain
-  // creates its own DNS record and certificate. Deploy with `npm run deploy`; see docs/developing.md.
+  // creates its own DNS record and certificate. Workers Builds deploys it on pushes to main; see docs/developing.md.
   "name": "buildnotes-site",
   "account_id": "b082600d280d44fd5da3501bc1bffe2f",
   "compatibility_date": "2026-10-01",

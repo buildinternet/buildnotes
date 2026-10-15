@@ -37,7 +37,16 @@ npm run site:dev                     # build, then serve it as the Worker does a
 npm run deploy                       # build, then deploy (wrangler login, Build Internet account)
 ```
 
-Hosting: [`wrangler.jsonc`](../wrangler.jsonc) is an assets-only Cloudflare Worker (no script) that serves `site/dist` on the `buildnotes.releases.sh` custom domain. The `releases.sh` zone is on the same Cloudflare account, so the domain needs no DNS records by hand. `.html` URLs redirect to the extensionless path (`post.html` → `post`), and relative links still resolve. [`.github/workflows/site.yml`](../.github/workflows/site.yml) builds and deploys on pushes to `main` that touch what the page serves; it needs a `CLOUDFLARE_API_TOKEN` repo secret with Workers Scripts: Edit and Workers Routes: Edit on the account and the `releases.sh` zone.
+Hosting: [`wrangler.jsonc`](../wrangler.jsonc) is an assets-only Cloudflare Worker (no script) that serves `site/dist` on the `buildnotes.releases.sh` custom domain. The `releases.sh` zone is on the same Cloudflare account, so the domain needs no DNS records by hand. `.html` URLs redirect to the extensionless path (`post.html` → `post`), and relative links still resolve.
+
+Workers Builds deploys it on every push to `main`. The `buildnotes-site` Worker is connected to this repo in the Cloudflare dashboard (Workers & Pages → buildnotes-site → Settings → Build) with:
+
+- Build command: `node site/build.mjs --url https://buildnotes.releases.sh`
+- Deploy command: `npx wrangler deploy`
+- Root directory: `/`
+- Build variable `NODE_VERSION`: `22`
+- Builds for non-production branches: off (preview URLs are off in `wrangler.jsonc`)
+- Build watch paths: `site/*`, `examples/*`, `skills/buildnotes/assets/*`, `skills/buildnotes/scripts/viz*`, `.github/assets/*`, `wrangler.jsonc`
 
 `site/src/index.html` is the page. The build fills in its markers:
 
