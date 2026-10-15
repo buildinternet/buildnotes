@@ -26,14 +26,27 @@ To keep a public run as a committed example, check it, then copy its page, plan 
 
 ## Website
 
-`site/` builds the project's one-page website into `site/dist/` (git-ignored), a folder of static files any host can serve.
+`site/` builds the project's one-page website into `site/dist/` (git-ignored), a folder of static files any host can serve. It lives at [buildnotes.releases.sh](https://buildnotes.releases.sh).
 
 ```bash
 node site/build.mjs                  # or: npm run site
-node site/build.mjs --url https://example.com/buildnotes/   # once it has a home: canonical link, og:url, og:image there
+node site/build.mjs --url https://buildnotes.releases.sh   # canonical link, og:url, og:image there
 node site/card.mjs                   # re-render the link-preview image, site/assets/og.png (needs Chrome)
 open site/dist/index.html
+npm run site:dev                     # build, then serve it as the Worker does at http://localhost:8787
+npm run deploy                       # build, then deploy (wrangler login, Build Internet account)
 ```
+
+Hosting: [`wrangler.jsonc`](../wrangler.jsonc) is an assets-only Cloudflare Worker (no script) that serves `site/dist` on the `buildnotes.releases.sh` custom domain. The `releases.sh` zone is on the same Cloudflare account, so the domain needs no DNS records by hand. `.html` URLs redirect to the extensionless path (`post.html` → `post`), and relative links still resolve.
+
+Workers Builds deploys it on every push to `main`. The `buildnotes-site` Worker is connected to this repo in the Cloudflare dashboard (Workers & Pages → buildnotes-site → Settings → Build) with:
+
+- Build command: `node site/build.mjs --url https://buildnotes.releases.sh`
+- Deploy command: `npx wrangler deploy`
+- Root directory: `/`
+- Build variable `NODE_VERSION`: `22`
+- Builds for non-production branches: off (preview URLs are off in `wrangler.jsonc`)
+- Build watch paths: `site/*`, `examples/*`, `skills/buildnotes/assets/*`, `skills/buildnotes/scripts/viz*`, `.github/assets/*`, `wrangler.jsonc`
 
 `site/src/index.html` is the page. The build fills in its markers:
 
