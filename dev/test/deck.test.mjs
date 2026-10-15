@@ -17,12 +17,14 @@ const base = join(root, "examples/releases-weekly-digests");
 const example = JSON.parse(readFileSync(join(base, "motion.json"), "utf8"));
 const noChrome = !chromePath() && "no Chrome";
 
-// The weekly digests example has no clip, so its deck builds without ffmpeg.
+// The weekly digests example has no clip, so its deck builds without ffmpeg. Built once; tests only read it.
+let built;
 function deckPage() {
+  if (built) return built;
   const { cut, images } = checkDeck(example, base);
   const page = join(mkdtempSync(join(tmpdir(), "deck-")), "deck.html");
   writeFileSync(page, build(cut, images));
-  return { cut, page };
+  return (built = { cut, page });
 }
 
 test("a deck is the motion script with deck mode on, and without the reel's running-time warning", () => {
@@ -37,11 +39,14 @@ test("a deck is the motion script with deck mode on, and without the reel's runn
 
 test("the page sits next to the script and the PDF in export/, named after the story; --out and --name override", () => {
   const file = "/w/2026-10-14-my-story/motion.json", cut = { title: "Some title" };
-  assert.deepEqual(outputs(file, cut), { page: "/w/2026-10-14-my-story/deck.html", pdf: "/w/2026-10-14-my-story/export/my-story-deck.pdf" });
+  assert.deepEqual(outputs(file, cut), { page: "/w/2026-10-14-my-story/deck.html", pdf: "/w/2026-10-14-my-story/export/my-story-deck.pdf", wantPdf: false });
   assert.equal(outputs(file, cut, { name: "Other Name" }).pdf, "/w/2026-10-14-my-story/export/other-name-deck.pdf");
-  assert.deepEqual(outputs(file, cut, { out: "/x/slides.html" }), { page: "/x/slides.html", pdf: "/x/export/my-story-deck.pdf" });
-  assert.deepEqual(outputs(file, cut, { out: "/x/talk.pdf" }), { page: "/w/2026-10-14-my-story/deck.html", pdf: "/x/talk.pdf" });
+  assert.deepEqual(outputs(file, cut, { out: "/x/slides.html" }), { page: "/x/slides.html", pdf: "/x/export/my-story-deck.pdf", wantPdf: false });
+  assert.deepEqual(outputs(file, cut, { out: "/x/talk.pdf" }), { page: "/w/2026-10-14-my-story/deck.html", pdf: "/x/talk.pdf", wantPdf: true });
   assert.equal(outputs("/tmp/motion.json", cut).pdf, "/tmp/export/some-title-deck.pdf", "a generic dir falls back to the title");
+  const named = { ...cut, output: { name: "Q4 recap" } };
+  assert.equal(outputs(file, named).pdf, "/w/2026-10-14-my-story/export/q4-recap-deck.pdf", "the script's output.name");
+  assert.equal(outputs(file, named, { name: "flag" }).pdf, "/w/2026-10-14-my-story/export/flag-deck.pdf", "a flag beats it");
 });
 
 test("--check and --help follow motion.mjs; a broken script fails", () => {

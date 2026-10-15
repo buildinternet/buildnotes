@@ -61,6 +61,12 @@ When the feature makes something that moves (a video, an animation, a walkthroug
 
 `title` is required. `dek` sits under the title on the page, `product` in the top corner of every scene, and `post` (a confirmed public URL, optional) adds a "Read the full post" link. Text is plain; `*words*` are underlined for emphasis.
 
+`output` (optional) sets the exports' defaults once, so a rebuild needs no flags: `name` (the `<story>` part of every file name), `theme` (`light` or `dark`), `size` (the width in pixels) and `fps`. Set `name` when the author names the files, or when the work dir's name wouldn't tell a reader which story a file is from. A flag still wins.
+
+```json
+"output": { "name": "q4-walkthrough-recap", "theme": "dark", "size": 1280 }
+```
+
 Every scene takes `kind`, an optional `label` (top right, usually the chapter: `"02 · What counts as impact"`), and an optional `dur` in seconds. Leave `dur` out: `motion.mjs` sets each scene's length from its motion and from how long its words take to read (a line at about 3.5 words a second, the rest skimmed at about 5). Most scenes take kicker, headline and sub as below.
 
 | Kind | Fields |

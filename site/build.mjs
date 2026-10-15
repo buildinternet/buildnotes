@@ -65,9 +65,9 @@ const LOCAL = /\b(src|href|poster)="(?!https?:|data:|mailto:|#|\/)([^"]+)"/g;
 export const EXAMPLES = [
   { slug: "sunny-walkthrough-videos", name: "Walkthrough videos", product: "Sunny", about: "a furniture and space planner", cut: "52 seconds", deck: true, file: "post.html", style: "field notes", image: ".github/assets/walkthrough-keyed.webp",
     blurb: "One export turns a room, a floor or a project into a looping 1080p tour. The repo is private, so the post quotes no code and links nothing internal." },
-  { slug: "uploads-before-after", name: "Before and after, side by side", product: "uploads.sh", about: "screenshots for pull requests", cut: "47 seconds", file: "post.html", style: "Plain", image: ".github/assets/before-after-compare.webp",
+  { slug: "uploads-before-after", name: "Before and after, side by side", product: "uploads.sh", about: "screenshots for pull requests", cut: "47 seconds", deck: true, file: "post.html", style: "Plain", image: ".github/assets/before-after-compare.webp",
     blurb: "Tag two screenshots before and after, and the pull request comment shows them in one row. Its figures are the product in use, captured live." },
-  { slug: "releases-weekly-digests", name: "Weekly digests", product: "Release Notes Index", about: "release notes, indexed", cut: "one minute", file: "post-field-notes.html", style: "field notes", image: ".github/assets/digest-apart.webp",
+  { slug: "releases-weekly-digests", name: "Weekly digests", product: "Release Notes Index", about: "release notes, indexed", cut: "one minute", deck: true, file: "post-field-notes.html", style: "field notes", image: ".github/assets/digest-apart.webp",
     blurb: "A card at the top of the digest, a replay of the week, and one email a week per reader. Its first figure is the shipped card, measured, drawn at an angle and taken apart." },
 ];
 const REPO = "https://github.com/buildinternet/buildnotes";
@@ -343,8 +343,6 @@ export function build({ out = join(here, "dist"), url } = {}) {
     mkdirSync(dirname(join(out, to)), { recursive: true });
     const post = to.match(POST);
     if (post) writeFileSync(join(out, to), wrapPost(post[1], readFileSync(from, "utf8"), url));
-    // A deck, like a post, is written for a viewer that wraps it; a doctype keeps it out of quirks mode.
-    else if (to.endsWith("/deck.html")) writeFileSync(join(out, to), `<!doctype html>\n<meta name="viewport" content="width=device-width, initial-scale=1">\n${readFileSync(from, "utf8")}`);
     else copyFileSync(from, join(out, to));
   }
   writeFileSync(join(out, "examples/index.html"), examples);

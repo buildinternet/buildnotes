@@ -6,6 +6,7 @@ It is the Plain style, and its figures come from the product in use rather than 
 
 - `post.html`: the finished page, self-contained (images embedded). Open it in a browser.
 - `motion.json`, `motion.html` and `motion.mp4`: the motion cut, seven scenes in 47 seconds. Its fifth scene plays a recording of the live file page with the divider sweeping across a pair (`viz/img/compare-sweep.mp4`). `motion.mp4` is the export at 1280×720.
+- `deck.html` and `deck.pdf`: the same seven scenes as slides you click through, and the PDF with each slide at rest. `node scripts/deck.mjs examples/uploads-before-after/motion.json --out examples/uploads-before-after/deck.pdf` rebuilds both.
 - `assets/`: the two live captures (a pull request comment with a pair, and Compare on that pair's file page).
 - `viz/`: the specs behind the two strips (the file page's first version against how it ships, and the screenshot names before and after the overwrite fix), the images they use, and the Compare recording.
 - `plan.md`: the story plan: angles, brief, beats, cuts and the status check against `main`.

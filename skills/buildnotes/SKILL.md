@@ -180,7 +180,7 @@ node <skill-dir>/scripts/motion.mjs <work-dir>/motion.json --mp4 --poster   # â†
 
 Play it once and scrub to the end of each scene before handing it over. Publish `motion.html` as its own private Artifact and give the author the MP4. `--gif --scene <n> --size 720` exports one scene as a short clip, for a README or a thread. Scene kinds, the script format and what the checks catch: [motion.md](references/motion.md).
 
-Exports are named after the story: `<story>` is the work dir's name without its date, so files dragged out of `export/` still say where they came from. `--name <slug>` sets it.
+Exports are named after the story: `<story>` is the work dir's name without its date, so files dragged out of `export/` still say where they came from. When the author names the files, or the work dir's name wouldn't tell a reader which story a file is from, set `"output": { "name": "â€¦" }` in `motion.json` (it also takes `theme`, `size` and `fps`) or pass `--name <slug>` to `export.mjs`, `motion.mjs` and `deck.mjs`; `--out` sets one file's whole path.
 
 ### 10. Deck (optional)
 

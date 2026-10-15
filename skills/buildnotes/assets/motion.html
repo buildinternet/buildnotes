@@ -1,5 +1,7 @@
+<!doctype html>
 <meta charset="utf-8">
 <title>Motion Cut</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <!--
   Motion cut template: a build story as a short reel that plays itself.
   Don't edit this copy by hand. Write <work-dir>/motion.json (references/motion.md) and run
@@ -602,9 +604,10 @@ em { font-style: normal; background: linear-gradient(var(--mark), var(--mark)) 0
   const sceneAt = (T) => { const i = starts.findIndex((s, j) => T >= s && T < s + scenes[j].d.dur); return i < 0 ? scenes.length - 1 : i; };
   const fmt = (x) => `${Math.floor(x / 60)}:${String(Math.floor(x % 60)).padStart(2, "0")}`;
 
+  const fsEl = () => document.fullscreenElement || document.webkitFullscreenElement;
   const resize = () => {
     // Full screen letterboxes the 16:9 stage in whatever shape the display is; otherwise it fills the screen's width.
-    const full = (document.fullscreenElement || document.webkitFullscreenElement) === screen;
+    const full = fsEl() === screen;
     const s = full ? Math.min(screen.clientWidth / W, screen.clientHeight / H) : screen.clientWidth / W;
     stage.style.transform = full ? `translate(${(screen.clientWidth - W * s) / 2}px, ${(screen.clientHeight - H * s) / 2}px) scale(${s})` : `scale(${s})`;
   };
@@ -626,23 +629,28 @@ em { font-style: normal; background: linear-gradient(var(--mark), var(--mark)) 0
     const prev = document.getElementById("prev"), next = document.getElementById("next");
     const rest = (k) => scenes[k].d.dur;
     let i = 0, t = 0, playing = false, last = 0;
-    function draw() {
-      show(i, t);
+    const NEXT = new Set(["ArrowRight", "ArrowDown", "PageDown"]), PREV = new Set(["ArrowLeft", "ArrowUp", "PageUp"]);
+    const draw = () => show(i, t);
+    // The chrome only changes with the slide, so it's written on a slide change rather than every frame.
+    function updateChrome() {
       count.textContent = `${i + 1} / ${n}`;
       chap.textContent = scenes[i].d.label || "";
       prev.disabled = i === 0; next.disabled = i === n - 1;
       screen.setAttribute("aria-label", `${CUT.title}: slide ${i + 1} of ${n}${scenes[i].d.label ? `, ${scenes[i].d.label}` : ""}`);
     }
+    // The loop is armed only while something moves: a slide playing, or the scenes needing a redraw after fit().
+    let armed = false;
+    const schedule = () => { if (!armed) { armed = true; requestAnimationFrame(loop); } };
     function go(k, play = k > i) {
       k = clamp(k, 0, n - 1);
       i = k; t = play && !reduce ? 0 : rest(k); playing = t < rest(k); last = 0;
       if (location.hash !== `#${k + 1}`) history.replaceState(null, "", `#${k + 1}`);
-      draw();
+      updateChrome(); draw(); schedule();
     }
     const step = (dk) => { if (i + dk >= 0 && i + dk < n) go(i + dk); };
     const fromHash = () => { const k = parseInt(location.hash.slice(1), 10); return k >= 1 && k <= n ? k - 1 : null; };
     const toggleFull = () => {
-      if (document.fullscreenElement || document.webkitFullscreenElement) (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+      if (fsEl()) (document.exitFullscreen || document.webkitExitFullscreen).call(document);
       else (screen.requestFullscreen || screen.webkitRequestFullscreen)?.call(screen);
     };
     prev.onclick = () => step(-1);
@@ -653,8 +661,8 @@ em { font-style: normal; background: linear-gradient(var(--mark), var(--mark)) 0
     addEventListener("keydown", (e) => {
       if (quiet(e)) return;
       const k = e.key;
-      if (k === "ArrowRight" || k === "ArrowDown" || k === "PageDown" || (k === " " && !e.shiftKey)) step(1);
-      else if (k === "ArrowLeft" || k === "ArrowUp" || k === "PageUp" || (k === " " && e.shiftKey)) step(-1);
+      if (NEXT.has(k) || (k === " " && !e.shiftKey)) step(1);
+      else if (PREV.has(k) || (k === " " && e.shiftKey)) step(-1);
       else if (k === "Home") go(0, false);
       else if (k === "End") go(n - 1, false);
       else if (k === "f" || k === "F") toggleFull();
@@ -663,30 +671,36 @@ em { font-style: normal; background: linear-gradient(var(--mark), var(--mark)) 0
     });
     addEventListener("hashchange", () => { const k = fromHash(); if (k != null && k !== i) go(k); });
     function loop(now) {
+      armed = false;
       // Draw while a slide plays, and once after fit() (which hides every scene) runs again on font load.
-      if (playing || shown < 0) {
-        const dt = playing && last ? Math.min(0.1, (now - last) / 1000) : 0;
-        if (playing) last = now;
-        t += dt;
-        if (t >= rest(i)) { t = rest(i); playing = false; }
-        draw();
-      }
-      requestAnimationFrame(loop);
+      if (!playing && shown >= 0) return;
+      const dt = playing && last ? Math.min(0.1, (now - last) / 1000) : 0;
+      if (playing) last = now;
+      t += dt;
+      if (t >= rest(i)) { t = rest(i); playing = false; }
+      draw();
+      if (playing) schedule();
     }
+    document.fonts?.ready.then(schedule);
     // Print, and deck.mjs's PDF: every slide at rest, one to a page (the print rules are in the stylesheet).
     const page = document.head.appendChild(h("style", "", "@page { size: 1920px 1080px; margin: 0; }"));
     page.media = "print";
-    const sheets = () => scenes.forEach((s) => { s.el.hidden = false; s.render(s.d.dur); s.el.style.opacity = 1; s.el.style.transform = ""; });
+    // Run once per print (the exporter calls it, then beforeprint fires again); afterprint clears the flag.
+    let sheeted = false;
+    const sheets = () => {
+      if (sheeted) return;
+      sheeted = true;
+      scenes.forEach((s) => { s.el.hidden = false; s.render(s.d.dur); s.el.style.opacity = 1; s.el.style.transform = ""; });
+    };
     addEventListener("beforeprint", sheets);
-    addEventListener("afterprint", () => { shown = -1; draw(); });
+    addEventListener("afterprint", () => { sheeted = false; shown = -1; updateChrome(); draw(); schedule(); });
     go(fromHash() ?? 0, true);
     // For checks and the PDF: which slide is showing, a slide at rest, a scene frozen at a moment, all slides for print.
     window.__cut = { total, problems, slides: n, deck: true,
       get state() { return { slide: i + 1, t, playing }; },
       go: (k, play) => go(k - 1, play),
-      freeze(k, tt) { i = k; t = tt; playing = false; draw(); },
+      freeze(k, tt) { i = k; t = tt; playing = false; updateChrome(); draw(); },
       sheets };
-    requestAnimationFrame(loop);
     return;
   }
 
@@ -711,7 +725,7 @@ em { font-style: normal; background: linear-gradient(var(--mark), var(--mark)) 0
   screen.onclick = () => play.click();
   scrub.oninput = () => { T = +scrub.value; playing = false; };
   addEventListener("keydown", (e) => {
-    if (e.target.closest("input:not([type=range]), textarea")) return;
+    if (quiet(e)) return;
     if (e.key === " ") { e.preventDefault(); play.click(); }
     if (e.key === "ArrowRight" || e.key === "ArrowLeft") { e.preventDefault(); T = starts[clamp(sceneAt(T) + (e.key === "ArrowRight" ? 1 : -1), 0, scenes.length - 1)]; }
   });

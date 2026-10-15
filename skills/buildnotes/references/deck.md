@@ -23,7 +23,7 @@ node <skill-dir>/scripts/deck.mjs <work-dir>/motion.json --pdf --theme dark
 
 On the page, → or Space or a click on the right of the slide goes on. ← or a click on the left goes back. Home and End jump to the first and last slide. F toggles full screen. Going back shows a slide already at rest. The address ends in the slide number (`deck.html#3`), so a link can open on any slide. With reduced motion set, every slide shows at rest.
 
-`--pdf` prints each slide at rest to a 16:9 page (1920×1080, 20 × 11.25 in), with vector text. `<story>` is named as for the motion cut's exports, and `--name <slug>` sets it. `--theme dark` prints the dark theme. `--out <file>` sets the page (`.html`) or the PDF (`.pdf`). The PDF needs Chrome.
+`--pdf` prints each slide at rest to a 16:9 page (1920×1080, 20 × 11.25 in), with vector text. `<story>` is named as for the motion cut's exports: the script's `output.name` or `--name <slug>` sets it, and `output.theme` sets the theme. `--theme dark` prints the dark theme. `--out <file>` sets the page (`.html`) or the PDF (`.pdf`). The PDF needs Chrome.
 
 Look at the result before handing it over: click through every slide forward and back, then open the PDF and check each page.
 

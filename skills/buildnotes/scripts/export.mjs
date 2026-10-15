@@ -42,9 +42,8 @@ import { copyFileSync, mkdirSync, writeFileSync, mkdtempSync, rmSync, existsSync
 import { tmpdir } from "node:os";
 import { basename, dirname, join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
-import { readFileSync } from "node:fs";
 import { openPage } from "./chrome.mjs";
-import { exportName, slugify, storySlug } from "./names.mjs";
+import { exportName, exportStem } from "./names.mjs";
 
 const argv = process.argv.slice(2);
 const has = (k) => argv.includes(`--${k}`);
@@ -95,8 +94,9 @@ try {
   if (!found) await done(1, select ? `nothing matches ${select}` : `there is no figure ${figure}; run with --list`);
 
   const postDir = dirname(resolve(file));
-  const slug = opt("name") ? slugify(opt("name"), 8) : storySlug(postDir, postTitle(resolve(file)));
-  const out = resolve(opt("out") ?? join(postDir, "export", exportName(slug, select ? "selection" : `fig-${figure}`, format)));
+  // The title names the story when the folder doesn't (a temp dir, "out").
+  const title = await page.evaluate(`document.title || document.querySelector("h1")?.textContent || ""`);
+  const out = resolve(opt("out") ?? join(postDir, "export", exportName(exportStem({ name: opt("name"), dir: postDir, title }), select ? "selection" : `fig-${figure}`, format)));
   mkdirSync(dirname(out), { recursive: true });
 
   if (format === "svg") {
@@ -195,15 +195,6 @@ try {
   await done(0, `wrote ${out} (${count} frames, ${seconds} s at ${fps} fps, ${Math.round(clip.width * scale)}×${Math.round(clip.height * scale)})`);
 } catch (err) {
   await done(1, `export.mjs: ${err.message}`);
-}
-
-// The post's <title>, else its first <h1>, as plain text; "" when the file has neither.
-function postTitle(path) {
-  try {
-    const html = readFileSync(path, "utf8");
-    const m = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i) ?? html.match(/<h1[^>]*>([\s\S]*?)<\/h1>/i);
-    return m ? m[1].replace(/<[^>]+>/g, "").replace(/&amp;/g, "&") : "";
-  } catch { return ""; }
 }
 
 // Runs in the page before its own scripts: time stands still until the exporter moves it.

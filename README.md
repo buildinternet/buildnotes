@@ -100,7 +100,7 @@ Every visual is drawn by [`viz.mjs`](skills/buildnotes/scripts/viz.mjs) from a s
 
 Some people won't read a 1,500-word post but will watch a minute of video. The motion cut is the post as a reel of five to nine scenes that plays itself: the title, the problem, one scene for each idea, and how to try it. The agent writes a short scene script (`motion.json`) from the finished post, so every word, number and screenshot comes from the post. [`motion.mjs`](skills/buildnotes/scripts/motion.mjs) checks the script, times each scene by how long its words take to read, builds one self-contained page, and exports a 1920×1080 MP4, a GIF, a still, or one scene as a short clip. Ask for one with `/buildnotes video …`, or after a post.
 
-The same script also builds a **deck**: [`deck.mjs`](skills/buildnotes/scripts/deck.mjs) shows one scene per slide, each playing once and then holding, and `--pdf` writes a 16:9 PDF with one page per slide. Ask with `/buildnotes deck …`. The Sunny example has [one](examples/sunny-walkthrough-videos/deck.pdf).
+The same script also builds a **deck**: [`deck.mjs`](skills/buildnotes/scripts/deck.mjs) shows one scene per slide, each playing once and then holding, and `--pdf` writes a 16:9 PDF with one page per slide. Ask with `/buildnotes deck …`. Each example has one, for instance [the Sunny deck](examples/sunny-walkthrough-videos/deck.pdf).
 
 https://github.com/user-attachments/assets/71d8e409-987b-4ecc-bd23-531934297078
 

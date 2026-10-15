@@ -115,7 +115,7 @@ test("a clip is one scene: it starts where the scene starts and stops before its
 test("the page embeds the images, carries the script safely and drops the authoring notes", () => {
   const { cut, images } = check({ ...example, title: "Ends </script> here & now" }, base);
   const html = build(cut, images);
-  assert.ok(html.startsWith("<meta charset=\"utf-8\">\n<title>Ends &lt;/script&gt; here &amp; now</title>"), "the title is escaped");
+  assert.ok(html.startsWith("<!doctype html>\n<meta charset=\"utf-8\">\n<title>Ends &lt;/script&gt; here &amp; now</title>"), "the title is escaped");
   assert.equal(html.match(/<\/script>/g).length, 3, "the title's </script> doesn't close a block");
   assert.ok(html.includes(`"viz/img/digest-card.webp":"data:image/webp;base64,`), "the images are embedded");
   assert.ok(!html.includes("<!--"), "the authoring notes are dropped");
@@ -169,4 +169,15 @@ test("exports are named after the story: <work dir>-motion.<ext>, and --name ove
   assert.equal(go("--scene", "2").status, 0);
   assert.equal(go("--name", "Custom Stem").status, 0);
   for (const f of ["my-story-motion.png", "my-story-motion-scene-2.png", "custom-stem-motion.png"]) assert.ok(existsSync(join(dir, "export", f)), f);
+  // The script's own "output" settings name the files with no flag; a flag still wins.
+  writeFileSync(script, JSON.stringify({ title: "Some other title", output: { name: "Q4 recap" }, scenes: [{ kind: "title", headline: "A headline" }, { kind: "statement", lines: ["One line"] }] }));
+  assert.equal(go().status, 0);
+  assert.ok(existsSync(join(dir, "export", "q4-recap-motion.png")));
+});
+
+test("output settings are checked: known keys, a theme, a width, a frame rate", () => {
+  const base = { title: "T", scenes: [{ kind: "title", headline: "A headline" }] };
+  assert.deepEqual(check({ ...base, output: { name: "q4", theme: "dark", size: 1280, fps: 24 } }, root).errors, []);
+  const { errors } = check({ ...base, output: { name: "✨", theme: "sepia", size: 99999, fps: 0, bitrate: 5 } }, root);
+  for (const k of ["bitrate", "name", "theme", "size", "fps"]) assert.ok(errors.some((e) => e.startsWith(`"output.${k}"`)), `${k}: ${errors.join("; ")}`);
 });

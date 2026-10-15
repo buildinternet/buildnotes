@@ -14,81 +14,46 @@
 //   --name <slug>       the <story> part of the PDF's name; default: the work dir's name without its date, else the title
 //   --no-render         skip the headless pass that checks every slide's text fits the frame
 //
+// The script's "output" settings (references/motion.md) apply here too: "name" and "theme" set the PDF's
+// defaults. A flag still wins.
+//
 // The script is the motion cut's (references/motion.md), checked by motion.mjs, and the page is the same
 // template (assets/motion.html) in deck mode: each scene plays its motion once when you reach it and holds
 // its last frame. references/deck.md has the rest. The PDF is printed by headless Chrome, so its text is
 // vector; images stay as they are embedded. Warnings go to stderr.
 
-import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { dirname, extname, join, resolve } from "node:path";
-import { fileURLToPath, pathToFileURL } from "node:url";
-import { build, check, clipSprite } from "./motion.mjs";
-import { exportName, slugify, storySlug } from "./names.mjs";
+import { fileURLToPath } from "node:url";
+import { addClips, build, check, openCut, problems } from "./motion.mjs";
+import { exportName, exportStem } from "./names.mjs";
 
-// The page is laid out at the width motion.mjs checks at, so a slide that fits the reel fits the deck.
-const VIEW = { width: 1280, height: 900 };
-
-// The script checked as a deck: the motion cut's checks, less the ones about the reel's running time.
-export function checkDeck(input, base) {
-  const r = check(input, base);
-  r.warnings = r.warnings.filter((w) => !/ s in all; aim for under a minute/.test(w));
-  if (r.cut.scenes) r.cut.deck = true;
-  return r;
-}
-
-// Each clip scene's footage becomes one sprite sheet, as in motion.mjs. Changes cut and images in place.
-export function addClips(cut, images) {
-  for (const d of cut.scenes.filter((x) => x.kind === "clip")) {
-    const sp = clipSprite(d);
-    const key = `${d.src}#${d.from ?? 0}-${d.to}`;
-    images[key] = sp.sheet;
-    Object.assign(d, { sprite: key, frames: sp.frames, fps: sp.fps, cols: sp.cols, rows: sp.rows, size: sp.size });
-    delete d.file;
-  }
-}
+// The script checked as a deck: the motion cut's checks, less the reel's running time.
+export const checkDeck = (input, base) => check(input, base, { deck: true });
 
 // Where the files go: the page next to the script, the PDF in export/ beside the page, named after the story.
+// An --out ending in .pdf sets the PDF and asks for it.
 export function outputs(file, cut, { out, name } = {}) {
   const base = dirname(resolve(file));
-  const pdfOut = out && extname(out).toLowerCase() === ".pdf" ? resolve(out) : null;
-  const page = resolve(out && !pdfOut ? out : join(base, "deck.html"));
-  const stem = name ? slugify(name, 8) : storySlug(base, cut.title);
-  return { page, pdf: pdfOut ?? join(dirname(page), "export", exportName(stem, "deck", "pdf")) };
+  const isPdf = !!out && extname(out).toLowerCase() === ".pdf";
+  const page = resolve(out && !isPdf ? out : join(base, "deck.html"));
+  const stem = exportStem({ name: name ?? cut.output?.name, dir: base, title: cut.title });
+  return { page, pdf: isPdf ? resolve(out) : join(dirname(page), "export", exportName(stem, "deck", "pdf")), wantPdf: isPdf };
 }
 
-async function open(page, opts = {}) {
-  const { openPage } = await import("./chrome.mjs");
-  const tab = await openPage(pathToFileURL(page).href, { ...VIEW, scale: 1, ...opts });
-  await tab.evaluate(`document.fonts.ready.then(() => new Promise((r) => setTimeout(r, 300)))`);
-  return tab;
-}
-
-// Open the page headless and ask it which slides' text didn't fit, and which images didn't load.
-async function renderCheck(page) {
-  const { chromePath } = await import("./chrome.mjs");
-  if (!chromePath()) return ["no Chrome found, so nothing checked that the text fits (set CHROME_PATH)"];
-  const tab = await open(page, { reduced: true });
-  try {
-    return await tab.evaluate(`[...window.__cut.problems.map((p) => p.replace(/^scene/, "slide")), ...[...document.images].filter((i) => !i.naturalWidth).map((i) => "an image didn't load: " + i.src.slice(0, 60))]`);
-  } finally { await tab.close(); }
-}
-
-// Print every slide at rest, one to a 1920×1080 page (20 × 11.25 in), with its backgrounds. Returns the PDF.
-export async function printDeck(page, { theme = "light" } = {}) {
-  const tab = await open(page, { reduced: true, theme });
-  try {
-    await tab.evaluate(`(async () => {
-      document.documentElement.dataset.theme = ${JSON.stringify(theme)};
-      window.__cut.sheets();
-      await Promise.all([...document.images].map((i) => i.decode().catch(() => {})));
-      await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
-    })()`);
-    const { data } = await tab.send("Page.printToPDF", {
-      printBackground: true, preferCSSPageSize: true, paperWidth: 20, paperHeight: 11.25,
-      marginTop: 0, marginBottom: 0, marginLeft: 0, marginRight: 0,
-    });
-    return Buffer.from(data, "base64");
-  } finally { await tab.close(); }
+// Print every slide at rest, one to a 1920×1080 page (20 × 11.25 in), with its backgrounds, from an open tab.
+export async function printDeck(tab, { theme = "light" } = {}) {
+  await tab.evaluate(`(async () => {
+    document.documentElement.dataset.theme = ${JSON.stringify(theme)};
+    window.__cut.sheets();
+    await Promise.all([...document.images].map((i) => i.decode().catch(() => {})));
+    await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+  })()`);
+  const { data } = await tab.send("Page.printToPDF", {
+    printBackground: true, preferCSSPageSize: true, paperWidth: 20, paperHeight: 11.25,
+    marginTop: 0, marginBottom: 0, marginLeft: 0, marginRight: 0,
+  });
+  return Buffer.from(data, "base64");
 }
 
 async function main(argv) {
@@ -99,8 +64,6 @@ async function main(argv) {
     console.error("usage: deck.mjs <motion.json> [--check] [--pdf] [--out page.html | deck.pdf] [--theme light|dark] [--name slug] [--no-render]");
     return has("help") ? 0 : 2;
   }
-  const theme = opt("theme") ?? "light";
-  if (!["light", "dark"].includes(theme)) { console.error(`error: --theme ${theme}: light or dark`); return 2; }
   const base = dirname(resolve(file));
   let input;
   try { input = JSON.parse(readFileSync(file, "utf8")); } catch (e) { console.error(`can't read ${file}: ${e.message}`); return 1; }
@@ -109,22 +72,33 @@ async function main(argv) {
   for (const e of errors) console.error(`error: ${e}`);
   if (errors.length) return 1;
   if (has("check")) { console.log(`ok: ${cut.scenes.length} slides (${cut.scenes.map((d) => d.kind).join(", ")})`); return 0; }
+  const theme = opt("theme") ?? cut.output?.theme ?? "light";
+  if (!["light", "dark"].includes(theme)) { console.error(`error: --theme ${theme}: light or dark`); return 2; }
 
-  const { page, pdf } = outputs(file, cut, { out: opt("out"), name: opt("name") });
+  const { page, pdf, wantPdf } = outputs(file, cut, { out: opt("out"), name: opt("name") });
   try { addClips(cut, images); } catch (e) { console.error(`error: ${e.message}`); return 1; }
   const html = build(cut, images);
   writeFileSync(page, html);
   console.log(`wrote ${page} (${cut.scenes.length} slides, ${Math.round(html.length / 1024)} KB)`);
-  if (!has("no-render")) for (const p of await renderCheck(page)) console.error(`warning: ${p}`);
+  const printing = wantPdf || has("pdf");
+  if (!printing && has("no-render")) return 0;
 
-  if (has("pdf") || extname(opt("out") ?? "").toLowerCase() === ".pdf") {
-    const { chromePath } = await import("./chrome.mjs");
-    if (!chromePath()) { console.error("error: the PDF needs Chrome; set CHROME_PATH"); return 1; }
-    const buf = await printDeck(page, { theme });
-    if (!existsSync(dirname(pdf))) mkdirSync(dirname(pdf), { recursive: true });
-    writeFileSync(pdf, buf);
-    console.log(`wrote ${pdf} (${cut.scenes.length} pages, ${theme}, ${Math.round(statSync(pdf).size / 1024)} KB)`);
+  // One headless tab does both: the fit check, then the print.
+  const tab = await openCut(page, { reduced: true, theme });
+  if (!tab) {
+    if (printing) { console.error("error: the PDF needs Chrome; set CHROME_PATH"); return 1; }
+    console.error("warning: no Chrome found, so nothing checked that the text fits (set CHROME_PATH)");
+    return 0;
   }
+  try {
+    if (!has("no-render")) for (const p of await problems(tab, "slide")) console.error(`warning: ${p}`);
+    if (printing) {
+      const buf = await printDeck(tab, { theme });
+      mkdirSync(dirname(pdf), { recursive: true });
+      writeFileSync(pdf, buf);
+      console.log(`wrote ${pdf} (${cut.scenes.length} pages, ${theme}, ${Math.round(statSync(pdf).size / 1024)} KB)`);
+    }
+  } finally { await tab.close(); }
   return 0;
 }
 
