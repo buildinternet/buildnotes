@@ -142,7 +142,12 @@ test("iso drawings: every name draws; only the pipeline is announced", () => {
 });
 
 test("the video Worker answers Range requests: 206 with Content-Range, 416 when unsatisfiable, 200 without", async () => {
-  const { ranged } = await import("../../site/worker.mjs");
+  const { ranged, head } = await import("../../site/worker.mjs");
+  // a HEAD keeps the asset's Content-Length and gains Accept-Ranges; it is never sliced
+  const h = head(new Response(null, { status: 200, headers: { "Content-Type": "video/mp4", "Content-Length": "754706" } }));
+  assert.equal(h.status, 200);
+  assert.equal(h.headers.get("Content-Length"), "754706");
+  assert.equal(h.headers.get("Accept-Ranges"), "bytes");
   const buf = new Uint8Array(100).map((_, i) => i).buffer;
   const base = new Headers({ "Content-Type": "video/mp4", "Content-Length": "100", ETag: '"x"' });
   const full = ranged(null, buf, base);

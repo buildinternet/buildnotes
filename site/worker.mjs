@@ -8,10 +8,18 @@ export default {
   async fetch(request, env) {
     const asset = await env.ASSETS.fetch(request);
     if (!asset.ok || !/\.mp4$/.test(new URL(request.url).pathname)) return asset;
+    if (request.method === "HEAD") return head(asset);
     const buf = await asset.arrayBuffer();
     return ranged(request.headers.get("Range"), buf, asset.headers);
   },
 };
+
+// A HEAD has no body to slice: the asset's own headers (Content-Length included) with Accept-Ranges added.
+export function head(asset) {
+  const h = new Headers(asset.headers);
+  h.set("Accept-Ranges", "bytes");
+  return new Response(null, { status: asset.status, headers: h });
+}
 
 // A full or partial response for `buf` per a Range header value (null for none). Only one range is
 // honoured; a malformed or unsatisfiable one gets 416 with the size, as RFC 9110 asks.
