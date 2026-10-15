@@ -2,7 +2,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { execFileSync, spawnSync } from "node:child_process";
-import { mkdtempSync, readFileSync, statSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, copyFileSync, mkdtempSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, dirname, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -37,6 +37,18 @@ test("--svg is standalone, with styles inlined and the motion kept", { skip: noC
   assert.match(svg, /<rect[^>]*class="box hot"[^>]*style="fill:rgb\(/);
   assert.match(svg, /<animateMotion/);
   assert.doesNotMatch(svg, /var\(--/);
+});
+
+test("the default name says which story: <work dir>-fig-<n>, and --name overrides it", { skip: noChrome }, () => {
+  const dir = join(mkdtempSync(join(tmpdir(), "export-")), "2026-10-14-my-story");
+  mkdirSync(dir);
+  const post = join(dir, "post.html");
+  copyFileSync(join(skill, "assets/template.html"), post);
+  const go = (...a) => execFileSync("node", [join(skill, "scripts/export.mjs"), post, "--png", "--scale", "1", ...a], { stdio: "ignore" });
+  go("--figure", "3");
+  go("--select", "figure");
+  go("--figure", "3", "--name", "Other Name!");
+  for (const f of ["my-story-fig-3.png", "my-story-selection.png", "other-name-fig-3.png"]) assert.ok(existsSync(join(dir, "export", f)), f);
 });
 
 test("--gif loops the figure's own animation", { skip: noChrome || (spawnSync("ffmpeg", ["-version"]).status !== 0 && "no ffmpeg") }, () => {

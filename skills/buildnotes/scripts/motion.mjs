@@ -4,7 +4,7 @@
 //
 // Usage:
 //   node motion.mjs <motion.json>                      check the script, write motion.html next to it
-//   node motion.mjs <motion.json> --mp4 | --webm | --gif   and export the reel to <dir>/export/motion.<ext>
+//   node motion.mjs <motion.json> --mp4 | --webm | --gif   and export the reel to <dir>/export/<story>-motion.<ext>
 //   node motion.mjs <motion.json> --poster [--at <s>]  and one still frame as PNG (default: the end of the first scene)
 //   node motion.mjs <motion.json> --gif --scene 5 --size 720   one scene as a short clip, for a README or a reply
 //   node motion.mjs <motion.json> --check              check the script only; exit 1 on an error
@@ -13,8 +13,9 @@
 //   --out <page.html>   default: motion.html next to the script
 //   --theme light|dark  for the export; default light
 //   --fps <n>           for the export; default 30 (15 for a GIF)
-//   --scene <n>         export scene n alone (from 1), to <dir>/export/motion-scene-<n>.<ext>; with --poster, its last frame
+//   --scene <n>         export scene n alone (from 1), to <dir>/export/<story>-motion-scene-<n>.<ext>; with --poster, its last frame
 //   --size <px>         width of the export; default 1920 (960 for a GIF). Height follows at 16:9
+//   --name <slug>       the <story> part of export names; default: the work dir's name without its date, else the title
 //   --no-render         skip the headless pass that checks every scene's text fits the frame
 //
 // The script format and the scene kinds are in references/motion.md. Each scene's length comes from its
@@ -28,6 +29,7 @@ import { tmpdir } from "node:os";
 import { spawnSync } from "node:child_process";
 import { basename, dirname, extname, join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { exportName, slugify, storySlug } from "./names.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const TEMPLATE = join(here, "../assets/motion.html");
@@ -279,9 +281,9 @@ async function renderCheck(page) {
 async function main(argv) {
   const has = (k) => argv.includes(`--${k}`);
   const opt = (k) => { const i = argv.indexOf(`--${k}`); return i >= 0 ? argv[i + 1] : undefined; };
-  const file = argv.find((a, i) => !a.startsWith("--") && !["--out", "--theme", "--fps", "--at", "--scene", "--size"].includes(argv[i - 1]));
+  const file = argv.find((a, i) => !a.startsWith("--") && !["--out", "--theme", "--fps", "--at", "--scene", "--size", "--name"].includes(argv[i - 1]));
   if (!file || has("help")) {
-    console.error("usage: motion.mjs <motion.json> [--check] [--mp4 | --webm | --gif] [--poster [--at s]] [--scene n] [--size px] [--out page.html] [--theme light|dark] [--fps n] [--no-render]");
+    console.error("usage: motion.mjs <motion.json> [--check] [--mp4 | --webm | --gif] [--poster [--at s]] [--scene n] [--size px] [--out page.html] [--theme light|dark] [--fps n] [--name slug] [--no-render]");
     return has("help") ? 0 : 2;
   }
   const base = dirname(resolve(file));
@@ -316,8 +318,10 @@ async function main(argv) {
   const video = ["mp4", "webm", "gif"].find(has);
   let plan;
   try { plan = exportPlan(cut, { scene: opt("scene"), size: opt("size"), gif: video === "gif" }); } catch (e) { console.error(`error: ${e.message}`); return 2; }
+  // Exports are named after the story: <story>-motion.mp4. A custom page (--out other.html) keeps its own name as the stem.
+  const stem = opt("name") ? slugify(opt("name"), 8) : basename(page, ".html") === "motion" ? storySlug(base, cut.title) : basename(page, ".html");
   const exportOne = (fmt, extra) => {
-    const out = join(dirname(page), "export", `${basename(page, ".html")}${plan.suffix}.${fmt}`);
+    const out = join(dirname(page), "export", exportName(stem, `motion${plan.suffix}`, fmt));
     const args = [join(here, "export.mjs"), page, "--select", "#stage", `--${fmt}`, "--width", String(EXPORT.width), "--pad", "0", "--theme", theme, "--out", out, ...extra];
     const r = spawnSync(process.execPath, args, { stdio: ["ignore", "inherit", "inherit"] });
     return r.status ?? 1;
