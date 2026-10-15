@@ -18,6 +18,8 @@ Lay out candidate beats from the dossier, then keep the ones that pass all three
 2. **There's evidence.** A doc, a thread, a commit, a run. Not just your inference.
 3. **The reader would notice.** Ask what a reader would see differently if this part had gone the other way. A release or build story keeps a beat only when the answer is something users see or do (a page, a link, a limit, a step they skip). A beat whose difference shows only in the service's logs, costs or dashboards goes to the cuts, or to a deep dive, where mechanisms are the subject. One sentence of it can stay inside a reader-facing chapter when it explains what users see ("a link never shows where a file is stored").
 
+**Show how to read it.** When the feature's output is something the reader reads (a report, a dashboard, a diff view), one beat walks it from the top down to a cause, even in a deep dive about how its numbers are made. Knowing how a number is computed doesn't tell a reader what to do with it. *(Fault: a deep dive that explained how a timings report counts overlapping work, and never showed how to read the report to find a slow page.)*
+
 Order them so each chapter answers the question the last one raised. Put the most interesting idea no later than the third chapter.
 
 A chapter's shape: the situation in a sentence or two → the idea or decision (and the alternative, briefly) → the evidence (a visual, code, a number) → what it means for the reader or what it leaves open.
@@ -68,7 +70,7 @@ Don't open with the history of the codebase, a definition, a date, or a question
 
 ## The ending
 
-End on what readers can do now (one way to try it, and the docs for the rest) or on what's next. A command they'll paste goes in a command line (`<div class="cmd">`), which has a copy button ([visuals.md](visuals.md#components)). A post is a starting point: don't tour every way to set the feature up unless the author asks for a guide. No summary of what they just read, and no sign-off ("stay tuned", "more to come", "we can't wait"). A colophon line about how the post was made is optional; use one if the author wants it.
+End on what readers can do now (one way to try it, and the docs for the rest) or on what's next. A command they'll paste goes in a command line (`<div class="cmd">`), which has a copy button ([visuals.md](visuals.md#components)). A post is a starting point: don't tour every way to set the feature up unless the author asks for a guide. Where it fits, the way to try it proves the feature's promise, not just its setup: the smallest sequence that shows the thing working ("send two prompts; the second reuses the tab the first opened"). *(Fault: a post about a browser that persists between turns, whose try-it was a setup snippet with no second turn.)* No summary of what they just read, and no sign-off ("stay tuned", "more to come", "we can't wait"). A colophon line about how the post was made is optional; use one if the author wants it.
 
 ## Voice
 

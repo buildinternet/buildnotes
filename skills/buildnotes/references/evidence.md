@@ -64,11 +64,15 @@ Every terminal block is a command you ran for this post, pasted verbatim. Keep e
 
 A runner's own summary (`12 pass · 0 fail`, `audit passed`) is often the whole block. Replace real ids, hostnames and tokens with obvious stand-ins (`proj_example`, `example.com`) and run the command against those where you can, so the output is still real. A dry-run mode or a throwaway fixture repo is usually the safest way to show a write path.
 
+**Stage a cause a reader would hit.** When a run needs something to find (a slow build, a failing check, a missing page), plant the mistake a real user makes, not a synthetic one, then fix it and run again. The before and after numbers are the payoff; a delta or bars component carries them ([visuals.md](visuals.md#components)). *(Fault: a post about a build-timings report whose only run used a plugin slowed with a busy-wait. The project's own post planted a fetch waterfall in a component, read the report down to it, and showed page generation fall by about half once the fetches ran together.)*
+
 ## When sources disagree
 
 Issues stay open after the work ships; docs lag the code; a PR body states the plan, not what merged. For any claim about status (shipped, released, live, default-on), check the code on the default branch, the release or tag, and the public docs. Trust them in that order for what exists, and the docs for what users are told.
 
 **Writing ahead of launch is fine.** Posts are often drafted while the work is still landing, and they can describe the product as it will be when the post goes out. Know where the gaps are (merged but not deployed, still in review, planned) and list them under **Notes for the author** in `plan.md`, with which source is stale. Don't block on them, and don't fill the post with hedges. Only an outright contradiction is worth raising before the draft: the post would promise something the code doesn't do, and no work is under way.
+
+**Read the claim in its context before calling it wrong.** A changelog line is often written about one setup: its example, one adapter, one plan. Check what the sentence is describing, then read the current docs page, before a note says a source overstates the feature. If the docs already spell out the difference, there is nothing to flag; the post can still state it plainly. *(Fault: a note saying a changelog overstated how screenshots reach the model, when the changelog was describing the one adapter that sends images, and the docs already listed how the others differ.)*
 
 ## How far to check
 
