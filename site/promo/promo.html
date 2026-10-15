@@ -263,7 +263,8 @@ function renderOpen(t) {
   const wipe = eio(seg(t, 4.6, 5.1));
   show($("#slateA"), t < 5.2 ? 1 : 0, { clipPath: `inset(0 0 ${wipe * 100}% 0)` });
   show($("#hA1"), 1 - seg(t, 2.1, 2.35));
-  rise(hA1, t, 0.25);
+  // the first line is set from frame one, so the first frame works as a thumbnail
+  rise(hA1, 1, 0);
   show($("#hA2"), seg(t, 2.35, 2.4));
   rise(hA2, t, 2.4);
   $("#hA2 em").style.setProperty("--u", `${eio(seg(t, 3.2, 3.7)) * 100}%`);
