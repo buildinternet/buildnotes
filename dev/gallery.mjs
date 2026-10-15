@@ -10,17 +10,18 @@ import { readFileSync, readdirSync, writeFileSync, mkdirSync } from "node:fs";
 import { execFileSync } from "node:child_process";
 import { dirname, join, resolve, relative } from "node:path";
 import { fileURLToPath } from "node:url";
-import { renderKind } from "../scripts/viz.mjs";
-import { takeWarnings, esc } from "../scripts/viz/util.mjs";
+import { renderKind } from "../skills/buildnotes/scripts/viz.mjs";
+import { takeWarnings, esc } from "../skills/buildnotes/scripts/viz/util.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+const skill = join(root, "skills/buildnotes");
 const argv = process.argv.slice(2);
 const opt = (k) => { const i = argv.indexOf(`--${k}`); return i >= 0 ? argv[i + 1] : undefined; };
 const only = opt("only");
 const style = opt("style") ?? "plain";
 const publish = argv.includes("--publish");
-const out = resolve(publish ? join(root, "assets/components.html") : opt("out") ?? join(root, "runs/components/gallery.html"));
-const specDir = join(root, "assets/specs");
+const out = resolve(publish ? join(skill, "assets/components.html") : opt("out") ?? join(root, "runs/components/gallery.html"));
+const specDir = join(skill, "assets/specs");
 const num = (i) => String(i + 1).padStart(2, "0");
 
 // What each kind is for, in the order a writer would reach for them.
@@ -67,7 +68,7 @@ const EXAMPLES = {
   "shader-banding.json": "When the pixels are the subject: a rendering fix, shown on the reader's own screen. A still shader, with the level count as an extra uniform.",
 };
 
-const template = readFileSync(join(root, "assets/template.html"), "utf8");
+const template = readFileSync(join(skill, "assets/template.html"), "utf8");
 const head = template.slice(template.indexOf("<link rel=\"preconnect\""), template.indexOf("</style>") + "</style>".length);
 const script = template.slice(template.lastIndexOf("<script>"));
 
@@ -145,7 +146,7 @@ ${script.replace("</script>", `  // Theme switch for the preview: auto → light
 `);
 if (publish) {
   // One self-contained file: embed the images.
-  const inlined = execFileSync("node", [join(root, "scripts/inline-assets.mjs"), out, "--keep-comments"], { encoding: "utf8", stdio: ["ignore", "pipe", "inherit"] });
+  const inlined = execFileSync("node", [join(skill, "scripts/inline-assets.mjs"), out, "--keep-comments"], { encoding: "utf8", stdio: ["ignore", "pipe", "inherit"] });
   writeFileSync(out, inlined);
 }
 console.error(`wrote ${out} (${specs.length} specs${warned ? `, ${warned} warnings` : ""})`);

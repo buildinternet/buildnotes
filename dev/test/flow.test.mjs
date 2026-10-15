@@ -5,13 +5,14 @@ import { readFileSync, readdirSync, mkdtempSync, writeFileSync, mkdirSync } from
 import { tmpdir } from "node:os";
 import { join, dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { render, graph } from "../../scripts/viz/flow.mjs";
-import { build, styleOf } from "../../scripts/viz.mjs";
-import { takeWarnings } from "../../scripts/viz/util.mjs";
+import { render, graph } from "../../skills/buildnotes/scripts/viz/flow.mjs";
+import { build, styleOf } from "../../skills/buildnotes/scripts/viz.mjs";
+import { takeWarnings } from "../../skills/buildnotes/scripts/viz/util.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
-const specs = readdirSync(join(root, "assets/specs")).filter((f) => f.startsWith("flow-"))
-  .map((f) => [f, JSON.parse(readFileSync(join(root, "assets/specs", f), "utf8"))]);
+const skill = join(root, "skills/buildnotes");
+const specs = readdirSync(join(skill, "assets/specs")).filter((f) => f.startsWith("flow-"))
+  .map((f) => [f, JSON.parse(readFileSync(join(skill, "assets/specs", f), "utf8"))]);
 
 const svgs = (html) => html.match(/<svg\b[\s\S]*?<\/svg>/g);
 const pts = (d) => (d.match(/-?\d+(?:\.\d+)?,-?\d+(?:\.\d+)?/g) ?? []);

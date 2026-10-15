@@ -4,11 +4,12 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { join, dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { render } from "../../scripts/viz/anatomy.mjs";
-import { takeWarnings } from "../../scripts/viz/util.mjs";
+import { render } from "../../skills/buildnotes/scripts/viz/anatomy.mjs";
+import { takeWarnings } from "../../skills/buildnotes/scripts/viz/util.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
-const base = join(root, "assets/specs");
+const skill = join(root, "skills/buildnotes");
+const base = join(skill, "assets/specs");
 const spec = (f) => JSON.parse(readFileSync(join(base, f), "utf8"));
 const card = spec("anatomy-card.json");
 const hotspots = (html) => [...html.matchAll(/<button type="button" class="hs" data-k="(\d+)" style="--x:([\d.-]+)%;--y:([\d.-]+)%/g)].map((m) => [m[1], Number(m[2]), Number(m[3])]);

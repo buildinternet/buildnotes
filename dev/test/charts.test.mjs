@@ -1,10 +1,10 @@
 // Checks for the chart renderers (bars, delta, line). Run: node --test dev/test/*.test.mjs
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { render as bars } from "../../scripts/viz/bars.mjs";
-import { render as delta } from "../../scripts/viz/delta.mjs";
-import { render as line } from "../../scripts/viz/line.mjs";
-import { fmt, niceTicks, numberIn, takeWarnings } from "../../scripts/viz/util.mjs";
+import { render as bars } from "../../skills/buildnotes/scripts/viz/bars.mjs";
+import { render as delta } from "../../skills/buildnotes/scripts/viz/delta.mjs";
+import { render as line } from "../../skills/buildnotes/scripts/viz/line.mjs";
+import { fmt, niceTicks, numberIn, takeWarnings } from "../../skills/buildnotes/scripts/viz/util.mjs";
 
 test("fmt: separators, decimals and units", () => {
   assert.equal(fmt(1240, { unit: "ms" }), "1,240 ms");

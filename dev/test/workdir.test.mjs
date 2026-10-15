@@ -7,7 +7,7 @@ import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-const script = resolve(dirname(fileURLToPath(import.meta.url)), "../../scripts/workdir.mjs");
+const script = resolve(dirname(fileURLToPath(import.meta.url)), "../../skills/buildnotes/scripts/workdir.mjs");
 const exec = (env, ...args) => {
   const base = { ...process.env };
   delete base.BUILDNOTES_DIR;

@@ -129,7 +129,7 @@ https://github.com/user-attachments/assets/5c541151-33c4-4d45-88db-3cd2f7172e4b
   </tr>
 </table>
 
-The images on this page were made with the skill's own [`scripts/export.mjs`](scripts/export.mjs), which exports any figure as a PNG, GIF, video or standalone SVG.
+The images on this page were made with the skill's own [`scripts/export.mjs`](skills/buildnotes/scripts/export.mjs), which exports any figure as a PNG, GIF, video or standalone SVG.
 
 ## Flavors
 
@@ -188,11 +188,11 @@ Word counts are ceilings, not targets. A small change gets a **note** of a parag
   </tr>
 </table>
 
-Also: **steps** (a numbered pipeline with a moving highlight) and **bars** (a bar chart with one row marked). Open [`assets/components.html`](assets/components.html) in a browser to see every component next to its spec. The example specs are in [`assets/specs/`](assets/specs).
+Also: **steps** (a numbered pipeline with a moving highlight) and **bars** (a bar chart with one row marked). Open [`assets/components.html`](skills/buildnotes/assets/components.html) in a browser to see every component next to its spec. The example specs are in [`assets/specs/`](skills/buildnotes/assets/specs).
 
 ## Motion cut
 
-Some people won't read a 1,500-word post but will watch a minute of video. The motion cut is the post as a reel of five to nine scenes that plays itself: the title, the problem, one scene for each idea, and how to try it. The agent writes a short scene script (`motion.json`) from the finished post, so every word, number and screenshot comes from the post. [`motion.mjs`](scripts/motion.mjs) checks the script, times each scene by how long its words take to read, builds one self-contained page, and exports a 1920×1080 MP4, a GIF, a still, or one scene as a short clip. Ask for one with `/buildnotes video …`, or after a post.
+Some people won't read a 1,500-word post but will watch a minute of video. The motion cut is the post as a reel of five to nine scenes that plays itself: the title, the problem, one scene for each idea, and how to try it. The agent writes a short scene script (`motion.json`) from the finished post, so every word, number and screenshot comes from the post. [`motion.mjs`](skills/buildnotes/scripts/motion.mjs) checks the script, times each scene by how long its words take to read, builds one self-contained page, and exports a 1920×1080 MP4, a GIF, a still, or one scene as a short clip. Ask for one with `/buildnotes video …`, or after a post.
 
 https://github.com/user-attachments/assets/263542d1-f540-487b-9e6e-287414ff8ba6
 
@@ -225,7 +225,7 @@ https://github.com/user-attachments/assets/263542d1-f540-487b-9e6e-287414ff8ba6
 
 Also: **title**, **statement** (the problem, line by line), **list**, **bars** and **end** (where to go and what to press). Each clip above is one scene of an example's cut, exported with `motion.mjs --scene` ([commands](docs/scripts.md)).
 
-The script format, the scene kinds and when to make a cut are in [`references/motion.md`](references/motion.md).
+The script format, the scene kinds and when to make a cut are in [`references/motion.md`](skills/buildnotes/references/motion.md).
 
 ## How it works
 
@@ -233,19 +233,19 @@ The script format, the scene kinds and when to make a cut are in [`references/mo
   <img src=".github/assets/steps.gif" width="720" alt="Four steps with a moving highlight: Issues and PRs (git and gh), Dossier (gather.mjs), Story plan (plan.md), Page (post.html).">
 </p>
 
-[`SKILL.md`](SKILL.md) holds the workflow and the rules. In short:
+[`SKILL.md`](skills/buildnotes/SKILL.md) holds the workflow and the rules. In short:
 
 1. **Scope.** Settle the subject, flavor, repo visibility, house style and any opt-in modules. What you point at is a breadcrumb, not a boundary: related work landing around the same time often belongs to the same idea.
-2. **Gather.** [`gather.mjs`](scripts/gather.mjs) pulls issues, PRs, commits, review threads, linked issues, nearby work and prior work into `dossier.md` and `dossier.json`, in a work dir outside the repo.
+2. **Gather.** [`gather.mjs`](skills/buildnotes/scripts/gather.mjs) pulls issues, PRs, commits, review threads, linked issues, nearby work and prior work into `dossier.md` and `dossier.json`, in a work dir outside the repo.
 3. **Frame.** Zoom out to the product as users meet it, draft two or three angles, recommend one, and write a brief. Ask the author as little as possible: usually nothing, at most two questions.
 4. **Plan.** A thesis, one beat per chapter (each with a decision, the alternative and a takeaway), cuts, and at most three open questions.
 5. **Visuals.** For each beat, decide whether a visual earns its place, then write its spec and render it.
-6. **Write.** Fill in [`assets/template.html`](assets/template.html). Most posts use four or five of its components and delete the rest. The page comes in two styles: Plain, the default and the one to rebrand, and field notes, a serif page with figures on a dot grid and flows drawn by hand ([styles](references/visuals.md#styles)).
-7. **Check.** [`lint.mjs`](scripts/lint.mjs) does the mechanical half; then detail, craft, fact, safety and render passes.
-8. **Publish.** [`inline-assets.mjs`](scripts/inline-assets.mjs) embeds the images, and the page goes up as a private Artifact with the open questions alongside.
-9. **Motion cut (optional).** For people who would rather watch than read, [`motion.mjs`](scripts/motion.mjs) turns a short scene script into a reel of the post that plays itself in under a minute, and exports it as an MP4.
+6. **Write.** Fill in [`assets/template.html`](skills/buildnotes/assets/template.html). Most posts use four or five of its components and delete the rest. The page comes in two styles: Plain, the default and the one to rebrand, and field notes, a serif page with figures on a dot grid and flows drawn by hand ([styles](skills/buildnotes/references/visuals.md#styles)).
+7. **Check.** [`lint.mjs`](skills/buildnotes/scripts/lint.mjs) does the mechanical half; then detail, craft, fact, safety and render passes.
+8. **Publish.** [`inline-assets.mjs`](skills/buildnotes/scripts/inline-assets.mjs) embeds the images, and the page goes up as a private Artifact with the open questions alongside.
+9. **Motion cut (optional).** For people who would rather watch than read, [`motion.mjs`](skills/buildnotes/scripts/motion.mjs) turns a short scene script into a reel of the post that plays itself in under a minute, and exports it as an MP4.
 
-Every rule in `SKILL.md` names the fault that taught it, for example a tidy code snippet that matched nothing in the repo, or a link built by guessing a slug. The detail lives in [`references/`](references), listed in [Scripts and references](docs/scripts.md#where-the-rules-live).
+Every rule in `SKILL.md` names the fault that taught it, for example a tidy code snippet that matched nothing in the repo, or a link built by guessing a slug. The detail lives in [`references/`](skills/buildnotes/references), listed in [Scripts and references](docs/scripts.md#where-the-rules-live).
 
 ## Limits
 
@@ -260,7 +260,7 @@ Every rule in `SKILL.md` names the fault that taught it, for example a tidy code
 - [Install](docs/install.md): every install path, requirements, working without `gh`, Codex sandbox settings, configuration.
 - [Scripts and references](docs/scripts.md): what each script does, and where the rules live.
 - [Developing](docs/developing.md): tests, the component gallery, run history.
-- [`SKILL.md`](SKILL.md): the workflow and rules the agent follows.
+- [`SKILL.md`](skills/buildnotes/SKILL.md): the workflow and rules the agent follows.
 - [Changelog](CHANGELOG.md)
 
 ## License

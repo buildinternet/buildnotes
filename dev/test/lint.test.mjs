@@ -8,14 +8,15 @@ import { join, dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
+const skill = join(root, "skills/buildnotes");
 const lint = (file, ...args) => {
-  try { return execFileSync("node", [join(root, "scripts/lint.mjs"), file, ...args], { encoding: "utf8" }); } catch (err) { return err.stdout; }
+  try { return execFileSync("node", [join(skill, "scripts/lint.mjs"), file, ...args], { encoding: "utf8" }); } catch (err) { return err.stdout; }
 };
 
 test("component checks fire on planted faults, and only then", () => {
   const dir = mkdtempSync(join(tmpdir(), "lint-"));
-  cpSync(join(root, "assets/specs"), join(dir, "specs"), { recursive: true });
-  const clean = readFileSync(join(root, "assets/template.html"), "utf8");
+  cpSync(join(skill, "assets/specs"), join(dir, "specs"), { recursive: true });
+  const clean = readFileSync(join(skill, "assets/template.html"), "utf8");
   writeFileSync(join(dir, "clean.html"), clean);
   const ok = lint(join(dir, "clean.html"), "--offline");
   assert.doesNotMatch(ok, /needs both drawings|aren't to scale|without data-label|names a commit or PR|changed since|keyed "|findings;|margin note of|one-line command/);
@@ -46,7 +47,7 @@ test("a link that doesn't open is a hard failure", async () => {
   const page = (href) => `<article class="post"><section class="ch" id="c1"><h2>One</h2><p>Read <a href="${base}${href}">this</a>.</p></section></article>`;
   writeFileSync(join(dir, "ok.html"), page("/ok"));
   writeFileSync(join(dir, "bad.html"), page("/collections/guessed"));
-  const run = (f) => new Promise((done) => execFile("node", [join(root, "scripts/lint.mjs"), join(dir, f)], { encoding: "utf8" }, (err, stdout) => done({ code: err?.code ?? 0, out: stdout })));
+  const run = (f) => new Promise((done) => execFile("node", [join(skill, "scripts/lint.mjs"), join(dir, f)], { encoding: "utf8" }, (err, stdout) => done({ code: err?.code ?? 0, out: stdout })));
   const [ok, bad] = await Promise.all([run("ok.html"), run("bad.html")]);
   server.close();
   assert.match(ok.out, /Links: all 1 open/);

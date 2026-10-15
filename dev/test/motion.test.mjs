@@ -6,9 +6,9 @@ import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, dirname, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { check, build, clipSprite, exportPlan, imageSize, readingTime } from "../../scripts/motion.mjs";
+import { check, build, clipSprite, exportPlan, imageSize, readingTime } from "../../skills/buildnotes/scripts/motion.mjs";
 import { spawnSync } from "node:child_process";
-import { chromePath, openPage } from "../../scripts/chrome.mjs";
+import { chromePath, openPage } from "../../skills/buildnotes/scripts/chrome.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const base = join(root, "examples/weekly-digests");
