@@ -38,7 +38,10 @@ import { spawnSync } from "node:child_process";
 import { basename, dirname, extname, join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { exportName, exportStem, slugify } from "./names.mjs";
-import { applyBrand, loadBrand } from "./brand.mjs";
+import { applyBrand, brandFlag, brandNote, loadBrand } from "./brand.mjs";
+import { dataUri, imageSize } from "./image.mjs";
+
+export { imageSize };
 
 const here = dirname(fileURLToPath(import.meta.url));
 const TEMPLATE = join(here, "../assets/motion.html");
@@ -85,27 +88,6 @@ export const KINDS = Object.keys(BASE);
 // after the text has had a second to arrive. Kickers, bar labels and tile names are scanned, not read.
 export const readingTime = (d) => { const t = textOf(d); return 1 + words(t.lines) / 3.5 + words(t.rest) / 5; };
 
-// Width and height of a PNG, JPEG, GIF or WebP, from its header.
-export function imageSize(buf) {
-  if (buf.readUInt32BE(0) === 0x89504e47) return [buf.readUInt32BE(16), buf.readUInt32BE(20)];
-  if (buf.toString("ascii", 0, 3) === "GIF") return [buf.readUInt16LE(6), buf.readUInt16LE(8)];
-  if (buf.toString("ascii", 0, 4) === "RIFF" && buf.toString("ascii", 8, 12) === "WEBP") {
-    const chunk = buf.toString("ascii", 12, 16);
-    if (chunk === "VP8X") return [1 + buf.readUIntLE(24, 3), 1 + buf.readUIntLE(27, 3)];
-    if (chunk === "VP8L") { const b = buf.readUInt32LE(21); return [(b & 0x3fff) + 1, ((b >> 14) & 0x3fff) + 1]; }
-    if (chunk === "VP8 ") return [buf.readUInt16LE(26) & 0x3fff, buf.readUInt16LE(28) & 0x3fff];
-  }
-  if (buf[0] === 0xff && buf[1] === 0xd8) {
-    for (let i = 2; i < buf.length - 9;) {
-      if (buf[i] !== 0xff) { i++; continue; }
-      const m = buf[i + 1];
-      if (m >= 0xc0 && m <= 0xcf && ![0xc4, 0xc8, 0xcc].includes(m)) return [buf.readUInt16BE(i + 7), buf.readUInt16BE(i + 5)];
-      i += 2 + buf.readUInt16BE(i + 2);
-    }
-  }
-  return null;
-}
-
 // Check a script and resolve it: each scene gets its length, each image its size.
 // Returns { cut, errors, warnings, images } where images maps each path in the script to its file.
 // With { deck: true } the script is checked as slides: no running-time warning, and cut.deck is set.
@@ -118,7 +100,7 @@ export function check(input, base, { deck = false, brand: brandFile } = {}) {
   const warn = (i, m) => warnings.push(i == null ? m : `scene ${i + 1}: ${m}`);
   if (!cut.title) err(null, `the script needs a "title" (the post's title)`);
   if (deck) cut.deck = true;
-  const b = loadBrand({ dir: base, base, file: brandFile || undefined, spec: brandFile === false ? false : cut.brand });
+  const b = loadBrand({ dir: base, file: brandFile, spec: cut.brand });
   errors.push(...b.errors); warnings.push(...b.warnings);
   const brand = b.brand;
   delete cut.brand;
@@ -264,15 +246,15 @@ const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").
 
 // The page: the template with the script and its images filled in, and the authoring notes dropped.
 // A brand (from check) is written in after the template's styles; without one the template is as it was.
-export function build(cut, images, template = readFileSync(TEMPLATE, "utf8"), brand = null) {
+export function build(cut, images, { brand = null, template = readFileSync(TEMPLATE, "utf8") } = {}) {
   const assets = {};
-  for (const [path, file] of Object.entries(images)) assets[path] = `data:${TYPES[extname(file).toLowerCase()]};base64,${readFileSync(file).toString("base64")}`;
+  for (const [path, file] of Object.entries(images)) assets[path] = dataUri(readFileSync(file), TYPES[extname(file).toLowerCase()]);
   const page = template
     .replace(/<title>[^<]*<\/title>/, `<title>${esc(cut.title)}</title>`)
     .replace(/<!--[\s\S]*?-->\n?/g, "")
     .replace(/(<script type="application\/json" id="assets">)[\s\S]*?(<\/script>)/, (_, a, b) => a + json(assets) + b)
     .replace(/(<script type="application\/json" id="cut">)[\s\S]*?(<\/script>)/, (_, a, b) => a + json(cut) + b);
-  return brand ? applyBrand(page, brand, "motion") : page;
+  return applyBrand(page, brand, "motion");
 }
 
 // What to export: the whole reel, or one scene as a clip; the clip's place on the timeline, and the scale
@@ -344,7 +326,7 @@ async function main(argv) {
   const base = dirname(resolve(file));
   let input;
   try { input = JSON.parse(readFileSync(file, "utf8")); } catch (e) { console.error(`can't read ${file}: ${e.message}`); return 1; }
-  const { cut, errors, warnings, images, brand } = check(input, base, { brand: has("no-brand") ? false : opt("brand") && resolve(opt("brand")) });
+  const { cut, errors, warnings, images, brand } = check(input, base, { brand: brandFlag(argv) });
   for (const w of warnings) console.error(`warning: ${w}`);
   for (const e of errors) console.error(`error: ${e}`);
   if (errors.length) return 1;
@@ -353,9 +335,9 @@ async function main(argv) {
 
   const page = resolve(opt("out") ?? join(base, "motion.html"));
   try { addClips(cut, images); } catch (e) { console.error(`error: ${e.message}`); return 1; }
-  const html = build(cut, images, undefined, brand);
+  const html = build(cut, images, { brand });
   writeFileSync(page, html);
-  console.log(`wrote ${page} (${cut.scenes.length} scenes, ${cut.total} s, ${Math.round(html.length / 1024)} KB${brand ? `, ${brand.name || "the"} brand` : ""})`);
+  console.log(`wrote ${page} (${cut.scenes.length} scenes, ${cut.total} s, ${Math.round(html.length / 1024)} KB${brandNote(brand)})`);
   if (!has("no-render")) {
     const problems = await renderCheck(page);
     for (const p of problems) console.error(`warning: ${p}`);

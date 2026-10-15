@@ -7,7 +7,8 @@ import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { applyBrand, brandPost, checkBrand, contrast, loadBrand, resolveColors, svgSize } from "../../skills/buildnotes/scripts/brand.mjs";
+import { applyBrand, brandPost, checkBrand, contrast, loadBrand, resolveColors } from "../../skills/buildnotes/scripts/brand.mjs";
+import { svgSize } from "../../skills/buildnotes/scripts/image.mjs";
 import { build, check } from "../../skills/buildnotes/scripts/motion.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
@@ -128,18 +129,19 @@ test("the motion cut and deck: a brand is written into the page; without one the
   const plain = check(script, example);
   assert.equal(plain.brand, null);
   const page = build(plain.cut, plain.images);
-  assert.equal(build(plain.cut, plain.images, undefined, plain.brand), page);
+  assert.equal(build(plain.cut, plain.images, { brand: plain.brand }), page);
   assert.doesNotMatch(page, /id="brand"/);
 
   const { work } = repo();
   const branded = check({ ...script, brand: { colors: { light: { hero: "#14532d" } } } }, example, { brand: join(dirname(work), "brand.json") });
   assert.deepEqual(branded.errors, []);
   assert.equal(branded.cut.brand, undefined, "the brand isn't carried in the page's script");
-  const html = build(branded.cut, branded.images, undefined, branded.brand);
+  const html = build(branded.cut, branded.images, { brand: branded.brand });
   assert.match(html, /--hero: #14532d;/);
   assert.match(html, /--accent: #15803d;/);
   assert.match(html, /\.meta > span:first-child::before/);
-  assert.match(html, /--brand-logo-hero: url\("data:image\/svg\+xml/);
+  assert.match(html, /\.hero \.meta > span:first-child::before \{ background-image: var\(--brand-logo-light\); \}/, "no dark or hero logo: the hero shows the light one");
+  assert.equal((html.match(/data:image\/svg\+xml/g) || []).length, 1, "each logo is embedded once");
   assert.equal(check(script, example, { deck: true, brand: false }).brand, null);
   const bad = check({ ...script, brand: { colors: { light: { accent: "teal" } } } }, example);
   assert.ok(bad.errors.some((e) => /brand: colors\.light\.accent: "teal" isn't a hex/.test(e)));

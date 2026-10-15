@@ -28,6 +28,7 @@ import { dirname, extname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { addClips, build, check, openCut, problems } from "./motion.mjs";
 import { exportName, exportStem } from "./names.mjs";
+import { brandFlag, brandNote } from "./brand.mjs";
 
 // The script checked as a deck: the motion cut's checks, less the reel's running time.
 export const checkDeck = (input, base, opts = {}) => check(input, base, { ...opts, deck: true });
@@ -68,7 +69,7 @@ async function main(argv) {
   const base = dirname(resolve(file));
   let input;
   try { input = JSON.parse(readFileSync(file, "utf8")); } catch (e) { console.error(`can't read ${file}: ${e.message}`); return 1; }
-  const { cut, errors, warnings, images, brand } = checkDeck(input, base, { brand: has("no-brand") ? false : opt("brand") && resolve(opt("brand")) });
+  const { cut, errors, warnings, images, brand } = checkDeck(input, base, { brand: brandFlag(argv) });
   for (const w of warnings) console.error(`warning: ${w}`);
   for (const e of errors) console.error(`error: ${e}`);
   if (errors.length) return 1;
@@ -78,9 +79,9 @@ async function main(argv) {
 
   const { page, pdf, wantPdf } = outputs(file, cut, { out: opt("out"), name: opt("name") });
   try { addClips(cut, images); } catch (e) { console.error(`error: ${e.message}`); return 1; }
-  const html = build(cut, images, undefined, brand);
+  const html = build(cut, images, { brand });
   writeFileSync(page, html);
-  console.log(`wrote ${page} (${cut.scenes.length} slides, ${Math.round(html.length / 1024)} KB${brand ? `, ${brand.name || "the"} brand` : ""})`);
+  console.log(`wrote ${page} (${cut.scenes.length} slides, ${Math.round(html.length / 1024)} KB${brandNote(brand)})`);
   const printing = wantPdf || has("pdf");
   if (!printing && has("no-render")) return 0;
 
