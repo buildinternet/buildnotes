@@ -9,10 +9,8 @@
   <a href="#visual-components">Visual components</a> ·
   <a href="#motion-cut">Motion cut</a> ·
   <a href="#how-it-works">How it works</a> ·
-  <a href="#install">Install</a> ·
-  <a href="#scripts">Scripts</a> ·
-  <a href="#developing">Developing</a> ·
-  <a href="#limits">Limits</a>
+  <a href="#limits">Limits</a> ·
+  <a href="#docs">Docs</a>
 </p>
 
 <p align="center">
@@ -42,15 +40,22 @@ The cure is the same for all three: find the few ideas and decisions that made t
 npx skills add buildinternet/buildnotes -g -a claude-code
 ```
 
-For OpenCode or Codex, swap the agent: `-a opencode` or `-a codex`. OpenCode takes the same `/build-story` command; in Codex, type `$build-story`.
+For OpenCode or Codex, swap the agent: `-a opencode` or `-a codex`. Cloning with git works too; see [Install](docs/install.md).
 
-Then, in Claude Code, inside the repo the feature lives in:
+Then, inside the repo the feature lives in, ask in plain words. The skill triggers on any request to write up how a feature was built, even one that never says "blog":
 
 ```text
 /build-story write up how we built the weekly digests (#412)
+/build-story how we built preview links, from PRs 120, 131 and 140
+/build-story a release story for the rate-limit work (search "rate limit", the CLI half is in acme/cli)
+/build-story a technical deep dive on the sync engine since v1.2.0, with the build log module
 ```
 
-You need `git`, an authenticated `gh`, Node 22 or later, and Chrome for the render pass and figure export. The scripts use only Node's built-in modules: there is nothing to `npm install`.
+OpenCode takes the same `/build-story` command; in Codex, type `$build-story`.
+
+You get back a link to a private Artifact page, plus at most three open questions and two notes, one line each. The plan, notes, dossier and `post.html` stay in the work dir. Ask for `--standalone` HTML for your own site, or for the chapters as Markdown or MDX.
+
+You need Node 22 or later, `git`, and Chrome for the render pass and figure export. The scripts use only Node's built-in modules, so there is nothing to `npm install`. An authenticated [`gh`](https://cli.github.com) gives the fullest record of issues, PRs and reviews; without it, the skill reads them through a GitHub MCP server, or from public GitHub pages for a public repo ([details](docs/install.md#without-the-github-cli)).
 
 ## Examples
 
@@ -96,7 +101,7 @@ https://github.com/user-attachments/assets/5c541151-33c4-4d45-88db-3cd2f7172e4b
 
 ### Weekly digests
 
-[`examples/weekly-digests/`](examples/weekly-digests) is a build story about the weekly collection digests on Release Notes Index, from the public `buildinternet/releases` repo. Open [`post.html`](examples/weekly-digests/post.html) for the post in the Plain style, or [`post-field-notes.html`](examples/weekly-digests/post-field-notes.html) for the same post in field notes. Its one-minute cut is [`motion.html`](examples/weekly-digests/motion.html), built from [`motion.json`](examples/weekly-digests/motion.json) and exported as [`motion.mp4`](examples/weekly-digests/motion.mp4); it plays in the [Motion cut](#motion-cut) section below. 
+[`examples/weekly-digests/`](examples/weekly-digests) is a build story about the weekly collection digests on Release Notes Index, from the public `buildinternet/releases` repo. Open [`post.html`](examples/weekly-digests/post.html) for the post in the Plain style, or [`post-field-notes.html`](examples/weekly-digests/post-field-notes.html) for the same post in field notes. Its one-minute cut is [`motion.html`](examples/weekly-digests/motion.html), built from [`motion.json`](examples/weekly-digests/motion.json) and exported as [`motion.mp4`](examples/weekly-digests/motion.mp4); it plays in the [Motion cut](#motion-cut) section below.
 
 <table>
   <tr>
@@ -215,12 +220,7 @@ https://github.com/user-attachments/assets/263542d1-f540-487b-9e6e-287414ff8ba6
   </tr>
 </table>
 
-Also: **title**, **statement** (the problem, line by line), **list**, **bars** and **end** (where to go and what to press). Each clip above is one scene of an example's cut, exported with `--scene`:
-
-```bash
-node scripts/motion.mjs examples/weekly-digests/motion.json --mp4                       # the whole cut → export/motion.mp4
-node scripts/motion.mjs examples/weekly-digests/motion.json --gif --scene 5 --size 720  # one scene → export/motion-scene-5.gif
-```
+Also: **title**, **statement** (the problem, line by line), **list**, **bars** and **end** (where to go and what to press). Each clip above is one scene of an example's cut, exported with `motion.mjs --scene` ([commands](docs/scripts.md)).
 
 The script format, the scene kinds and when to make a cut are in [`references/motion.md`](references/motion.md).
 
@@ -242,145 +242,23 @@ The script format, the scene kinds and when to make a cut are in [`references/mo
 8. **Publish.** [`inline-assets.mjs`](scripts/inline-assets.mjs) embeds the images, and the page goes up as a private Artifact with the open questions alongside.
 9. **Motion cut (optional).** For people who would rather watch than read, [`motion.mjs`](scripts/motion.mjs) turns a short scene script into a reel of the post that plays itself in under a minute, and exports it as an MP4.
 
-Every rule in `SKILL.md` names the fault that taught it, for example a tidy code snippet that matched nothing in the repo, or a link built by guessing a slug. The detail lives in [`references/`](references):
-
-| File | Covers |
-|---|---|
-| [`brief.md`](references/brief.md) | Angles, the brief, and how little to ask the author |
-| [`evidence.md`](references/evidence.md) | What to read, what to skip, numbers worth having, sources that disagree |
-| [`story.md`](references/story.md) | Shapes, beats, altitude, references, voice, length |
-| [`visuals.md`](references/visuals.md) | Diagram, motion, screenshot and chart patterns; spec formats; the render check |
-| [`motion.md`](references/motion.md) | The motion cut: when to make one, choosing scenes, the script, build and export |
-| [`modules.md`](references/modules.md) | Opt-in appendix modules: build log, numbers, timeline, review notes, how-made, sources |
-| [`craft.md`](references/craft.md) | Titles, naming the product, anti-patterns, the hand-off |
-
-## Install
-
-build-story is a standard [Agent Skill](https://agentskills.io): a folder with a `SKILL.md` at its root. This repository is that folder. Pick one way in:
-
-| | Command | Installs to |
-|---|---|---|
-| **skills CLI**, for you (Claude Code) | `npx skills add buildinternet/buildnotes -g -a claude-code` | `~/.claude/skills/build-story` |
-| **skills CLI**, for you (OpenCode) | `npx skills add buildinternet/buildnotes -g -a opencode` | `~/.config/opencode/skills/build-story` |
-| **skills CLI**, for you (Codex) | `npx skills add buildinternet/buildnotes -g -a codex` | `~/.agents/skills/build-story` |
-| **skills CLI**, for one project | `npx skills add buildinternet/buildnotes` | `.claude/skills/build-story` for Claude Code, `.agents/skills/build-story` for OpenCode and Codex |
-| **git**, for you (Claude Code) | `git clone https://github.com/buildinternet/buildnotes.git ~/.claude/skills/build-story` | `~/.claude/skills/build-story` |
-| **git**, for you (OpenCode) | `git clone https://github.com/buildinternet/buildnotes.git ~/.config/opencode/skills/build-story` | `~/.config/opencode/skills/build-story` |
-| **git**, for you (Codex) | `git clone https://github.com/buildinternet/buildnotes.git ~/.agents/skills/build-story` | `~/.agents/skills/build-story` |
-| **git**, for one project | `git clone https://github.com/buildinternet/buildnotes.git .claude/skills/build-story` | `.claude/skills/build-story` (Claude Code and OpenCode) or `.agents/skills/build-story` (OpenCode and Codex) |
-
-The [`skills`](https://github.com/vercel-labs/skills) CLI finds the `SKILL.md` at the root of this repository and installs it as `build-story`. Without `-g` it installs into the current project and asks which agents to set up. `-g` installs it for your user, and `-a claude-code` sets up Claude Code only; use `-a opencode` or `-a codex` for those.
-
-With git, update by running `git pull` in that folder. If you already keep a checkout elsewhere, link it in instead, so the skill stays in step with that checkout:
-
-```bash
-ln -s /path/to/buildnotes ~/.claude/skills/build-story
-```
-
-Claude Code picks up new skills in a running session. OpenCode lists it as `/build-story`; Codex lists it under `/skills` and runs it with `$build-story`. Restart either if it doesn't show.
-
-<details>
-<summary><b>Codex: if gathering or the render pass is blocked</b></summary>
-
-<br>
-
-Codex runs commands in a sandbox. Two steps can trip it: `gather.mjs` calls `gh` over the network, and the render pass starts headless Chrome, which writes a temporary profile and talks to it over a local port. Work dirs also live outside the repo, in `~/.build-stories`. In order of preference:
-
-1. When Codex asks to run one of these outside the sandbox, approve it for that command. This needs the default `approval_policy = "on-request"`.
-2. Or allow it in `~/.codex/config.toml`:
-
-   ```toml
-   approval_policy = "on-request"
-   sandbox_mode = "workspace-write"
-
-   [sandbox_workspace_write]
-   network_access = true
-   writable_roots = ["/Users/you/.build-stories", "/tmp"]   # absolute paths
-   ```
-
-   Newer Codex releases may name these settings differently; check the config reference for your version.
-3. Or set `BUILD_STORY_DIR` to a folder Codex can already write to.
-
-</details>
-
-### Requirements
-
-The skill is written for Claude Code and follows the open [Agent Skills](https://agentskills.io) format, so OpenCode and Codex load it too. On those hosts it leaves the finished page as a file in the work dir instead of publishing an Artifact.
-
-| Needs | For |
-|---|---|
-| Node 22+ | Every script. No npm packages. |
-| `git` and an authenticated `gh` | Gathering the evidence |
-| Chrome or Chromium | The render pass, figure export and component screenshots. Set `CHROME_PATH` if it isn't found. |
-| `ffmpeg` (optional) | GIF and video export |
-
-### Configuration
-
-- `BUILD_STORY_DIR`: where work dirs go (default `~/.build-stories/<repo>/`). They live outside any repo, so runs survive worktrees and never land in tracked files.
-- `house-style.md`: put one beside a repo's work dirs to record the product's exact name, shorthand, and terms to use or avoid. The skill reads it first and adds to it when you settle a term.
-
-## Usage
-
-Ask in plain words. The skill triggers on any request to write up how a feature was built, even one that never says "blog".
-
-```text
-/build-story how we built preview links, from PRs 120, 131 and 140
-/build-story a release story for the rate-limit work (search "rate limit", the CLI half is in acme/cli)
-/build-story a technical deep dive on the sync engine since v1.2.0, with the build log module
-```
-
-You get back a link to a private Artifact page, plus at most three open questions and two notes, one line each. The plan, notes, dossier and `post.html` stay in the work dir. Ask for `--standalone` HTML for your own site, or for the chapters as Markdown or MDX.
-
-## Scripts
-
-Each script runs on its own and prints usage with `--help` or no arguments.
-
-| Script | What it does |
-|---|---|
-| [`gather.mjs`](scripts/gather.mjs) | Evidence dossier from git and GitHub: by `--issue`, `--pr`, `--search`, `--range`, `--since`, `--path` or `--grep`, with `--prior` and `--also-repo` |
-| [`workdir.mjs`](scripts/workdir.mjs) | Makes a work dir under `$BUILD_STORY_DIR` and prints the house-style path when one exists |
-| [`viz.mjs`](scripts/viz.mjs) | Renders every `<!-- viz … -->` marker in a page from its spec (`build <post.html>`) |
-| [`lint.mjs`](scripts/lint.mjs) | Words per chapter, banned and writerly phrasing, process detail against the flavor's budget, numbers, sentence length, passive voice, identifiers, the product name in headings, a safety scan and a link check. Exits 1 on a hard failure. |
-| [`render.mjs`](scripts/render.mjs) | Screenshots at 1280 and 390 px, light and dark. Fails on sideways scroll, clipped code and broken images. |
-| [`export.mjs`](scripts/export.mjs) | One figure as PNG, GIF, MP4/WebM or standalone SVG, for slides or another blog (`--list` numbers them) |
-| [`module.mjs`](scripts/module.mjs) | An opt-in appendix module (`build-log`, `numbers`, `timeline`) from the dossier |
-| [`motion.mjs`](scripts/motion.mjs) | The motion cut: checks a scene script (`motion.json`), builds a reel page that plays itself, and exports it as a 1920×1080 MP4, WebM, GIF or still, or one scene as a clip (`--scene`) |
-| [`inline-assets.mjs`](scripts/inline-assets.mjs) | Embeds local images and video as data URIs, so the page is one file |
-
-```bash
-node scripts/lint.mjs <work-dir>/post.html --flavor build --product "Release Notes Index,Releases" --avoid "codename"
-node scripts/export.mjs <work-dir>/post.html --figure 4 --gif
-```
-
-## Developing
-
-```bash
-node --test dev/test/*.test.mjs                    # renderer, lint and export tests
-node dev/shots.mjs                                 # every component at 1280 and 390 px, light and dark → runs/components/
-node dev/gallery.mjs --publish                     # rebuild assets/components.html after changing a renderer or spec
-node scripts/viz.mjs build assets/template.html    # re-render the template's examples
-```
-
-Like the render pass and figure export, `dev/shots.mjs` drives headless Chrome through [`scripts/chrome.mjs`](scripts/chrome.mjs), with no packages. It runs the four modes in parallel.
-
-### Run history
-
-`runs/` keeps a local, git-ignored history of test runs: each run's self-contained page, its plan, notes, author message, lint output and dossier, plus a `meta.json` with the skill commit and artifact link. Runs can hold private-repo content, which is why they stay out of git.
-
-```bash
-node dev/save-run.mjs <work-dir> --note "what this run tested" --artifact <url>
-open runs/index.html
-```
-
-To keep a public run as a committed example, check it, then copy its page, plan and notes into `examples/<name>/` by hand.
+Every rule in `SKILL.md` names the fault that taught it, for example a tidy code snippet that matched nothing in the repo, or a link built by guessing a slug. The detail lives in [`references/`](references), listed in [Scripts and references](docs/scripts.md#where-the-rules-live).
 
 ## Limits
 
-- **Built around GitHub.** Issues, PRs and review threads come through `gh`. Without them, the dossier is commit history only (`--range`, `--since`, `--grep`), and the story is thinner for it.
+- **Built around GitHub.** Issues, PRs and review threads come through `gh`, then a GitHub MCP server, then public GitHub pages. With none of them, the post is built from commit history alone (`--range`, `--since`, `--grep`), and is thinner for it.
 - **The record has to say it.** The skill infers angles and context, but not motives, quotes or numbers. When the record doesn't say why something was done, the reason stays out of the post and goes on the open questions.
 - **Private repos link nothing internal.** The linter fails a `--private` post that links the repo's issues, PRs or commits.
 - **No sign-ins for screenshots.** If a screen sits behind a sign-in the skill shouldn't use, it falls back to the PR's own images, a diagram or a terminal run.
-- **Three examples so far.** `examples/` holds three runs: two from public repos, and one from a private repo that quotes no code.
+- **Three examples so far.** Two from public repos, and one from a private repo that quotes no code.
+
+## Docs
+
+- [Install](docs/install.md): every install path, requirements, working without `gh`, Codex sandbox settings, configuration.
+- [Scripts and references](docs/scripts.md): what each script does, and where the rules live.
+- [Developing](docs/developing.md): tests, the component gallery, run history.
+- [`SKILL.md`](SKILL.md): the workflow and rules the agent follows.
+- [Changelog](CHANGELOG.md)
 
 ## License
 

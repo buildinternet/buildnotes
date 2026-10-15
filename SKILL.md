@@ -2,7 +2,7 @@
 name: build-story
 description: Turn the real history of a feature (its issues, PRs, commits, reviews, design docs and screenshots) into a public-facing post about how it was built and why, with diagrams, simple motion, before/after visuals and code where it helps, published as a page. Three flavors, from a release-notes-style launch story to a technical deep dive. Use when asked to write up how a feature was built, the thinking or design behind a change, a technical blog post, devlog, case study, launch post or behind-the-scenes piece about work in a git repo, even when the request never says "blog".
 license: MIT
-compatibility: Written for Claude Code; also runs in OpenCode and Codex. Needs Node.js 22 or later, git and an authenticated gh, and Chrome or Chromium for the render pass.
+compatibility: Written for Claude Code; also runs in OpenCode and Codex. Needs Node.js 22 or later, git, and Chrome or Chromium for the render pass. An authenticated gh is best for GitHub data; a GitHub MCP server or public GitHub pages also work.
 metadata:
   opencode/slash: "true"
 ---
@@ -70,7 +70,7 @@ Settle these from the request, the repo and the defaults. Don't ask about scope 
 
 - **Subject.** The idea the post is about. Whatever the author points at (an issue, a few PRs, a search phrase, a commit range, a path) is a breadcrumb, not a boundary. Related work landing around the same time (the dossier's **Nearby work**) often belongs to the same idea, and some of what was pointed at may not. Draw the boundary around the idea.
 - **Flavor and size.** Default: build story for a real feature, a note or "not worth a post" for a thin one. If the author asks for a technical or engineering post, that's the deep dive: the internals, operator tooling and trade-offs can be the subject, and the reader-facing tests in [craft.md](references/craft.md) and [brief.md](references/brief.md#zoom-out-first-find-the-angle) bend to that reader.
-- **Visibility.** `gh repo view --json visibility -q .visibility` (the gatherer records it too). Private or unknown means nothing internal is linked.
+- **Visibility.** `gh repo view --json visibility -q .visibility` (the gatherer records it too), or the repo's details from a GitHub MCP server when there is no `gh`. Private or unknown means nothing internal is linked.
 - **House style.** The product's exact name (pass it, and any shorthand, to `lint.mjs --product "Full Name,Short"`) and terms to use or avoid. Read `house-style.md` in the repo's folder of work dirs first (`workdir.mjs` prints its path, and says where to create it when there isn't one yet); when the author settles a name or term, add it there so the next run doesn't ask. For a private repo, add names that must not appear (customers, partners, internal codenames). Pass the avoid-list to `lint.mjs --avoid`; paraphrase around an avoided term, never inside a quotation.
 - **Modules.** Opt-in appendix extras (build log, process numbers, by-day timeline, review notes, how-made, sources), all off by default. Include the ones the author asks for; offer one in a single line only when the evidence makes it unusually good. [modules.md](references/modules.md)
 - **Other repos.** If part of the feature shipped elsewhere (a CLI, an SDK), repeat the search there with `--search … --also-repo owner/name`.
@@ -94,6 +94,12 @@ node <skill-dir>/scripts/gather.mjs --out <work-dir>/evidence --issue 412 --prio
 ```
 
 It writes `dossier.md` (a skimmable digest) and `dossier.json` (everything). The digest opens with totals, hot files and **Story candidates**, then **Nearby work** (other merged PRs within `--window` days, default 2; ★n = files shared with the selected work), **Prior work**, feedback signals, cross-repo references, a timeline, and each issue and PR. Issues the selected PRs close, or say they are part of ("Part of #12", "Refs #12"), are pulled in automatically; they often hold the problem statement. **Since then** lists PRs merged after the selected work that touch several of its files: read each before the post says how something behaves today. The digest cuts long bodies at a section break; `gather.mjs --out <work-dir>/evidence --show 2911` prints one PR or issue in full. `--download` keeps each image's own format (often WebP); `sips -s format png in.webp --out in.png` makes a copy any viewer opens. Almost none of this detail goes in the post.
+
+**No `gh`?** Check with `gh auth status`. The gatherer needs `gh` for issues, PRs, reviews and search, and fails on `--issue`, `--pr` and `--search` without it. Fall back in this order, and name the source you used in the hand-off:
+
+1. **A GitHub MCP server**, if one is connected. Run the gatherer git-only with `--repo owner/name` (`--range`, `--since`, `--grep`, `--path`), then read the issues, PRs, review comments and linked issues you need through the MCP tools, and confirm the repo's visibility there. Nearby work, prior work and "since then" aren't computed for you: list the merged PRs around the span yourself.
+2. **Public GitHub pages**, as a last resort and only for a public repo. Read the issue and PR pages on github.com like any web page. Long threads fold and some review comments hide, so lean on what the page plainly shows. Never sign in to see more.
+3. **Neither.** Build from commits alone, and say in the hand-off that the post is thinner for it.
 
 Read `dossier.md`, then the design docs it lists, then code only where a chosen idea lives. Stop when you have the story. [evidence.md](references/evidence.md)
 
