@@ -97,6 +97,33 @@ test("link previews: description, Open Graph and Twitter tags, favicon", () => {
     assert.equal(meta(html, "property", "og:url"), "https://example.com/buildnotes/");
     assert.equal(meta(html, "property", "og:image"), "https://example.com/buildnotes/assets/og.png");
     assert.equal(meta(html, "name", "twitter:image"), "https://example.com/buildnotes/assets/og.png");
+    // every example page: its own tags from EXAMPLES, the image published under assets/
+    const tags = (base) => {
+      for (const ex of EXAMPLES) {
+        const post = readFileSync(join(out, `examples/${ex.slug}/index.html`), "utf8");
+        const image = base ? `${base}assets/${ex.image.split("/").pop()}` : `https://raw.githubusercontent.com/buildinternet/buildnotes/main/${ex.image}`;
+        assert.equal(meta(post, "name", "description"), ex.blurb, ex.slug);
+        assert.equal(meta(post, "property", "og:type"), "article", ex.slug);
+        assert.equal(meta(post, "property", "og:site_name"), "buildnotes", ex.slug);
+        assert.equal(meta(post, "property", "og:title"), `${ex.product}: ${ex.name}`, ex.slug);
+        assert.equal(meta(post, "name", "twitter:title"), `${ex.product}: ${ex.name}`, ex.slug);
+        assert.equal(meta(post, "property", "og:description"), ex.blurb, ex.slug);
+        assert.equal(meta(post, "name", "twitter:description"), ex.blurb, ex.slug);
+        assert.equal(meta(post, "property", "og:image"), image, ex.slug);
+        assert.equal(meta(post, "name", "twitter:image"), image, ex.slug);
+        assert.ok(meta(post, "property", "og:image:alt"), ex.slug);
+        assert.equal(meta(post, "name", "twitter:card"), "summary_large_image", ex.slug);
+        if (base) {
+          assert.match(post, new RegExp(`<link rel="canonical" href="${base}examples/${ex.slug}/">`), ex.slug);
+          assert.equal(meta(post, "property", "og:url"), `${base}examples/${ex.slug}/`, ex.slug);
+          assert.ok(existsSync(join(out, `assets/${ex.image.split("/").pop()}`)), ex.slug);
+        } else assert.doesNotMatch(post, /rel="canonical"|og:url/, ex.slug);
+      }
+    };
+    build({ out });
+    tags();
+    build({ out, url: "https://example.com/buildnotes" });
+    tags("https://example.com/buildnotes/");
     assert.throws(() => build({ out, url: "example.com" }), /must start with http/);
   } finally {
     rmSync(out, { recursive: true, force: true });
