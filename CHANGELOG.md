@@ -35,6 +35,8 @@ Until the first release, changes are recorded under [Unreleased].
 
 ### Changed
 
+- The website wraps each example post in a document and a site shell: a bar naming the example with a way back, and a footer with the post's video, its plan and the other examples. Until now the posts were served as committed, with no doctype or charset, so en dashes and middle dots came out as mojibake. Every example's video is served and linked from the "More examples" cards. The site is light by default, and its footer links Release Notes Index and uploads.sh.
+- The README is shorter: the visual component and motion scene tables moved to [docs/components.md](docs/components.md), the examples section shows one picture per example, and the prototype note is gone from the README and the website footer. The masthead links to [buildnotes.releases.sh](https://buildnotes.releases.sh).
 - The README's top image is now Fig. 1 of the weekly-digests field-notes post, the "week at a glance" card drawn at an angle with its five keys, in place of the post's masthead, which was almost all text.
 - The skill moved into `skills/buildnotes/` (`SKILL.md`, `references/`, `assets/`, `scripts/`, `agents/` and a copy of the license). `npx skills add buildinternet/buildnotes` now copies that folder alone, about 1 MB, instead of the whole repo (about 16 MB, most of it `examples/` and README images). The examples, docs, tests and `dev/` stay at the root. A git checkout now links `skills/buildnotes`, not the checkout: see [Install](docs/install.md#with-git).
 - The skill is renamed from `build-story` to `buildnotes`, so it runs as `/buildnotes` (`$buildnotes` in Codex). Reinstall it, or rename the folder under your skills directory. Build story is still the name of the default flavor.

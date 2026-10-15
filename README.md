@@ -3,10 +3,10 @@
 <p align="center"><b>A Claude Code skill that turns the history of a feature into a post about how it was built and why.</b><br>It reads the issues, PRs, commits, reviews and screenshots, finds the two or three decisions that shaped the feature,<br>and publishes a self-contained page with diagrams, motion, before/after visuals and real code.</p>
 
 <p align="center">
+  <a href="https://buildnotes.releases.sh">Website</a> ·
   <a href="#quick-start">Quick start</a> ·
   <a href="#examples">Examples</a> ·
   <a href="#flavors">Flavors</a> ·
-  <a href="#visual-components">Visual components</a> ·
   <a href="#motion-cut">Motion cut</a> ·
   <a href="#how-it-works">How it works</a> ·
   <a href="#limits">Limits</a> ·
@@ -18,9 +18,6 @@
 </p>
 
 <p align="center"><sub><code>examples/weekly-digests</code>: Fig. 1 of a build story the skill wrote from a public repo's PRs. Its parts are measured from the shipped card, and on the page they lift, come apart and explain themselves.</sub></p>
-
-> [!NOTE]
-> Prototype. Expect the rules and scripts to change.
 
 ---
 
@@ -62,74 +59,24 @@ You need Node 22 or later, `git`, and Chrome for the render pass and figure expo
 
 ## Examples
 
-Three full runs are kept as committed examples. Each folder holds the finished page (one self-contained file with every image embedded), the story plan the agent wrote before drafting, its notes, the specs behind the rendered figures, and a [motion cut](#motion-cut) with its video.
-
-### Walkthrough videos
-
-[`examples/walkthrough-videos/`](examples/walkthrough-videos) is a build story about walkthrough videos in [Sunny](https://app.sunnysdk.com), a furniture and space planner: one export turns a room, a floor or a project into a looping 1080p tour. The repo behind it is private, so the post quotes no code and links nothing internal; it is about the product as its users meet it. Open [`post.html`](examples/walkthrough-videos/post.html) for the post, in the field notes style, or watch its 52-second cut:
-
-https://github.com/user-attachments/assets/1b29303e-cece-4965-8a56-79e020bb0df1
-
-<p align="center"><sub>The walkthrough-videos cut, 52 seconds. Its third scene is Sunny's own room export. The file is <a href="examples/walkthrough-videos/motion.mp4"><code>examples/walkthrough-videos/motion.mp4</code></a>.</sub></p>
+Three full runs are kept as committed examples. Each folder holds the finished page (one self-contained file with every image embedded), the story plan the agent wrote before drafting, its notes, the specs behind the rendered figures, and a [motion cut](#motion-cut) with its video. All three are also on the [website](https://buildnotes.releases.sh).
 
 <table>
   <tr>
-    <td width="50%"><img src=".github/assets/walkthrough-path.webp" alt="A camera path drawn over the plan of the Reception Lounge, seen from above: an orbit from outside the room, a glide down into the back-right corner, eye level with a shaded view wedge, a rise to the plan, and back to the first frame. Five numbered stops carry their times."></td>
     <td width="50%"><img src=".github/assets/walkthrough-keyed.webp" alt="One frame of a floor tour at eye level in the Boardroom, with five numbered keys: the shot, the mini-map in the top-right corner, the tinted room, the camera's dot and wedge, and the caption with the room's name and size."></td>
-  </tr>
-  <tr>
-    <td><sub><b>A path computed by the product.</b> Chapter 1 draws the camera's route from poses the shot planner itself computed, with a dot that moves on the clip's own clock.</sub></td>
-    <td><sub><b>One frame, its parts named.</b> Chapter 2 keys a real video frame: the plan in the corner, the camera on it, and the caption.</sub></td>
-  </tr>
-</table>
-
-### Before and after
-
-[`examples/before-after/`](examples/before-after) is a build story about before/after comparison on [uploads.sh](https://uploads.sh), from the public `buildinternet/uploads` repo: tag two screenshots before and after, and the pull request comment shows them in one row; open either one, and a divider slides across both. Its figures are the product in use, captured live: a real pull request comment and the file page in Compare. Open [`post.html`](examples/before-after/post.html) for the post, in the Plain style, or watch its 47-second cut:
-
-https://github.com/user-attachments/assets/823fa2d3-08f8-4dfc-83b5-44403d81c6a9
-
-<p align="center"><sub>The before-after cut, 47 seconds. Its fifth scene is a recording of the live file page. The file is <a href="examples/before-after/motion.mp4"><code>examples/before-after/motion.mp4</code></a>.</sub></p>
-
-<table>
-  <tr>
-    <td width="50%"><img src=".github/assets/before-after-comment.webp" alt="A pull request comment on GitHub from uploads.sh: an unpaired screenshot of an API errors page, and below it one row with two screenshots of a REST API docs page labelled Before and After."></td>
     <td width="50%"><img src=".github/assets/before-after-compare.webp" alt="The uploads.sh file page in Compare mode: a REST API docs screenshot with a purple divider down the middle, Before on the left and After on the right."></td>
   </tr>
   <tr>
-    <td><sub><b>The real thing, captured.</b> Chapter 1 shows a live comment: a pair shares a row, and a shot with no before shows on its own.</sub></td>
-    <td><sub><b>The same pair in Compare.</b> Chapter 3 shows how the two shots are lined up from the top-left corner, so what moved is what changed.</sub></td>
+    <td><sub><b><a href="examples/walkthrough-videos">Walkthrough videos</a></b>: a build story about room, floor and project tours in <a href="https://app.sunnysdk.com">Sunny</a>, a furniture and space planner. The repo is private, so the post quotes no code and links nothing internal. Field notes style. <a href="https://buildnotes.releases.sh/examples/walkthrough-videos/post">Read it on the site</a>, or watch its <a href="examples/walkthrough-videos/motion.mp4">52-second cut</a>.</sub></td>
+    <td><sub><b><a href="examples/before-after">Before and after</a></b>: a build story about before/after comparison on <a href="https://uploads.sh">uploads.sh</a>, from the public <code>buildinternet/uploads</code> repo. Its figures are the product in use, captured live. Plain style. <a href="https://buildnotes.releases.sh/examples/before-after/post">Read it on the site</a>, or watch its <a href="examples/before-after/motion.mp4">47-second cut</a>.</sub></td>
+  </tr>
+  <tr>
+    <td colspan="2"><img src=".github/assets/digest-keyed.webp" alt="The shipped 'week at a glance' card with five numbered keys on its parts, and a legend under it: flames, tile size, columns, click a tile, and the five biggest releases."></td>
+  </tr>
+  <tr>
+    <td colspan="2"><sub><b><a href="examples/weekly-digests">Weekly digests</a></b>: a build story about the weekly collection digests on Release Notes Index, from the public <code>buildinternet/releases</code> repo. <a href="https://buildnotes.releases.sh/examples/weekly-digests/post">Read it on the site</a> in the Plain style, or open <a href="examples/weekly-digests/post-field-notes.html"><code>post-field-notes.html</code></a> for the same post in field notes. Its <a href="examples/weekly-digests/motion.mp4">one-minute cut</a> plays in the <a href="#motion-cut">Motion cut</a> section below.</sub></td>
   </tr>
 </table>
-
-### Weekly digests
-
-[`examples/weekly-digests/`](examples/weekly-digests) is a build story about the weekly collection digests on Release Notes Index, from the public `buildinternet/releases` repo. Open [`post.html`](examples/weekly-digests/post.html) for the post in the Plain style, or [`post-field-notes.html`](examples/weekly-digests/post-field-notes.html) for the same post in field notes. Its one-minute cut is [`motion.html`](examples/weekly-digests/motion.html), built from [`motion.json`](examples/weekly-digests/motion.json) and exported as [`motion.mp4`](examples/weekly-digests/motion.mp4); it plays in the [Motion cut](#motion-cut) section below.
-
-<table>
-  <tr>
-    <td width="50%"><img src=".github/assets/digest-keyed.webp" alt="The shipped 'week at a glance' card with five numbered keys on its parts, and a legend under it: flames, tile size, columns, click a tile, and the five biggest releases."></td>
-    <td width="50%"><img src=".github/assets/digest-flow.gif" alt="An animated flow diagram: Monday run, then 'week just closed?', then one message per subscriber, a delivery queue, and 'claim the week' per reader before the email is sent. A dot travels the route."></td>
-  </tr>
-  <tr>
-    <td><sub><b>A keyed screenshot.</b> Chapter 1 shows the shipped card with its parts numbered. Pointing at a number opens its note, and the screenshot expands to full size.</sub></td>
-    <td><sub><b>A flow with motion.</b> Chapter 4 explains how each reader gets exactly one email a week. The diagram is drawn by <code>viz.mjs</code> from a short JSON spec.</sub></td>
-  </tr>
-  <tr>
-    <td colspan="2"><img src=".github/assets/digest-replay.webp" alt="Two dark screenshots side by side, labeled Tuesday and End of the week: the same replay timeline partway through the week and at its end."></td>
-  </tr>
-  <tr>
-    <td colspan="2"><sub><b>Before and after in one figure.</b> Two frames of the week replay, mid-week and at the end.</sub></td>
-  </tr>
-  <tr>
-    <td colspan="2"><img src=".github/assets/digest-apart.webp" alt="The same card drawn at an angle in the field notes style, taken apart: the product tiles and the list of releases lifted off the base, with dashed outlines where they sat and five numbered keys."></td>
-  </tr>
-  <tr>
-    <td colspan="2"><sub><b>The same card, field notes style.</b> One parts list, measured on the capture, drawn at an angle and taken apart. The <code>anatomy</code> component draws it flat, at an angle, or as keys over the capture.</sub></td>
-  </tr>
-</table>
-
-The images on this page were made with the skill's own [`scripts/export.mjs`](skills/buildnotes/scripts/export.mjs), which exports any figure as a PNG, GIF, video or standalone SVG.
 
 ## Flavors
 
@@ -145,50 +92,9 @@ Three flavors. The skill picks one from the request and the size of the change, 
 
 Word counts are ceilings, not targets. A small change gets a **note** of a paragraph or three. A typo fix or a dependency bump gets an honest "not worth a post", and if it is one piece of a bigger idea, the skill names that idea and asks whether to write about it instead.
 
-## Visual components
+## Visuals
 
-`scripts/viz.mjs` draws every visual from a small spec: JSON for most kinds, Markdown tables for options and matrices, GLSL for shaders. The output is plain HTML, SVG and CSS that inherits the page's theme, works in light and dark, reflows at phone width, and respects reduced motion. Each spec can be edited by hand and re-rendered.
-
-<table>
-  <tr>
-    <td colspan="2"><img src=".github/assets/flow.gif" alt="A flow diagram: git push to Build over a webhook, then fanning out to a preview link per branch and a build log kept 30 days. Dashes march along the route."></td>
-  </tr>
-  <tr>
-    <td colspan="2"><sub><b>flow</b>: boxes and routes with branches, labels and marching dashes. On a phone it stacks into a vertical drawing.</sub></td>
-  </tr>
-  <tr>
-    <td width="50%"><img src=".github/assets/options-database.webp" alt="A table of three options: one shared database (rejected), database per branch (chosen, highlighted), schema per branch (rejected), each with a one-line reason."></td>
-    <td width="50%"><img src=".github/assets/matrix-previews.webp" alt="A comparison matrix of three options against four criteria, with check marks, crosses and short notes. The chosen column is highlighted."></td>
-  </tr>
-  <tr>
-    <td><sub><b>options</b>: the decision and the alternatives that lost, with a reason for each.</sub></td>
-    <td><sub><b>matrix</b>: options against criteria. A mark can carry a short note.</sub></td>
-  </tr>
-  <tr>
-    <td><img src=".github/assets/delta-build.webp" alt="A before and after figure: 38 s before, 9 s as it ships, 4x faster, median time from push to preview link over 200 builds."></td>
-    <td><img src=".github/assets/line-latency.webp" alt="A line chart of latency over twelve days, dropping from about 420 ms to 166 ms at a point marked 'cache on'."></td>
-  </tr>
-  <tr>
-    <td><sub><b>delta</b>: a before/after number, and what was measured.</sub></td>
-    <td><sub><b>line</b>: one or two series with a marked event.</sub></td>
-  </tr>
-  <tr>
-    <td><img src=".github/assets/strip-rounds.webp" alt="Three screenshots in a row labeled round one, round two and as it ships, showing a design getting simpler."></td>
-    <td><img src=".github/assets/term-gather.webp" alt="A terminal block running node scripts/gather.mjs with its output: a dossier of 6 issues, 9 PRs and 4 images."></td>
-  </tr>
-  <tr>
-    <td><sub><b>strip</b>: rounds of a design, or a filmstrip of states.</sub></td>
-    <td><sub><b>term</b> and <b>code</b>: real output and real code, captioned with the file name.</sub></td>
-  </tr>
-  <tr>
-    <td colspan="2"><img src=".github/assets/shader-banding.webp" alt="Two gradients rendered by a WebGL shader: twelve levels rounded, showing visible bands, and twelve levels dithered, showing a smooth ramp."></td>
-  </tr>
-  <tr>
-    <td colspan="2"><sub><b>shader</b>: a WebGL fragment shader, for posts where the pixels are the subject, shown on the reader's own screen.</sub></td>
-  </tr>
-</table>
-
-Also: **steps** (a numbered pipeline with a moving highlight) and **bars** (a bar chart with one row marked). Open [`assets/components.html`](skills/buildnotes/assets/components.html) in a browser to see every component next to its spec. The example specs are in [`assets/specs/`](skills/buildnotes/assets/specs).
+Every visual is drawn by [`viz.mjs`](skills/buildnotes/scripts/viz.mjs) from a small spec: JSON for most kinds, Markdown tables for options and matrices, GLSL for shaders. The output is plain HTML, SVG and CSS that inherits the page's theme, works in light and dark, reflows at phone width, and respects reduced motion. The kinds are **flow**, **options**, **matrix**, **delta**, **line**, **bars**, **steps**, **strip**, **term**, **code**, **shader** and **anatomy**; each is shown with its spec in [Visual components](docs/components.md).
 
 ## Motion cut
 
@@ -198,34 +104,7 @@ https://github.com/user-attachments/assets/71d8e409-987b-4ecc-bd23-531934297078
 
 <p align="center"><sub>The weekly-digests cut, one minute. The file is <a href="examples/weekly-digests/motion.mp4"><code>examples/weekly-digests/motion.mp4</code></a>.</sub></p>
 
-<table>
-  <tr>
-    <td width="50%"><img src=".github/assets/motion-morph.gif" alt="Four product tiles sized by release count, where Claude Code looks biggest, resize in place to tiles sized by impact, where Codex is biggest. The headline changes from 'Counting releases rewards busy weeks' to 'Counting impact rewards big ones'."></td>
-    <td width="50%"><img src=".github/assets/motion-flow.gif" alt="A flow of four boxes: Monday run, Week just closed?, Claim the week, Send. One dot travels to Send and is marked Sent. A second dot stops in front of Claim the week, turns red, and is labeled 'Already claimed. Stops.'"></td>
-  </tr>
-  <tr>
-    <td><sub><b>morph</b>: the same tiles, sized one way and then the right way. The wrong answer turns into the right one in front of the viewer.</sub></td>
-    <td><sub><b>flow</b>: dots travel the route; one is stopped at the step that guards it.</sub></td>
-  </tr>
-  <tr>
-    <td><img src=".github/assets/motion-shot.gif" alt="A screenshot of the week-at-a-glance card. A red ring outlines the product tiles, labeled 'Tile size: how much each product shipped', then moves down to the list, labeled 'The five biggest releases, linked into the digest'."></td>
-    <td><img src=".github/assets/motion-swap.gif" alt="A dark screenshot of the week replay paused on Tuesday. A bright line wipes across it, left to right, revealing the same replay at the end of the week."></td>
-  </tr>
-  <tr>
-    <td><sub><b>shot</b>: a ring moves across a screenshot's parts, naming each.</sub></td>
-    <td><sub><b>swap</b>: one frame of a screen wipes over another.</sub></td>
-  </tr>
-  <tr>
-    <td colspan="2"><img src=".github/assets/motion-clip.webp" alt="A scene from the walkthrough-videos cut: the headline 'The room decides the shots' beside a real room export from Sunny playing in the frame, orbiting the Reception Lounge and gliding down to eye level."></td>
-  </tr>
-  <tr>
-    <td colspan="2"><sub><b>clip</b>: the feature's own footage, from a GIF or video in the pull request, played inside the frame. This one is from the walkthrough-videos cut.</sub></td>
-  </tr>
-</table>
-
-Also: **title**, **statement** (the problem, line by line), **list**, **bars** and **end** (where to go and what to press). Each clip above is one scene of an example's cut, exported with `motion.mjs --scene` ([commands](docs/scripts.md)).
-
-The script format, the scene kinds and when to make a cut are in [`references/motion.md`](skills/buildnotes/references/motion.md).
+The scene kinds are **title**, **statement**, **list**, **morph**, **flow**, **shot**, **swap**, **clip**, **bars** and **end**; each is shown as a clip in [Visual components](docs/components.md#motion-scenes). The script format and when to make a cut are in [`references/motion.md`](skills/buildnotes/references/motion.md).
 
 ## How it works
 
@@ -253,13 +132,13 @@ Every rule in `SKILL.md` names the fault that taught it, for example a tidy code
 - **The record has to say it.** The skill infers angles and context, but not motives, quotes or numbers. When the record doesn't say why something was done, the reason stays out of the post and goes on the open questions.
 - **Private repos link nothing internal.** The linter fails a `--private` post that links the repo's issues, PRs or commits.
 - **No sign-ins for screenshots.** If a screen sits behind a sign-in the skill shouldn't use, it falls back to the PR's own images, a diagram or a terminal run.
-- **Three examples so far.** Two from public repos, and one from a private repo that quotes no code.
 
 ## Docs
 
 - [Install](docs/install.md): every install path, requirements, working without `gh`, Codex sandbox settings, configuration.
+- [Visual components](docs/components.md): every page component and motion scene, with a picture of each.
 - [Scripts and references](docs/scripts.md): what each script does, and where the rules live.
-- [Developing](docs/developing.md): tests, the component gallery, run history.
+- [Developing](docs/developing.md): tests, the component gallery, run history, the website.
 - [`SKILL.md`](skills/buildnotes/SKILL.md): the workflow and rules the agent follows.
 - [Changelog](CHANGELOG.md)
 

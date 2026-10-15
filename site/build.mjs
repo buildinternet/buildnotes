@@ -14,7 +14,11 @@
 //   // template: keyed                             the keyed-figure script, copied from the post template
 // Then it copies every local file the page points at (src, href, poster): site/assets/… from here,
 // everything else from the repo root, so the example posts and videos are served next to the page.
-// .github/assets/<file> is published as assets/<file>. Nothing to install; Node 22 or later.
+// .github/assets/<file> is published as assets/<file>. An example's post.html is not copied as is: the
+// committed posts are written for the Artifact viewer, which wraps them in a document, so the build wraps
+// each one itself (doctype, charset, viewport) and adds a site shell around it: a bar naming the example
+// with a way back, and a footer with the example's video, its plan, and the other examples (EXAMPLES).
+// Nothing to install; Node 22 or later.
 
 import { readFileSync, writeFileSync, mkdirSync, copyFileSync, rmSync, existsSync } from "node:fs";
 import { dirname, join, resolve, basename } from "node:path";
@@ -52,6 +56,85 @@ function locate(ref) {
 }
 
 const LOCAL = /\b(src|href|poster)="(?!https?:|data:|mailto:|#|\/)([^"]+)"/g;
+
+// The committed examples, in the order the shell's footer walks them. `product` is who the post is about,
+// `cut` how long its video runs; the plan link goes to GitHub, where plan.md reads as a page.
+export const EXAMPLES = [
+  { slug: "walkthrough-videos", name: "Walkthrough videos", product: "Sunny", cut: "52 seconds" },
+  { slug: "before-after", name: "Before and after, side by side", product: "uploads.sh", cut: "47 seconds" },
+  { slug: "weekly-digests", name: "Weekly digests", product: "Release Notes Index", cut: "one minute" },
+];
+const REPO = "https://github.com/buildinternet/buildnotes";
+const POST = /^examples\/([^/]+)\/post\.html$/;
+
+// The shell's own styles, prefixed so they can't collide with the post's. Colours are the site's light
+// palette, fixed: the shell forces the light theme on the post too (data-theme="light" on <html>).
+const SHELL_CSS = `
+.site-bar { font-family: "Archivo", "Helvetica Neue", Arial, sans-serif; font-size: 0.875rem; line-height: 1.5; color: #64645f; -webkit-font-smoothing: antialiased; }
+.site-bar a { color: #64645f; text-decoration: none; }
+.site-bar a:hover { color: #1f1f1d; }
+.site-bar a.site-name { color: #1f1f1d; font-weight: 600; }
+.site-bar a.site-accent { color: #3358d4; }
+.site-bar a.site-accent:hover { text-decoration: underline; }
+.site-bar .site-label { font-family: "Martian Mono", ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.6875rem; font-stretch: 87.5%; letter-spacing: 0.02em; }
+/* body already pads the sides and the top (3rem); the bars take the post's column width (--col, from its :root). */
+.site-top { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 20px; max-width: var(--col, 42rem); margin: -1rem auto 3rem; }
+.site-top nav { display: flex; flex-wrap: wrap; gap: 4px 20px; }
+.site-end { max-width: var(--col, 42rem); margin: 4rem auto 0; display: grid; gap: 20px; }
+.site-end .site-rule { border-top: 1px solid #e3e3dd; }
+.site-end h2 { font: 600 1.0625rem/1.3 "Source Serif 4", Georgia, serif; color: #1f1f1d; margin: 0; }
+.site-end p { margin: 0; max-width: 38rem; }
+.site-end video { width: 100%; aspect-ratio: 16 / 9; background: #000; border-radius: 4px; border: 1px solid #e3e3dd; display: block; }
+.site-end .site-links { display: flex; flex-wrap: wrap; gap: 4px 20px; }
+.site-end .site-others { display: grid; gap: 0; border-top: 1px solid #e3e3dd; }
+.site-end .site-others a { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 2px 16px; padding: 12px 0; border-bottom: 1px solid #e3e3dd; }
+.site-end .site-others a b { color: #1f1f1d; font-weight: 600; }
+.site-end .site-foot { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 20px; padding-top: 20px; border-top: 1px solid #e3e3dd; font-size: 0.8125rem; }
+`;
+
+// Wrap one example's committed post.html in a full document and the site shell.
+export function wrapPost(slug, post) {
+  const i = EXAMPLES.findIndex((e) => e.slug === slug);
+  if (i < 0) throw new Error(`examples/${slug} is not in EXAMPLES (site/build.mjs)`);
+  const ex = EXAMPLES[i];
+  const others = EXAMPLES.filter((e) => e !== ex);
+  // The post starts with its <title> and font links, then its <style>; those first lines belong in <head>.
+  const at = post.indexOf("<style>");
+  if (at < 0) throw new Error(`examples/${slug}/post.html: no <style>`);
+  const head = post.slice(0, at).trim();
+  const body = post.slice(at);
+  const title = head.match(/<title>([^<]*)<\/title>/)?.[1] ?? ex.name;
+  return `<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+${head.replace(/<title>[^<]*<\/title>/, `<title>${esc(title)} · buildnotes example</title>`)}
+<link rel="icon" href="../../assets/favicon.svg" type="image/svg+xml">
+<style>${SHELL_CSS}</style>
+</head>
+<body>
+<header class="site-bar site-top">
+  <a class="site-name" href="../../">buildnotes</a>
+  <nav aria-label="Site"><span class="site-label">Example ${i + 1} of ${EXAMPLES.length} · ${esc(ex.product)}</span><a href="#site-video">Video</a><a href="../../#more">All examples</a><a href="${REPO}">GitHub</a></nav>
+</header>
+${body}
+<footer class="site-bar site-end" id="site-video">
+  <div class="site-rule"></div>
+  <p class="site-label">This post is a buildnotes example</p>
+  <h2>The same story in ${esc(ex.cut)}</h2>
+  <p>buildnotes wrote this post from the pull requests behind one ${esc(ex.product)} feature, then cut the video from the post: every word, number and screenshot in it comes from the page above.</p>
+  <video src="motion.mp4" controls preload="metadata" playsinline aria-label="The ${esc(ex.cut)} video cut of this post."></video>
+  <div class="site-links"><a class="site-accent" href="motion.mp4" download>Download the video</a><a class="site-accent" href="${REPO}/blob/main/examples/${ex.slug}/plan.md">See the plan behind it</a><a class="site-accent" href="${REPO}/tree/main/examples/${ex.slug}">The example on GitHub</a></div>
+  <div class="site-others">
+${others.map((o) => `    <a href="../${o.slug}/post.html"><b>${esc(o.name)}</b><span>${esc(o.product)} · post and ${esc(o.cut)} video</span></a>`).join("\n")}
+  </div>
+  <div class="site-foot"><a href="../../">buildnotes: turn pull requests into posts and videos worth sharing</a><a href="${REPO}">github.com/buildinternet/buildnotes</a></div>
+</footer>
+</body>
+</html>
+`;
+}
 
 // What link previews show. og:image must be an absolute URL, and the site has no home yet: with --url it
 // points into the built site, without it at the committed image on GitHub (live once merged to main).
@@ -136,10 +219,16 @@ export function build({ out = join(here, "dist"), url } = {}) {
   rmSync(out, { recursive: true, force: true });
   mkdirSync(out, { recursive: true });
   writeFileSync(join(out, "index.html"), html);
+  // Every example is served, linked from the page or not, with its video next to its post.
+  for (const ex of EXAMPLES) {
+    for (const f of ["post.html", "motion.mp4"]) files.set(`examples/${ex.slug}/${f}`, join(root, "examples", ex.slug, f));
+  }
   for (const [to, from] of files) {
     if (!existsSync(from)) throw new Error(`missing ${from}${to === SHARE.image ? " (make it with node site/card.mjs)" : ""}`);
     mkdirSync(dirname(join(out, to)), { recursive: true });
-    copyFileSync(from, join(out, to));
+    const post = to.match(POST);
+    if (post) writeFileSync(join(out, to), wrapPost(post[1], readFileSync(from, "utf8")));
+    else copyFileSync(from, join(out, to));
   }
   return { html, files: [...files.keys()], warnings, out };
 }
