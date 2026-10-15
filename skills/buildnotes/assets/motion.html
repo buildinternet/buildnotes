@@ -1,3 +1,4 @@
+<meta charset="utf-8">
 <title>Motion Cut</title>
 <!--
   Motion cut template: a build story as a short reel that plays itself.
@@ -63,6 +64,24 @@ body { background: var(--paper); color: var(--ink); font: 400 1.0625rem/1.55 var
 .chap { flex: 0 1 16rem; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .hint { font: 400 0.75rem/1.4 var(--font-mono); color: var(--muted); text-align: center; }
 @media (max-width: 40rem) { .chap { display: none; } }
+
+/* Deck mode (deck.mjs sets "deck" in the script): one scene per slide, a counter in place of the scrubber.
+   Full screen letterboxes the stage; print lays every slide out at rest, one to a 1920×1080 page. */
+.deck .bar .chap { flex: 1 1 auto; }
+.deck .bar button:disabled { opacity: 0.3; cursor: default; }
+.deck .bar #full { background: none; color: var(--muted); box-shadow: inset 0 0 0 1px var(--rule); }
+.count { min-width: 3.5rem; text-align: center; }
+.screen:fullscreen { width: 100%; height: 100%; aspect-ratio: auto; border-radius: 0; box-shadow: none; }
+@media print {
+  html.deck { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+  .deck body { margin: 0; }
+  .deck .page { display: block; max-width: none; margin: 0; padding: 0; }
+  .deck .top, .deck .bar, .deck .hint { display: none; }
+  .deck .screen { width: auto; aspect-ratio: auto; overflow: visible; border-radius: 0; box-shadow: none; }
+  .deck .stage { position: static; width: auto; height: auto; overflow: visible; transform: none !important; }
+  .deck .scene, .deck .scene[hidden] { display: block; position: relative; width: 1920px; height: 1080px; overflow: hidden; break-after: page; opacity: 1 !important; transform: none !important; }
+  .deck .scene:last-child { break-after: auto; }
+}
 
 /* ---------- the stage, in 1920×1080 units ---------- */
 .stage { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; transform-origin: 0 0; background: var(--paper); color: var(--ink); overflow: hidden; }
@@ -174,7 +193,7 @@ em { font-style: normal; background: linear-gradient(var(--mark), var(--mark)) 0
     <div class="scrub"><input type="range" id="scrub" min="0" max="1" step="0.01" value="0" aria-label="Seek"><div class="track"><div class="fill"></div></div></div>
     <span id="time">0:00</span><span class="chap" id="chap"></span>
   </div>
-  <div class="hint">Space plays or pauses · ← → jump a scene · click the frame to pause</div>
+  <div class="hint" id="hint">Space plays or pauses · ← → jump a scene · click the frame to pause</div>
 </div>
 
 <!-- Filled by motion.mjs: the script, with each scene's length set, and the images it uses. -->
@@ -575,13 +594,101 @@ em { font-style: normal; background: linear-gradient(var(--mark), var(--mark)) 0
     if (shown !== i) { scenes.forEach((s, j) => (s.el.hidden = j !== i)); shown = i; }
     const s = scenes[i], d = s.d;
     s.render(t);
-    // Each scene but the last fades out over its last 0.35 s; the next builds itself in.
-    const fade = i < scenes.length - 1 ? 1 - seg(t, d.dur - 0.35, d.dur, E.linear) : 1;
+    // Each scene but the last fades out over its last 0.35 s; the next builds itself in. A slide doesn't fade.
+    const fade = !CUT.deck && i < scenes.length - 1 ? 1 - seg(t, d.dur - 0.35, d.dur, E.linear) : 1;
     s.el.style.opacity = fade;
     s.el.style.transform = fade < 1 ? `scale(${lerp(1.015, 1, fade)})` : "";
   }
   const sceneAt = (T) => { const i = starts.findIndex((s, j) => T >= s && T < s + scenes[j].d.dur); return i < 0 ? scenes.length - 1 : i; };
   const fmt = (x) => `${Math.floor(x / 60)}:${String(Math.floor(x % 60)).padStart(2, "0")}`;
+
+  const resize = () => {
+    // Full screen letterboxes the 16:9 stage in whatever shape the display is; otherwise it fills the screen's width.
+    const full = (document.fullscreenElement || document.webkitFullscreenElement) === screen;
+    const s = full ? Math.min(screen.clientWidth / W, screen.clientHeight / H) : screen.clientWidth / W;
+    stage.style.transform = full ? `translate(${(screen.clientWidth - W * s) / 2}px, ${(screen.clientHeight - H * s) / 2}px) scale(${s})` : `scale(${s})`;
+  };
+  new ResizeObserver(resize).observe(screen);
+  resize();
+  fit();
+  document.fonts?.ready.then(() => { scenes.forEach((s) => s.el.querySelectorAll(".hd").forEach((hd) => (hd.style.fontSize = ""))); fit(); });
+  const quiet = (e) => e.metaKey || e.ctrlKey || e.altKey || e.target.closest("input:not([type=range]), textarea");
+
+  if (CUT.deck) {
+    // ---------- the deck: one scene per slide ----------
+    // Entering a slide forward plays its scene once and holds the last frame; going back shows it at rest.
+    document.documentElement.classList.add("deck");
+    document.getElementById("kicker").textContent = "Build notes, slide by slide";
+    const n = scenes.length, bar = document.getElementById("bar");
+    bar.innerHTML = `<button type="button" id="prev" aria-label="Previous slide">←</button><span class="count" id="count" aria-live="polite"></span><button type="button" id="next" aria-label="Next slide">→</button><span class="chap" id="chap"></span><button type="button" id="full" aria-label="Full screen"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M1 5V1h4M9 1h4v4M13 9v4H9M5 13H1V9"/></svg></button>`;
+    document.getElementById("hint").textContent = "→ or Space for the next slide · ← back · click either side of the slide · F full screen";
+    const count = document.getElementById("count"), chap = document.getElementById("chap");
+    const prev = document.getElementById("prev"), next = document.getElementById("next");
+    const rest = (k) => scenes[k].d.dur;
+    let i = 0, t = 0, playing = false, last = 0;
+    function draw() {
+      show(i, t);
+      count.textContent = `${i + 1} / ${n}`;
+      chap.textContent = scenes[i].d.label || "";
+      prev.disabled = i === 0; next.disabled = i === n - 1;
+      screen.setAttribute("aria-label", `${CUT.title}: slide ${i + 1} of ${n}${scenes[i].d.label ? `, ${scenes[i].d.label}` : ""}`);
+    }
+    function go(k, play = k > i) {
+      k = clamp(k, 0, n - 1);
+      i = k; t = play && !reduce ? 0 : rest(k); playing = t < rest(k); last = 0;
+      if (location.hash !== `#${k + 1}`) history.replaceState(null, "", `#${k + 1}`);
+      draw();
+    }
+    const step = (dk) => { if (i + dk >= 0 && i + dk < n) go(i + dk); };
+    const fromHash = () => { const k = parseInt(location.hash.slice(1), 10); return k >= 1 && k <= n ? k - 1 : null; };
+    const toggleFull = () => {
+      if (document.fullscreenElement || document.webkitFullscreenElement) (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+      else (screen.requestFullscreen || screen.webkitRequestFullscreen)?.call(screen);
+    };
+    prev.onclick = () => step(-1);
+    next.onclick = () => step(1);
+    document.getElementById("full").onclick = toggleFull;
+    // The left third of the slide goes back; the rest goes on.
+    screen.onclick = (e) => { const r = screen.getBoundingClientRect(); step(e.clientX - r.left < r.width / 3 ? -1 : 1); };
+    addEventListener("keydown", (e) => {
+      if (quiet(e)) return;
+      const k = e.key;
+      if (k === "ArrowRight" || k === "ArrowDown" || k === "PageDown" || (k === " " && !e.shiftKey)) step(1);
+      else if (k === "ArrowLeft" || k === "ArrowUp" || k === "PageUp" || (k === " " && e.shiftKey)) step(-1);
+      else if (k === "Home") go(0, false);
+      else if (k === "End") go(n - 1, false);
+      else if (k === "f" || k === "F") toggleFull();
+      else return;
+      e.preventDefault();
+    });
+    addEventListener("hashchange", () => { const k = fromHash(); if (k != null && k !== i) go(k); });
+    function loop(now) {
+      // Draw while a slide plays, and once after fit() (which hides every scene) runs again on font load.
+      if (playing || shown < 0) {
+        const dt = playing && last ? Math.min(0.1, (now - last) / 1000) : 0;
+        if (playing) last = now;
+        t += dt;
+        if (t >= rest(i)) { t = rest(i); playing = false; }
+        draw();
+      }
+      requestAnimationFrame(loop);
+    }
+    // Print, and deck.mjs's PDF: every slide at rest, one to a page (the print rules are in the stylesheet).
+    const page = document.head.appendChild(h("style", "", "@page { size: 1920px 1080px; margin: 0; }"));
+    page.media = "print";
+    const sheets = () => scenes.forEach((s) => { s.el.hidden = false; s.render(s.d.dur); s.el.style.opacity = 1; s.el.style.transform = ""; });
+    addEventListener("beforeprint", sheets);
+    addEventListener("afterprint", () => { shown = -1; draw(); });
+    go(fromHash() ?? 0, true);
+    // For checks and the PDF: which slide is showing, a slide at rest, a scene frozen at a moment, all slides for print.
+    window.__cut = { total, problems, slides: n, deck: true,
+      get state() { return { slide: i + 1, t, playing }; },
+      go: (k, play) => go(k - 1, play),
+      freeze(k, tt) { i = k; t = tt; playing = false; draw(); },
+      sheets };
+    requestAnimationFrame(loop);
+    return;
+  }
 
   let T = 0, playing = !reduce, last = 0;
   if (reduce) T = starts[0] + scenes[0].d.dur - 0.4;
@@ -608,12 +715,6 @@ em { font-style: normal; background: linear-gradient(var(--mark), var(--mark)) 0
     if (e.key === " ") { e.preventDefault(); play.click(); }
     if (e.key === "ArrowRight" || e.key === "ArrowLeft") { e.preventDefault(); T = starts[clamp(sceneAt(T) + (e.key === "ArrowRight" ? 1 : -1), 0, scenes.length - 1)]; }
   });
-
-  const resize = () => { stage.style.transform = `scale(${screen.clientWidth / W})`; };
-  new ResizeObserver(resize).observe(screen);
-  resize();
-  fit();
-  document.fonts?.ready.then(() => { scenes.forEach((s) => s.el.querySelectorAll(".hd").forEach((hd) => (hd.style.fontSize = ""))); fit(); });
 
   // For checks and export: freeze one scene at a time, and read what didn't fit.
   window.__cut = { total, problems, freeze(i, t) { playing = false; T = starts[i] + t; draw(); } };

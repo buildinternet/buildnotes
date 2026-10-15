@@ -134,9 +134,10 @@ function figures(dr, ox = 0, oy = 0) {
 
 function deck(dr, ox = 0, oy = 0) {
   let zt = 0;
-  for (let i = 0; i < 3; i++) zt = dr.slab(ox, oy, 96, 54, { z: i * 12, t: 2, dash: true, shadow: i === 0 });
+  for (let i = 0; i < 3; i++) zt = dr.slab(ox, oy, 96, 54, { z: i * 12, t: 2, shadow: i === 0 });
   dr.bar(ox + 8, oy + 8, 30, 4, zt);
   rows(dr, ox + 8, oy + 18, 40, zt, 2, { widths: [1, 0.6] });
+  dr.slab(ox + 56, oy + 14, 32, 30, { z: zt, t: 3, ...LIT, shadow: false });
 }
 
 // The record becomes a dossier, a plan, then the post: four objects in a row, a dot travelling between them.

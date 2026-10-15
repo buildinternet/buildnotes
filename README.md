@@ -49,7 +49,7 @@ Then, inside the repo the feature lives in, ask in plain words. The skill trigge
 /buildnotes video tech explainer of our latest PR
 ```
 
-Open with `post` or `video` to name the output; with neither, the skill writes the post and works out the rest from your words. `video` writes the post first, then cuts the [motion cut](#motion-cut) from it.
+Open with `post`, `video` or `deck` to name the output; with neither, the skill writes the post and works out the rest from your words. `video` writes the post first, then cuts the [motion cut](#motion-cut) from it. `deck` does the same and builds slides and a PDF from the cut's script.
 
 OpenCode takes the same `/buildnotes` command; in Codex, type `$buildnotes`.
 
@@ -100,6 +100,8 @@ Every visual is drawn by [`viz.mjs`](skills/buildnotes/scripts/viz.mjs) from a s
 
 Some people won't read a 1,500-word post but will watch a minute of video. The motion cut is the post as a reel of five to nine scenes that plays itself: the title, the problem, one scene for each idea, and how to try it. The agent writes a short scene script (`motion.json`) from the finished post, so every word, number and screenshot comes from the post. [`motion.mjs`](skills/buildnotes/scripts/motion.mjs) checks the script, times each scene by how long its words take to read, builds one self-contained page, and exports a 1920×1080 MP4, a GIF, a still, or one scene as a short clip. Ask for one with `/buildnotes video …`, or after a post.
 
+The same script also builds a **deck**: [`deck.mjs`](skills/buildnotes/scripts/deck.mjs) shows one scene per slide, each playing once and then holding, and `--pdf` writes a 16:9 PDF with one page per slide. Ask with `/buildnotes deck …`. The Sunny example has [one](examples/sunny-walkthrough-videos/deck.pdf).
+
 https://github.com/user-attachments/assets/71d8e409-987b-4ecc-bd23-531934297078
 
 <p align="center"><sub>The weekly-digests cut, one minute. The file is <a href="examples/releases-weekly-digests/motion.mp4"><code>examples/releases-weekly-digests/motion.mp4</code></a>.</sub></p>
@@ -122,7 +124,7 @@ The scene kinds are **title**, **statement**, **list**, **morph**, **flow**, **s
 6. **Write.** Fill in [`assets/template.html`](skills/buildnotes/assets/template.html). Most posts use four or five of its components and delete the rest. The page comes in two styles: Plain, the default and the one to rebrand, and field notes, a serif page with figures on a dot grid and flows drawn by hand ([styles](skills/buildnotes/references/visuals.md#styles)).
 7. **Check.** [`lint.mjs`](skills/buildnotes/scripts/lint.mjs) does the mechanical half; then detail, craft, fact, safety and render passes.
 8. **Publish.** [`inline-assets.mjs`](skills/buildnotes/scripts/inline-assets.mjs) embeds the images, and the page goes up as a private Artifact with the open questions alongside.
-9. **Motion cut (optional).** For people who would rather watch than read, [`motion.mjs`](skills/buildnotes/scripts/motion.mjs) turns a short scene script into a reel of the post that plays itself in under a minute, and exports it as an MP4.
+9. **Motion cut (optional).** For people who would rather watch than read, [`motion.mjs`](skills/buildnotes/scripts/motion.mjs) turns a short scene script into a reel of the post that plays itself in under a minute, and exports it as an MP4. The same script builds a deck of slides and a PDF with [`deck.mjs`](skills/buildnotes/scripts/deck.mjs).
 
 Every rule in `SKILL.md` names the fault that taught it, for example a tidy code snippet that matched nothing in the repo, or a link built by guessing a slug. The detail lives in [`references/`](skills/buildnotes/references), listed in [Scripts and references](docs/scripts.md#where-the-rules-live).
 

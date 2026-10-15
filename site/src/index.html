@@ -132,9 +132,6 @@ section > h2 { font-family: var(--font-display); font-size: 1.5rem; }
 .out h3 { font-family: var(--font-display); font-size: 1.0625rem; font-weight: 600; display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
 .out p { font-family: var(--font-body); font-size: 0.9375rem; line-height: 1.5; color: var(--muted); }
 .out code { font-size: 0.75rem; color: var(--ink); overflow-wrap: anywhere; }
-.out .tag { font-family: var(--font-mono); font-size: 0.625rem; font-weight: 400; color: var(--mark); border: 1px solid currentColor; border-radius: 3px; padding: 0 5px; }
-.out.soon .plate { border-style: dashed; }
-.out.soon h3, .out.soon code { color: var(--muted); }
 
 /* Tables */
 table { width: 100%; border-collapse: collapse; font-size: 0.9375rem; }
@@ -319,10 +316,11 @@ section > * { min-width: 0; }
     <p>Any figure on its own, as an image, GIF, video or SVG.</p>
     <div class="cmd sm"><code data-copy>node scripts/export.mjs post.html --figure 2 --svg</code><button class="copy" type="button">copy</button></div>
   </div>
-  <div class="out soon">
+  <div class="out">
     <div class="plate"><!-- iso deck --></div>
-    <h3>Deck <span class="tag">not yet</span></h3>
-    <p>Slides you click through.</p>
+    <h3>Deck</h3>
+    <p>The video as slides you click through, and a PDF.</p>
+    <div class="cmd sm"><code data-copy>node scripts/deck.mjs motion.json --pdf</code><button class="copy" type="button">copy</button></div>
   </div>
 </div>
   </section>

@@ -28,6 +28,7 @@ The request may open with the output it wants, as in `/buildnotes video tech exp
 
 - **`post`**: the page. This is the default.
 - **`video`**: the page and its motion cut. The cut is made from the finished post, so write the post first, then go straight on to step 9 without offering it.
+- **`deck`**: the page and its deck, slides to click through and a PDF. The deck is built from the motion cut's scene script, so write the post and `motion.json` first, then go on to step 10.
 - **Anything else**: there is no output word. The whole request is the brief, and a request for a video, a reel or a quick version still means `video`.
 
 The rest of the request is the brief: the subject, plus anything about flavor, reader or style, in plain words. "Tech explainer" or "deep dive" means the technical deep dive, and "launch post" or "release notes" means the release story. Read these as you would any other request; they are not fixed values. When it's unclear whether the author wants a video, don't ask: write the post and offer the cut in the hand-off, as step 9 says.
@@ -174,10 +175,22 @@ A short reel of the post, for people who would rather watch than read: a title, 
 
 ```bash
 node <skill-dir>/scripts/motion.mjs <work-dir>/motion.json --check
-node <skill-dir>/scripts/motion.mjs <work-dir>/motion.json --mp4 --poster   # → motion.html, export/motion.mp4, export/motion.png
+node <skill-dir>/scripts/motion.mjs <work-dir>/motion.json --mp4 --poster   # → motion.html, export/<story>-motion.mp4, export/<story>-motion.png
 ```
 
 Play it once and scrub to the end of each scene before handing it over. Publish `motion.html` as its own private Artifact and give the author the MP4. `--gif --scene <n> --size 720` exports one scene as a short clip, for a README or a thread. Scene kinds, the script format and what the checks catch: [motion.md](references/motion.md).
+
+Exports are named after the story: `<story>` is the work dir's name without its date, so files dragged out of `export/` still say where they came from. `--name <slug>` sets it.
+
+### 10. Deck (optional)
+
+The same scene script as slides: one scene to a slide, each playing its motion once and then holding, with a 16:9 PDF for meetings and email. Make one when the request opens with `deck` or asks for slides, a deck or a PDF; otherwise mention it in the hand-off line about the cut.
+
+```bash
+node <skill-dir>/scripts/deck.mjs <work-dir>/motion.json --pdf   # → deck.html, export/<story>-deck.pdf
+```
+
+Click through every slide forward and back before handing it over. Publish `deck.html` as its own private Artifact and give the author the PDF. Keys, the PDF and what it leaves out: [deck.md](references/deck.md).
 
 ## Files
 
@@ -189,9 +202,11 @@ Play it once and scrub to the end of each scene before handing it over. Publish 
 - `scripts/render.mjs`: the render pass: both widths and themes, screenshots, and the fit faults
 - `scripts/export.mjs`: one figure as PNG, GIF, MP4/WebM or standalone SVG, for slides or another blog ([visuals.md](references/visuals.md#exporting-a-figure))
 - `scripts/motion.mjs`: the motion cut: checks a scene script, builds the reel page from `assets/motion.html`, and exports it as MP4, WebM, GIF or a still, whole or one scene at a time
+- `scripts/deck.mjs`: the deck: the motion script as click-through slides (`deck.html`) and a 16:9 PDF
+- `scripts/names.mjs`: export file names, `<story>-<what>.<ext>`
 - `scripts/inline-assets.mjs`: embed local images and video (`src`, `poster`, `srcset`) as data URIs and drop authoring comments
 - `assets/template.html`: page template and component toolbox
-- `assets/motion.html`: the reel page the motion cut fills in
+- `assets/motion.html`: the reel page the motion cut and the deck fill in
 - `assets/components.html`: every component with its spec; the specs are in `assets/specs/`
 - `references/brief.md`: angles, the brief, and how little to ask the author
 - `references/evidence.md`: what to read, what to skip, numbers, terminal blocks, sources that disagree
@@ -199,4 +214,5 @@ Play it once and scrub to the end of each scene before handing it over. Publish 
 - `references/visuals.md`: diagram, motion, screenshot and chart patterns
 - `references/modules.md`: the opt-in module menu and placement rules
 - `references/motion.md`: the motion cut: when to make one, choosing scenes, the script, build and export
+- `references/deck.md`: the deck: slides from the motion script, keys, the PDF, limits
 - `references/craft.md`: what makes a post read as crafted: titles, naming the product, anti-patterns, the hand-off

@@ -61,8 +61,9 @@ const LOCAL = /\b(src|href|poster)="(?!https?:|data:|mailto:|#|\/)([^"]+)"/g;
 // The committed examples, in the order the shell's footer walks them. `product` is who the post is about,
 // `cut` how long its video runs; the plan link goes to GitHub, where plan.md reads as a page.
 // `file` is the committed page to serve as the example's index.html; `image` its card on the examples page.
+// `deck`: the example also has deck.html and deck.pdf, the cut as slides, served next to its video.
 export const EXAMPLES = [
-  { slug: "sunny-walkthrough-videos", name: "Walkthrough videos", product: "Sunny", about: "a furniture and space planner", cut: "52 seconds", file: "post.html", style: "field notes", image: ".github/assets/walkthrough-keyed.webp",
+  { slug: "sunny-walkthrough-videos", name: "Walkthrough videos", product: "Sunny", about: "a furniture and space planner", cut: "52 seconds", deck: true, file: "post.html", style: "field notes", image: ".github/assets/walkthrough-keyed.webp",
     blurb: "One export turns a room, a floor or a project into a looping 1080p tour. The repo is private, so the post quotes no code and links nothing internal." },
   { slug: "uploads-before-after", name: "Before and after, side by side", product: "uploads.sh", about: "screenshots for pull requests", cut: "47 seconds", file: "post.html", style: "Plain", image: ".github/assets/before-after-compare.webp",
     blurb: "Tag two screenshots before and after, and the pull request comment shows them in one row. Its figures are the product in use, captured live." },
@@ -130,7 +131,7 @@ ${body}
   <h2>The same story in ${esc(ex.cut)}</h2>
   <p>buildnotes wrote this post from the pull requests behind one ${esc(ex.product)} feature, then cut the video from the post: every word, number and screenshot in it comes from the page above.</p>
   <video src="motion.mp4" controls preload="metadata" playsinline aria-label="The ${esc(ex.cut)} video cut of this post."></video>
-  <div class="site-links"><a class="site-accent" href="motion.mp4" download>Download the video</a><a class="site-accent" href="${REPO}/blob/main/examples/${ex.slug}/plan.md">See the plan behind it</a><a class="site-accent" href="${REPO}/tree/main/examples/${ex.slug}">The example on GitHub</a></div>
+  <div class="site-links"><a class="site-accent" href="motion.mp4" download>Download the video</a>${ex.deck ? `<a class="site-accent" href="deck.html">Click through it as slides</a><a class="site-accent" href="deck.pdf" download>Download the slides as a PDF</a>` : ""}<a class="site-accent" href="${REPO}/blob/main/examples/${ex.slug}/plan.md">See the plan behind it</a><a class="site-accent" href="${REPO}/tree/main/examples/${ex.slug}">The example on GitHub</a></div>
   <div class="site-others">
 ${others.map((o) => `    <a href="../${o.slug}/"><b>${esc(o.name)}</b><span>${esc(o.product)} · post and ${esc(o.cut)} video</span></a>`).join("\n")}
   </div>
@@ -243,7 +244,7 @@ function examplesPage(homeHtml, url) {
           <p class="label">Example ${i + 1} of ${EXAMPLES.length} · ${esc(ex.product)}, ${esc(ex.about)}</p>
           <h2><a href="${ex.slug}/">${esc(ex.name)}</a></h2>
           <p>${esc(ex.blurb)}</p>
-          <p class="links"><a href="${ex.slug}/">Read the post</a><a href="${ex.slug}/motion.mp4">Watch the video, ${esc(ex.cut)}</a><a href="${REPO}/blob/main/examples/${ex.slug}/plan.md">See the plan behind it</a></p>
+          <p class="links"><a href="${ex.slug}/">Read the post</a><a href="${ex.slug}/motion.mp4">Watch the video, ${esc(ex.cut)}</a>${ex.deck ? `<a href="${ex.slug}/deck.html">Click through the slides</a>` : ""}<a href="${REPO}/blob/main/examples/${ex.slug}/plan.md">See the plan behind it</a></p>
         </div>
       </div>`).join("\n"));
   page = page.replace("<!-- footer -->", () => footer("../"));
@@ -293,12 +294,15 @@ export function build({ out = join(here, "dist"), url } = {}) {
   for (const ex of EXAMPLES) {
     files.set(`examples/${ex.slug}/index.html`, join(root, "examples", ex.slug, ex.file));
     files.set(`examples/${ex.slug}/motion.mp4`, join(root, "examples", ex.slug, "motion.mp4"));
+    if (ex.deck) for (const f of ["deck.html", "deck.pdf"]) files.set(`examples/${ex.slug}/${f}`, join(root, "examples", ex.slug, f));
   }
   for (const [to, from] of files) {
     if (!existsSync(from)) throw new Error(`missing ${from}${to === SHARE.image ? " (make it with node site/card.mjs)" : ""}`);
     mkdirSync(dirname(join(out, to)), { recursive: true });
     const post = to.match(POST);
     if (post) writeFileSync(join(out, to), wrapPost(post[1], readFileSync(from, "utf8")));
+    // A deck, like a post, is written for a viewer that wraps it; a doctype keeps it out of quirks mode.
+    else if (to.endsWith("/deck.html")) writeFileSync(join(out, to), `<!doctype html>\n<meta name="viewport" content="width=device-width, initial-scale=1">\n${readFileSync(from, "utf8")}`);
     else copyFileSync(from, join(out, to));
   }
   writeFileSync(join(out, "examples/index.html"), examples);

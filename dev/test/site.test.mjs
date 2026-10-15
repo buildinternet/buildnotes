@@ -43,6 +43,16 @@ test("the site builds: markers filled, files copied, every command copyable", ()
       for (const o of EXAMPLES) if (o !== ex) assert.match(post, new RegExp(`href="\\.\\./${o.slug}/"`), `${ex.slug} links ${o.slug}`);
       assert.doesNotMatch(post, new RegExp(`href="\\.\\./${ex.slug}/`));
     }
+    // an example with a deck serves it, with a doctype, and links it from its footer and the examples page
+    const decks = EXAMPLES.filter((ex) => ex.deck);
+    assert.ok(decks.length >= 1);
+    for (const ex of decks) {
+      assert.ok(files.includes(`examples/${ex.slug}/deck.pdf`), ex.slug);
+      const deck = readFileSync(join(out, `examples/${ex.slug}/deck.html`), "utf8");
+      assert.match(deck, /^<!doctype html>\n/);
+      assert.match(deck, /"deck":true/);
+      assert.match(readFileSync(join(out, `examples/${ex.slug}/index.html`), "utf8"), /href="deck\.html"/);
+    }
     // the weekly-digests example is the field-notes page, the one with the card taken apart
     const digests = readFileSync(join(out, "examples/releases-weekly-digests/index.html"), "utf8");
     assert.match(digests, /class="keyed anatomy anatomy-iso"/);
@@ -56,6 +66,7 @@ test("the site builds: markers filled, files copied, every command copyable", ()
     for (const ex of EXAMPLES) {
       assert.match(list, new RegExp(`<h2><a href="${ex.slug}/">`), ex.slug);
       assert.match(list, new RegExp(`href="${ex.slug}/motion\\.mp4"`), ex.slug);
+      if (ex.deck) assert.match(list, new RegExp(`href="${ex.slug}/deck\\.html"`), ex.slug);
     }
     assert.match(list, /src="\.\.\/assets\/digest-apart\.webp"/);
     assert.match(list, /href="\.\.\/#install"/);
