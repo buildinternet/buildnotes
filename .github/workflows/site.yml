@@ -1,0 +1,43 @@
+name: Site
+
+# Builds the website and deploys it to buildnotes.releases.sh (wrangler.jsonc) when main changes what the page serves.
+on:
+  push:
+    branches: [main]
+    paths:
+      - site/**
+      - examples/**
+      - skills/buildnotes/assets/**
+      - skills/buildnotes/scripts/viz/**
+      - skills/buildnotes/scripts/viz.mjs
+      - .github/assets/**
+      - wrangler.jsonc
+      - .github/workflows/site.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: site-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy to buildnotes.releases.sh
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+
+      - name: Build
+        run: node site/build.mjs --url https://buildnotes.releases.sh
+
+      - name: Deploy
+        run: npx --yes wrangler@4 deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}

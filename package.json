@@ -7,6 +7,8 @@
   "scripts": {
     "test": "node --test dev/test/*.test.mjs",
     "site": "node site/build.mjs",
-    "promo": "node site/promo/build.mjs"
+    "promo": "node site/promo/build.mjs",
+    "site:dev": "node site/build.mjs --url https://buildnotes.releases.sh && npx --yes wrangler@4 dev",
+    "deploy": "node site/build.mjs --url https://buildnotes.releases.sh && npx --yes wrangler@4 deploy"
   }
 }

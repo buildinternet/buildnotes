@@ -26,14 +26,18 @@ To keep a public run as a committed example, check it, then copy its page, plan 
 
 ## Website
 
-`site/` builds the project's one-page website into `site/dist/` (git-ignored), a folder of static files any host can serve.
+`site/` builds the project's one-page website into `site/dist/` (git-ignored), a folder of static files any host can serve. It lives at [buildnotes.releases.sh](https://buildnotes.releases.sh).
 
 ```bash
 node site/build.mjs                  # or: npm run site
-node site/build.mjs --url https://example.com/buildnotes/   # once it has a home: canonical link, og:url, og:image there
+node site/build.mjs --url https://buildnotes.releases.sh   # canonical link, og:url, og:image there
 node site/card.mjs                   # re-render the link-preview image, site/assets/og.png (needs Chrome)
 open site/dist/index.html
+npm run site:dev                     # build, then serve it as the Worker does at http://localhost:8787
+npm run deploy                       # build, then deploy (wrangler login, Build Internet account)
 ```
+
+Hosting: [`wrangler.jsonc`](../wrangler.jsonc) is an assets-only Cloudflare Worker (no script) that serves `site/dist` on the `buildnotes.releases.sh` custom domain. The `releases.sh` zone is on the same Cloudflare account, so the domain needs no DNS records by hand. `.html` URLs redirect to the extensionless path (`post.html` → `post`), and relative links still resolve. [`.github/workflows/site.yml`](../.github/workflows/site.yml) builds and deploys on pushes to `main` that touch what the page serves; it needs a `CLOUDFLARE_API_TOKEN` repo secret with Workers Scripts: Edit and Workers Routes: Edit on the account and the `releases.sh` zone.
 
 `site/src/index.html` is the page. The build fills in its markers:
 
