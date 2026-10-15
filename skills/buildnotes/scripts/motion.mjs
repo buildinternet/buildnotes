@@ -16,7 +16,12 @@
 //   --scene <n>         export scene n alone (from 1), to <dir>/export/<story>-motion-scene-<n>.<ext>; with --poster, its last frame
 //   --size <px>         width of the export; default 1920 (960 for a GIF). Height follows at 16:9
 //   --name <slug>       the <story> part of export names; default: the work dir's name without its date, else the title
+//   --brand <file>      a brand file other than the repo's brand.json; --no-brand for none
 //   --no-render         skip the headless pass that checks every scene's text fits the frame
+//
+// The repo's brand (~/.buildnotes/<repo>/brand.json, scripts/brand.mjs) sets the colours, fonts and a logo in
+// the top corner; the script's "brand" overrides it: "brand": { "colors": { "light": { "accent": "#1a7f4b" } } },
+// a path to another brand file, or false.
 //
 // The script can set the export's defaults once, so a rebuild needs no flags: "output": { "name": "q4-recap",
 // "theme": "dark", "size": 1280, "fps": 24 }. A flag still wins.
@@ -33,6 +38,7 @@ import { spawnSync } from "node:child_process";
 import { basename, dirname, extname, join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { exportName, exportStem, slugify } from "./names.mjs";
+import { applyBrand, loadBrand } from "./brand.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const TEMPLATE = join(here, "../assets/motion.html");
@@ -103,13 +109,19 @@ export function imageSize(buf) {
 // Check a script and resolve it: each scene gets its length, each image its size.
 // Returns { cut, errors, warnings, images } where images maps each path in the script to its file.
 // With { deck: true } the script is checked as slides: no running-time warning, and cut.deck is set.
-export function check(input, base, { deck = false } = {}) {
+// The brand is the repo's brand.json (the work dir's parent; scripts/brand.mjs) with the script's "brand"
+// over it; `brand` names another file, or false for none. It comes back as `brand`, null when there is none.
+export function check(input, base, { deck = false, brand: brandFile } = {}) {
   const errors = [], warnings = [], images = {};
   const cut = structuredClone(input);
   const err = (i, m) => errors.push(i == null ? m : `scene ${i + 1}: ${m}`);
   const warn = (i, m) => warnings.push(i == null ? m : `scene ${i + 1}: ${m}`);
   if (!cut.title) err(null, `the script needs a "title" (the post's title)`);
   if (deck) cut.deck = true;
+  const b = loadBrand({ dir: base, base, file: brandFile || undefined, spec: brandFile === false ? false : cut.brand });
+  errors.push(...b.errors); warnings.push(...b.warnings);
+  const brand = b.brand;
+  delete cut.brand;
   const o = cut.output;
   if (o != null) {
     const bad = (k, m) => err(null, `"output.${k}": ${m}`);
@@ -122,7 +134,7 @@ export function check(input, base, { deck = false } = {}) {
       if (o.fps != null && !(o.fps >= 1 && o.fps <= 60)) bad("fps", "1 to 60");
     }
   }
-  if (!Array.isArray(cut.scenes) || !cut.scenes.length) { err(null, `the script needs "scenes"`); return { cut, errors, warnings, images }; }
+  if (!Array.isArray(cut.scenes) || !cut.scenes.length) { err(null, `the script needs "scenes"`); return { cut, errors, warnings, images, brand }; }
   const n = cut.scenes.length;
   if (n < 5 || n > 9) warn(null, `${n} scenes: a cut usually has 5 to 9 (a title, the problem, one scene per idea, how to try it)`);
 
@@ -230,7 +242,7 @@ export function check(input, base, { deck = false } = {}) {
   const total = cut.scenes.reduce((a, d) => a + (d.dur || 0), 0);
   cut.total = round(total);
   if (total > 75 && !deck) warn(null, `${Math.round(total)} s in all; aim for under a minute. Cut a scene before shortening the rest`);
-  return { cut, errors, warnings, images };
+  return { cut, errors, warnings, images, brand };
 }
 
 // Settings a script may carry in "output", each the default for the flag of the same name.
@@ -251,14 +263,16 @@ const json = (v) => JSON.stringify(v).replace(/</g, "\\u003c");
 const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
 // The page: the template with the script and its images filled in, and the authoring notes dropped.
-export function build(cut, images, template = readFileSync(TEMPLATE, "utf8")) {
+// A brand (from check) is written in after the template's styles; without one the template is as it was.
+export function build(cut, images, template = readFileSync(TEMPLATE, "utf8"), brand = null) {
   const assets = {};
   for (const [path, file] of Object.entries(images)) assets[path] = `data:${TYPES[extname(file).toLowerCase()]};base64,${readFileSync(file).toString("base64")}`;
-  return template
+  const page = template
     .replace(/<title>[^<]*<\/title>/, `<title>${esc(cut.title)}</title>`)
     .replace(/<!--[\s\S]*?-->\n?/g, "")
     .replace(/(<script type="application\/json" id="assets">)[\s\S]*?(<\/script>)/, (_, a, b) => a + json(assets) + b)
     .replace(/(<script type="application\/json" id="cut">)[\s\S]*?(<\/script>)/, (_, a, b) => a + json(cut) + b);
+  return brand ? applyBrand(page, brand, "motion") : page;
 }
 
 // What to export: the whole reel, or one scene as a clip; the clip's place on the timeline, and the scale
@@ -322,15 +336,15 @@ async function renderCheck(page) {
 async function main(argv) {
   const has = (k) => argv.includes(`--${k}`);
   const opt = (k) => { const i = argv.indexOf(`--${k}`); return i >= 0 ? argv[i + 1] : undefined; };
-  const file = argv.find((a, i) => !a.startsWith("--") && !["--out", "--theme", "--fps", "--at", "--scene", "--size", "--name"].includes(argv[i - 1]));
+  const file = argv.find((a, i) => !a.startsWith("--") && !["--out", "--theme", "--fps", "--at", "--scene", "--size", "--name", "--brand"].includes(argv[i - 1]));
   if (!file || has("help")) {
-    console.error("usage: motion.mjs <motion.json> [--check] [--mp4 | --webm | --gif] [--poster [--at s]] [--scene n] [--size px] [--out page.html] [--theme light|dark] [--fps n] [--name slug] [--no-render]");
+    console.error("usage: motion.mjs <motion.json> [--check] [--mp4 | --webm | --gif] [--poster [--at s]] [--scene n] [--size px] [--out page.html] [--theme light|dark] [--fps n] [--name slug] [--brand file | --no-brand] [--no-render]");
     return has("help") ? 0 : 2;
   }
   const base = dirname(resolve(file));
   let input;
   try { input = JSON.parse(readFileSync(file, "utf8")); } catch (e) { console.error(`can't read ${file}: ${e.message}`); return 1; }
-  const { cut, errors, warnings, images } = check(input, base);
+  const { cut, errors, warnings, images, brand } = check(input, base, { brand: has("no-brand") ? false : opt("brand") && resolve(opt("brand")) });
   for (const w of warnings) console.error(`warning: ${w}`);
   for (const e of errors) console.error(`error: ${e}`);
   if (errors.length) return 1;
@@ -339,9 +353,9 @@ async function main(argv) {
 
   const page = resolve(opt("out") ?? join(base, "motion.html"));
   try { addClips(cut, images); } catch (e) { console.error(`error: ${e.message}`); return 1; }
-  const html = build(cut, images);
+  const html = build(cut, images, undefined, brand);
   writeFileSync(page, html);
-  console.log(`wrote ${page} (${cut.scenes.length} scenes, ${cut.total} s, ${Math.round(html.length / 1024)} KB)`);
+  console.log(`wrote ${page} (${cut.scenes.length} scenes, ${cut.total} s, ${Math.round(html.length / 1024)} KB${brand ? `, ${brand.name || "the"} brand` : ""})`);
   if (!has("no-render")) {
     const problems = await renderCheck(page);
     for (const p of problems) console.error(`warning: ${p}`);

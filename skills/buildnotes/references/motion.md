@@ -67,6 +67,8 @@ When the feature makes something that moves (a video, an animation, a walkthroug
 "output": { "name": "q4-walkthrough-recap", "theme": "dark", "size": 1280 }
 ```
 
+The repo's brand ([visuals.md](visuals.md#brand)) sets the cut's colours, fonts and a logo in the top corner of every scene, and the title and end cards take its hero colour. `brand` (optional) changes it for this cut: an object merged over the repo's `brand.json` (`{ "colors": { "light": { "hero": "#14532d" } } }`), a path to another brand file, or `false` for the default look. `--brand <file>` and `--no-brand` do the same from the command line.
+
 Every scene takes `kind`, an optional `label` (top right, usually the chapter: `"02 · What counts as impact"`), and an optional `dur` in seconds. Leave `dur` out: `motion.mjs` sets each scene's length from its motion and from how long its words take to read (a line at about 3.5 words a second, the rest skimmed at about 5). Most scenes take kicker, headline and sub as below.
 
 | Kind | Fields |
@@ -111,6 +113,6 @@ Publish `motion.html` as its own private Artifact, titled like the post, next to
 
 ## Limits
 
-- One look: the Plain style, light and dark. The page doesn't follow the post's field-notes style or a brand yet.
+- One look: the Plain style, light and dark, in the repo's brand when it has one. The page doesn't follow the post's field-notes style.
 - 16:9 only. A vertical cut for phones was tried as a prototype and left out. For slides, the same script builds a deck ([deck.md](deck.md)).
 - No sound and no captions track. The words are on screen, so the video works muted.

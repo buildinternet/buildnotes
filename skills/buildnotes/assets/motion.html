@@ -10,7 +10,8 @@
   motion.mjs checks the script, sets each scene's length, embeds the images, and fills the two JSON blocks below.
   Every frame is a function of the clock: each scene draws itself from its own time, so the scrubber is exact
   and export.mjs can step the stage frame by frame. The stage is a fixed 1920×1080 canvas scaled to fit.
-  Tokens follow the post template's Plain style; a brand changes the light and dark blocks only.
+  Tokens follow the post template's Plain style. A brand (the repo's brand.json) is written in after these
+  styles by motion.mjs and deck.mjs; don't edit the tokens here.
 -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

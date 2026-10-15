@@ -36,4 +36,4 @@ Publish `deck.html` as its own private Artifact, titled like the post, next to t
 - One slide per scene. There are no speaker notes and no slide-only scenes; a deck says what the reel says.
 - A slide at rest is the end of its scene. A `statement`'s earlier line stays faded and a `shot` rests on its last region, as in the reel.
 - In the PDF, a `clip` is its last frame and nothing moves.
-- One look, as in the motion cut: the Plain style, light and dark.
+- One look, as in the motion cut: the Plain style, light and dark, in the repo's brand when it has one. The script's `brand`, `--brand <file>` and `--no-brand` work as there.
