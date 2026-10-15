@@ -70,7 +70,7 @@ Pick one in Scope. It sets the reader, the level of detail and the defaults belo
 | Operator and admin tooling | Out | Out, unless it explains a design | In, when it teaches |
 | References | Docs and product links | A short "Further reading" at most | Key PRs and docs, if public |
 
-**Size it to the subject, not the flavor.** Word counts are ceilings with no minimum (release story up to 1,200, build story up to 2,500, deep dive as long as it needs; chapters and visuals per flavor in [story.md](references/story.md#length)). A small change gets a **note**: a paragraph or three, no chapters, no masthead, at most one visual.
+**Size it to the subject, not the flavor.** Word counts are ceilings with no minimum (release story up to 1,200, build story up to 2,500, deep dive usually under 3,000; chapters, visuals and sizing by scope in [story.md](references/story.md#length)). A small change gets a **note**: a paragraph or three, no chapters, no masthead, at most one visual.
 
 **Say when it isn't worth a write-up.** If the subject is thin (a typo, a one-line fix, a dependency bump, a refactor users never see), check the nearby work first. If the thin change is one piece of a bigger idea, that is a change of subject and worth stopping for: say in a sentence why the change alone isn't a post, name the bigger idea and the angle you'd lead with, and ask whether to write that instead (check it first with `--pr`). If there is no bigger idea, say plainly it's not worth a post and offer a short note or a changelog line.
 

@@ -143,8 +143,19 @@ These read as generated or as marketing. Rewrite on sight.
 | Note (thin subject) | about 400 | none | 0–1 | 0–1 |
 | Release story | 1,200 | 2–4 | 1–3 | 0–1 |
 | Build story | 2,500 | 4–6 | 3–5 | 0–3 |
-| Deep dive | none | 6–12 | one per chapter, at most | as needed |
+| Deep dive | about 3,000 (soft) | 6–12 | one per chapter, at most | as needed |
 
 Words count running text only, not code, terminals, captions, diagrams or end matter (`lint.mjs` counts this way).
+
+**Size it by the scope of the change.** The flavor sets the ceiling; the scope sets where in the range a post lands. Rough bands, from published posts measured the same way (October 2026):
+
+| Scope | Lands around | For comparison |
+|---|---|---|
+| One option, flag or fix users hit | a note, 150–400 | Cloudflare changelog entries, about 250; one feature's section in an Astro release post, 150–400 |
+| One feature, told to its users | 600–1,200 | Cloudflare product announcements, 950–1,950; Astro minor releases, 600–1,600 for several features |
+| A feature with a design worth explaining | 1,200–2,500 | |
+| One mechanism, investigation or migration | 1,500–2,500, rarely past 3,000 | Cloudflare engineering posts, mostly 1,700–2,600 (a few to 4,600); Astro deep dives, 1,150–1,600 |
+
+A release with several changes adds up its parts, about 150–400 words for each, ranked as in [brief.md](brief.md#zoom-out-first-find-the-angle). A deep dive past 3,000 is usually two posts, or one with chapters that don't serve the headline; `lint.mjs` warns there, and the warning can stand when every chapter earns its place.
 
 The word counts are ceilings and the other columns are guides; none of them is a floor. A post that lands short after cutting the weeds is finished; never pad to reach a number. If the draft runs long, cut beats, not sentences. Three ideas told well beat seven told thinly.
