@@ -28,7 +28,7 @@ jobs:
       - name: Syntax
         run: |
           shopt -s globstar
-          for f in skills/buildnotes/scripts/**/*.mjs dev/**/*.mjs; do
+          for f in skills/buildnotes/scripts/**/*.mjs dev/**/*.mjs site/*.mjs; do
             node --check "$f"
           done
 

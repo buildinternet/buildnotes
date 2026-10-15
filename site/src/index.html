@@ -1,0 +1,366 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>buildnotes</title>
+<meta name="description" content="A skill for coding agents that turns a feature's pull requests into posts and videos about how it was built, and why.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500&family=Martian+Mono:wdth,wght@75..112.5,300..500&family=Shantell+Sans:wght@400;500&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap">
+<style>
+/* Layout: one page, one column of sections. A centred headline, the Sunny example (post, video, a live
+   figure), then what it makes and draws. Field notes palette; drawings in the anatomy component's iso style. */
+:root {
+  --paper: #fcfcfa;
+  --ink: #1f1f1d;
+  --muted: #64645f;
+  --rule: #e3e3dd;
+  --wash: #f1f1ec;
+  --card: #f5f5f1;
+  --accent: #3358d4;
+  --accent-wash: #e7ebf7;
+  --mark: #df004e;
+  --dot: #d8d8d1;
+  --font-display: "Source Serif 4", Georgia, "Times New Roman", serif;
+  --font-body: "Source Serif 4", Georgia, "Times New Roman", serif;
+  --font-mono: "Martian Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-code: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-hand: "Shantell Sans", "Comic Neue", cursive;
+  --font-note: var(--font-body);
+  --font-sans: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --landmark: #f2b81c;
+  --font-label: var(--font-mono);
+  --label-stretch: 87.5%;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #18181a; --ink: #ebe8e1; --muted: #9d9a92; --rule: #2d2c2a; --wash: #222220; --card: #1f1f1e;
+    --accent: #8aa6f5; --accent-wash: #1f2638; --mark: #ff3264; --dot: #3a3934;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #18181a; --ink: #ebe8e1; --muted: #9d9a92; --rule: #2d2c2a; --wash: #222220; --card: #1f1f1e;
+  --accent: #8aa6f5; --accent-wash: #1f2638; --mark: #ff3264; --dot: #3a3934;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--paper); color: var(--ink);
+  font-family: var(--font-sans); font-size: 1rem; line-height: 1.55;
+  padding-inline: 16px; padding-block: 0;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: inherit; text-decoration-color: color-mix(in oklab, var(--ink) 30%, transparent); text-underline-offset: 0.2em; }
+a:hover { text-decoration-color: var(--accent); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
+img, video, svg { max-width: 100%; }
+img, video { display: block; height: auto; }
+p, h1, h2, h3, figure, ul, ol, pre { margin: 0; }
+h1, h2, h3 { text-wrap: balance; font-weight: 600; }
+code { font-family: var(--font-code); font-size: 0.86em; }
+
+.page { max-width: 60rem; margin-inline: auto; padding-block: 0 56px; }
+.label { font-family: var(--font-mono); font-size: 0.6875rem; font-stretch: 87.5%; letter-spacing: 0.02em; color: var(--muted); }
+.plate {
+  background: radial-gradient(circle, var(--dot) 0.9px, transparent 1.2px) 0 0 / 16px 16px, var(--paper);
+  border: 1px solid var(--rule); border-radius: 4px; padding: 20px;
+}
+
+header.top { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 20px; padding-block: 22px; font-size: 0.875rem; }
+header.top a { text-decoration: none; color: var(--muted); }
+header.top a:hover { color: var(--ink); }
+header.top a.name { color: var(--ink); font-weight: 600; }
+header.top nav { display: flex; flex-wrap: wrap; gap: 4px 20px; }
+
+.hero { text-align: center; padding-block: 64px 48px; display: grid; gap: 22px; justify-items: center; grid-template-columns: minmax(0, 1fr); }
+.hero > * { min-width: 0; max-width: 100%; }
+.hero h1 { font-family: var(--font-display); font-size: clamp(2.125rem, 1.4rem + 3.2vw, 3.5rem); line-height: 1.05; letter-spacing: -0.015em; }
+.hero h1 span { display: block; color: var(--muted); }
+.hero p { font-family: var(--font-body); font-size: 1.125rem; color: var(--muted); max-width: 33rem; line-height: 1.5; }
+.cmd {
+  display: flex; align-items: center; gap: 12px; width: 100%; max-width: 34rem; text-align: left;
+  border: 1px solid var(--rule); border-radius: 4px; padding: 8px 8px 8px 12px; background: var(--card);
+}
+.cmd code { flex: 1; min-width: 0; overflow-x: auto; white-space: nowrap; font-size: 0.8125rem; }
+.copy { font-family: var(--font-mono); font-size: 0.6875rem; color: var(--muted); background: none; border: 1px solid var(--rule); border-radius: 3px; padding: 4px 8px; cursor: pointer; }
+.copy:hover { color: var(--ink); border-color: var(--muted); }
+.cmd.sm { max-width: none; padding: 4px 4px 4px 10px; gap: 8px; background: var(--card); }
+.cmd.sm code { font-size: 0.75rem; color: var(--ink); white-space: normal; overflow-wrap: anywhere; line-height: 1.45; }
+.cmd.sm { align-items: flex-start; }
+.cmd.sm .copy { padding: 3px 6px; font-size: 0.625rem; }
+.cmd.wide { max-width: none; }
+.out, .outs > * { min-width: 0; }
+.out { grid-template-columns: minmax(0, 1fr); }
+.cmd.sm { width: 100%; }
+.hero .agents { font-size: 0.8125rem; color: var(--muted); }
+
+section { padding-block: 48px; display: grid; gap: 20px; border-top: 1px solid var(--rule); }
+section > h2 { font-family: var(--font-display); font-size: 1.5rem; }
+.sub { font-family: var(--font-body); font-size: 1.0625rem; color: var(--muted); max-width: 38rem; }
+
+/* Showcase: one feature, three outputs */
+.show-head { display: grid; gap: 6px; }
+.show-head h2 { font-family: var(--font-display); font-size: 1.5rem; }
+.links { display: flex; flex-wrap: wrap; gap: 4px 20px; font-size: 0.875rem; }
+.links a { color: var(--accent); text-decoration: none; }
+.links a:hover { text-decoration: underline; }
+
+/* How it works */
+.drawing { overflow-x: auto; }
+.drawing svg { display: block; min-width: 560px; width: 100%; height: auto; }
+.steps3 { display: grid; gap: 16px; grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 700px) { .steps3 { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.steps3 h3 { font-size: 0.9375rem; }
+.steps3 p { font-size: 0.875rem; color: var(--muted); line-height: 1.5; margin-top: 4px; }
+
+/* Outputs grid */
+.outs { display: grid; gap: 28px 20px; grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 560px) { .outs { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 820px) { .outs { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.out { display: grid; gap: 8px; align-content: start; }
+.out .plate { padding: 10px; display: grid; place-items: center; }
+.out .plate svg { width: 100%; max-width: 11rem; height: auto; display: block; }
+.out h3 { font-family: var(--font-display); font-size: 1.0625rem; font-weight: 600; display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.out p { font-family: var(--font-body); font-size: 0.9375rem; line-height: 1.5; color: var(--muted); }
+.out code { font-size: 0.75rem; color: var(--ink); overflow-wrap: anywhere; }
+.out .tag { font-family: var(--font-mono); font-size: 0.625rem; font-weight: 400; color: var(--mark); border: 1px solid currentColor; border-radius: 3px; padding: 0 5px; }
+.out.soon .plate { border-style: dashed; }
+.out.soon h3, .out.soon code { color: var(--muted); }
+
+/* Tables */
+table { width: 100%; border-collapse: collapse; font-size: 0.9375rem; }
+td { padding: 11px 0; border-bottom: 1px solid var(--rule); vertical-align: baseline; }
+td:first-child { font-family: var(--font-code); font-size: 0.8125rem; width: 12rem; padding-right: 16px; white-space: nowrap; }
+td:last-child { color: var(--muted); }
+@media (max-width: 520px) { td { display: block; padding: 0; border: 0; width: auto; } tr { display: block; padding: 10px 0; border-bottom: 1px solid var(--rule); } }
+
+/* More examples */
+.others { display: grid; gap: 0; border-top: 1px solid var(--rule); }
+.others a { display: grid; grid-template-columns: 6rem minmax(0, 1fr); gap: 16px; align-items: center; padding-block: 14px; border-bottom: 1px solid var(--rule); text-decoration: none; }
+.others img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; object-position: top; border-radius: 3px; border: 1px solid var(--rule); }
+.others h3 { font-family: var(--font-display); font-size: 1.0625rem; }
+.others p { font-family: var(--font-body); font-size: 0.9375rem; color: var(--muted); line-height: 1.45; }
+
+pre.block { font-family: var(--font-code); font-size: 0.8125rem; line-height: 1.7; border: 1px solid var(--rule); border-radius: 4px; padding: 12px 14px; background: var(--card); overflow-x: auto; white-space: pre; }
+pre.block .c { color: var(--muted); }
+
+footer { padding-top: 28px; border-top: 1px solid var(--rule); font-size: 0.8125rem; color: var(--muted); display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 20px; }
+footer a { text-decoration: none; }
+
+/* Post panel: rests on the post's first figure; pointing at it scrolls the whole post past */
+.scroller { position: relative; display: block; aspect-ratio: 16 / 10; overflow: hidden; border: 1px solid var(--rule); border-radius: 4px; background: #fcfcfa; }
+.scroller img { position: absolute; top: 0; left: 0; width: 100%; height: auto; transform: translateY(var(--rest)); transition: transform 0.8s cubic-bezier(.22,1,.36,1); }
+.scroller:hover img, .scroller:focus-visible img { transform: translateY(var(--end)); transition: transform 14s linear; }
+.scroller .hint { position: absolute; right: 8px; bottom: 8px; font: 400 0.625rem/1 var(--font-mono); color: #64645f; background: #fcfcfa; border: 1px solid #e3e3dd; border-radius: 3px; padding: 4px 6px; }
+.two { display: grid; gap: 20px; grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 760px) { .two { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.two figure { display: grid; gap: 10px; align-content: start; }
+.two video { width: 100%; aspect-ratio: 16 / 10; object-fit: contain; background: #000; border-radius: 4px; border: 1px solid var(--rule); }
+.two figcaption { font-size: 0.875rem; color: var(--muted); line-height: 1.45; }
+.two figcaption b { color: var(--ink); font-weight: 600; }
+.live { display: grid; gap: 12px; }
+.live .cap-top { font-family: var(--font-body); font-style: italic; font-size: 0.9375rem; color: var(--muted); }
+.live .plate { padding: 16px; }
+.keys { font-family: var(--font-body); }
+
+/* Isometric drawings: the anatomy component's line and fill rules, for the site's own pictures */
+.iso { display: block; width: 100%; height: auto; overflow: visible; }
+.iso .face { stroke: var(--ink); stroke-width: 0.8; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+.iso .flat { stroke: none; }
+.iso .fp { fill: var(--paper); }
+.iso .f2 { fill: color-mix(in oklab, var(--ink) 16%, var(--paper)); }
+.iso .f3 { fill: color-mix(in oklab, var(--ink) 34%, var(--paper)); }
+.iso .l1 { fill: color-mix(in oklab, var(--accent) 14%, var(--paper)); }
+.iso .l2 { fill: color-mix(in oklab, var(--accent) 34%, var(--paper)); }
+.iso .l3 { fill: var(--accent); }
+.iso .s1 { fill: color-mix(in oklab, var(--ink) 9%, var(--paper)); }
+.iso .s2 { fill: color-mix(in oklab, var(--ink) 14%, var(--paper)); }
+.iso .ls1 { fill: color-mix(in oklab, var(--accent) 34%, var(--paper)); }
+.iso .ls2 { fill: color-mix(in oklab, var(--accent) 48%, var(--paper)); }
+.iso .shadow { fill: color-mix(in oklab, var(--ink) 6%, var(--paper)); }
+.iso .play { fill: var(--accent); }
+.iso .cur { fill: var(--paper); stroke: var(--ink); stroke-width: 0.9; stroke-linejoin: round; }
+.iso .pin circle { fill: var(--paper); stroke: var(--mark); stroke-width: 1.1; }
+.iso .pin text { font: 500 8px var(--font-hand); fill: var(--mark); text-anchor: middle; }
+.iso .route { fill: none; stroke: var(--accent); stroke-width: 1.4; stroke-linecap: round; stroke-dasharray: 2 5; }
+.iso .tip { fill: none; stroke: var(--accent); stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
+.iso .dot { fill: var(--accent); stroke: var(--paper); stroke-width: 1.5; }
+.iso .name { font: 500 13px var(--font-hand); fill: var(--ink); }
+.iso .file { font: 400 9px var(--font-code); fill: var(--muted); }
+.drawing .iso { min-width: 560px; }
+.out .plate { height: 9rem; }
+.out .plate .iso { width: 100%; height: 7.5rem; }
+@media (prefers-reduced-motion: reduce) {
+  .iso .dot { display: none; }
+  .scroller:hover img, .scroller:focus-visible img { transform: translateY(var(--rest)); transition: none; }
+}
+.vh { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+section > * { min-width: 0; }
+
+/* template: keyed-anatomy */
+
+</style>
+</head>
+<body>
+
+<div class="page">
+  <header class="top">
+    <a class="name" href="#top" id="top">buildnotes</a>
+    <nav aria-label="Site">
+      <a href="#example">Example</a>
+      <a href="#how">How it works</a>
+      <a href="#makes">Outputs</a>
+      <a href="#install">Install</a>
+      <a href="https://github.com/buildinternet/buildnotes">GitHub</a>
+    </nav>
+  </header>
+
+  <div class="hero">
+    <h1>Turn pull requests into posts and videos worth sharing. <span>How it was built, and why.</span></h1>
+    <p>A skill for coding agents. It reads a feature's issues, PRs and reviews, and finds the few decisions that shaped it.</p>
+    <div class="cmd"><code data-copy>npx skills add buildinternet/buildnotes</code><button class="copy" type="button">copy</button></div>
+    <p class="agents">For Claude Code, Codex and OpenCode</p>
+  </div>
+
+  <section id="example" aria-labelledby="ex-h">
+    <div class="show-head">
+      <p class="label">Example · Sunny</p>
+      <h2 id="ex-h">Walkthrough videos, written up</h2>
+      <p class="sub">Sunny is a furniture and space planner. From the pull requests behind one feature, buildnotes made these:</p>
+    </div>
+    <div class="two">
+      <figure>
+        <a class="scroller" href="examples/walkthrough-videos/post.html" style="--rest:-21.4%;--end:-90.8%" aria-label="The post, opened at its first figure. Point at it to scroll through the whole post.">
+          <img src="assets/sunny-post-full.webp" alt="The Sunny post, at chapter 1's figure: the camera's route drawn over the room's plan, with five numbered stops and their times." loading="lazy">
+          <span class="hint">point to scroll</span>
+        </a>
+        <figcaption><b>The post.</b> Five chapters, each with a figure drawn for it.</figcaption>
+      </figure>
+      <figure>
+        <video src="examples/walkthrough-videos/motion.mp4" autoplay muted loop playsinline aria-label="The 52-second video cut of the post."></video>
+        <figcaption><b>The video.</b> The same story in 52 seconds.</figcaption>
+      </figure>
+    </div>
+    <figure class="live">
+      <p class="cap-top">A frame from chapter 2. Point at a number.</p>
+      <div class="plate"><!-- figure anatomy examples/walkthrough-videos/viz/frame-anatomy.json -->
+</div>
+    </figure>
+
+    <div class="links"><a href="examples/walkthrough-videos/post.html">Read the post</a><a href="examples/walkthrough-videos/motion.mp4">Watch the video</a><a href="https://github.com/buildinternet/buildnotes/blob/main/examples/walkthrough-videos/plan.md">See the plan behind it</a></div>
+  </section>
+
+  <section id="how" aria-labelledby="how-h">
+    <h2 id="how-h">How it works</h2>
+    <div class="plate drawing"><!-- iso pipeline --></div>
+    <div class="steps3">
+      <div><h3>Gather</h3><p>Reads the issues, PRs, commits and reviews.</p></div>
+      <div><h3>Plan</h3><p>Picks the few decisions worth a chapter.</p></div>
+      <div><h3>Write and check</h3><p>Draws the figures, writes it up, and checks it.</p></div>
+    </div>
+  </section>
+
+  <section id="makes" aria-labelledby="mk-h">
+    <h2 id="mk-h">What it makes</h2>
+    <p class="sub">Ask in plain words, inside the repo. The first word can name the output.</p>
+    <div class="outs">
+  <div class="out">
+    <div class="plate"><!-- iso post --></div>
+    <h3>Post</h3>
+    <p>The default: chapters, drawn figures and real code. Use the page as is, or take it to your own site.</p>
+    <div class="cmd sm"><code data-copy>/buildnotes post how we built preview links</code><button class="copy" type="button">copy</button></div>
+  </div>
+  <div class="out">
+    <div class="plate"><!-- iso video --></div>
+    <h3>Video</h3>
+    <p>The post as a reel that plays itself in under a minute.</p>
+    <div class="cmd sm"><code data-copy>/buildnotes video tech explainer of our latest PR</code><button class="copy" type="button">copy</button></div>
+  </div>
+  <div class="out">
+    <div class="plate"><!-- iso deep --></div>
+    <h3>Technical deep dive</h3>
+    <p>For engineers: how it works inside, and the trade-offs.</p>
+    <div class="cmd sm"><code data-copy>/buildnotes a technical deep dive on the sync engine</code><button class="copy" type="button">copy</button></div>
+  </div>
+  <div class="out">
+    <div class="plate"><!-- iso release --></div>
+    <h3>Release story</h3>
+    <p>For users: what's new and how to try it.</p>
+    <div class="cmd sm"><code data-copy>/buildnotes a release story for the rate-limit work</code><button class="copy" type="button">copy</button></div>
+  </div>
+  <div class="out">
+    <div class="plate"><!-- iso figures --></div>
+    <h3>Figures</h3>
+    <p>Any figure on its own, as an image, GIF, video or SVG.</p>
+    <div class="cmd sm"><code data-copy>node scripts/export.mjs post.html --figure 2 --svg</code><button class="copy" type="button">copy</button></div>
+  </div>
+  <div class="out soon">
+    <div class="plate"><!-- iso deck --></div>
+    <h3>Deck <span class="tag">not yet</span></h3>
+    <p>Slides you click through.</p>
+  </div>
+</div>
+  </section>
+
+  <section aria-labelledby="dr-h">
+    <h2 id="dr-h">What it draws</h2>
+    <p class="sub">Drawn from measurements, not sketched.</p>
+    <figure class="live">
+      <p class="cap-top">From the weekly digests example. Point at a part to lift it, or take it apart.</p>
+      <div class="plate"><!-- figure anatomy examples/weekly-digests/viz/card.json -->
+</div>
+    </figure>
+    <table>
+      <tbody>
+        <tr><td>flow · steps</td><td>Boxes and routes, with a dot that travels them</td></tr>
+        <tr><td>options · matrix</td><td>The choice that was made, and what lost</td></tr>
+        <tr><td>delta · line · bars</td><td>A number, and what was measured</td></tr>
+        <tr><td>strip · anatomy</td><td>Screens in rounds, or one screen with its parts named</td></tr>
+        <tr><td>term · code</td><td>Real output and real code from the repo</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section aria-labelledby="more-h">
+    <h2 id="more-h">More examples</h2>
+    <div class="others">
+      <a href="examples/before-after/post.html"><img src=".github/assets/before-after-compare.webp" alt=""><div><h3>Before and after, side by side</h3><p>uploads.sh · post and 47-second video</p></div></a>
+      <a href="examples/weekly-digests/post.html"><img src=".github/assets/digest-keyed.webp" alt=""><div><h3>Weekly Digests, Rebuilt</h3><p>Release Notes Index · post and one-minute video</p></div></a>
+    </div>
+  </section>
+
+  <section id="install" aria-labelledby="in-h">
+    <h2 id="in-h">Install</h2>
+    <p class="sub">Needs Node 22, git and Chrome.</p>
+    <div class="cmd wide"><code data-copy>npx skills add buildinternet/buildnotes</code><button class="copy" type="button">copy</button></div>
+    <p class="sub">Then, inside your repo:</p>
+    <div class="cmd wide"><code data-copy>/buildnotes write up how we built preview links, from PRs 120, 131 and 140</code><button class="copy" type="button">copy</button></div>
+  </section>
+
+  <footer>
+    <span>MIT · a prototype; expect the rules to change</span>
+    <a href="https://github.com/buildinternet/buildnotes">github.com/buildinternet/buildnotes</a>
+  </footer>
+</div>
+
+<script>
+// template: keyed
+
+document.querySelectorAll('.copy').forEach(function (btn) {
+  var code = btn.parentNode.querySelector('[data-copy]');
+  btn.addEventListener('click', function () {
+    function selectIt() { var r = document.createRange(); r.selectNodeContents(code); var s = getSelection(); s.removeAllRanges(); s.addRange(r); btn.textContent = 'selected'; }
+    try {
+      navigator.clipboard.writeText(code.textContent).then(function () { btn.textContent = 'copied'; setTimeout(function () { btn.textContent = 'copy'; }, 1600); }, selectIt);
+    } catch (e) { selectIt(); }
+  });
+});
+if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
+  document.querySelectorAll('video[autoplay]').forEach(function (v) { v.removeAttribute('autoplay'); v.pause(); v.setAttribute('controls', ''); });
+}
+</script>
+</body>
+</html>

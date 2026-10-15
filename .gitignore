@@ -4,3 +4,4 @@ node_modules/
 runs/
 .context/
 examples/*/export/
+site/dist/
