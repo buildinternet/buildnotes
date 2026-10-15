@@ -34,6 +34,7 @@ node site/build.mjs --url https://buildnotes.releases.sh   # canonical link, og:
 node site/card.mjs                   # re-render the link-preview image, site/assets/og.png (needs Chrome)
 open site/dist/index.html
 npm run site:dev                     # build, then serve it as the Worker does at http://localhost:8787
+# or, in Claude Code desktop, the "site" entry in .claude/launch.json does the same (autoPort: it moves if 8787 is taken)
 npm run deploy                       # build, then deploy (wrangler login, Build Internet account)
 ```
 
