@@ -1,10 +1,10 @@
 // Checks for the website build (site/build.mjs). Run: node --test dev/test/*.test.mjs
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { existsSync, mkdtempSync, rmSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { build, SHARE } from "../../site/build.mjs";
+import { build, SHARE, EXAMPLES, wrapPost } from "../../site/build.mjs";
 import { drawing, NAMES } from "../../site/iso.mjs";
 
 test("the site builds: markers filled, files copied, every command copyable", () => {
@@ -25,9 +25,24 @@ test("the site builds: markers filled, files copied, every command copyable", ()
     assert.match(html, /<code data-copy>npx skills add buildinternet\/buildnotes<\/code>/);
     // local references point at copied files, and .github/assets is published as assets/
     for (const f of files) assert.ok(existsSync(join(out, f)), f);
-    assert.ok(files.includes("examples/walkthrough-videos/post.html"));
     assert.ok(files.includes("assets/digest-keyed.webp"));
     assert.doesNotMatch(html, /\.github\//);
+    assert.match(html, /<html lang="en" data-theme="light">/);
+    // every example is served with its video, and its post is wrapped in a document and the site shell
+    assert.equal(EXAMPLES.length, 3);
+    for (const ex of EXAMPLES) {
+      assert.ok(files.includes(`examples/${ex.slug}/post.html`), ex.slug);
+      assert.ok(files.includes(`examples/${ex.slug}/motion.mp4`), ex.slug);
+      const post = readFileSync(join(out, `examples/${ex.slug}/post.html`), "utf8");
+      assert.match(post, /^<!doctype html>\n<html lang="en" data-theme="light">\n<head>\n<meta charset="utf-8">/);
+      assert.match(post, /<title>[^<]+ · buildnotes example<\/title>/);
+      assert.equal(post.match(/<title>/g).length, 1);
+      assert.match(post, /<header class="site-bar site-top">/);
+      assert.match(post, /<video src="motion\.mp4" controls/);
+      for (const o of EXAMPLES) if (o !== ex) assert.match(post, new RegExp(`href="\\.\\./${o.slug}/post\\.html"`), `${ex.slug} links ${o.slug}`);
+      assert.doesNotMatch(post, /href="\.\.\/${ex.slug}\//);
+    }
+    assert.throws(() => wrapPost("nope", "<style></style>"), /not in EXAMPLES/);
   } finally {
     rmSync(out, { recursive: true, force: true });
   }

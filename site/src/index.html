@@ -1,13 +1,12 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>buildnotes: turn pull requests into posts and videos worth sharing</title>
 <!-- description -->
-<meta name="color-scheme" content="light dark">
-<meta name="theme-color" content="#fcfcfa" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#18181a" media="(prefers-color-scheme: dark)">
+<meta name="color-scheme" content="light">
+<meta name="theme-color" content="#fcfcfa">
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 <!-- share -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -38,6 +37,8 @@
   --font-label: var(--font-mono);
   --label-stretch: 87.5%;
 }
+/* The site is light by default (data-theme="light" on <html>); the dark palette stays for anyone who
+   removes that attribute or sets data-theme="dark". */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --paper: #18181a; --ink: #ebe8e1; --muted: #9d9a92; --rule: #2d2c2a; --wash: #222220; --card: #1f1f1e;
@@ -144,7 +145,10 @@ td:last-child { color: var(--muted); }
 
 /* More examples */
 .others { display: grid; gap: 0; border-top: 1px solid var(--rule); }
-.others a { display: grid; grid-template-columns: 6rem minmax(0, 1fr); gap: 16px; align-items: center; padding-block: 14px; border-bottom: 1px solid var(--rule); text-decoration: none; }
+.others > div { display: grid; grid-template-columns: 6rem minmax(0, 1fr); gap: 16px; align-items: center; padding-block: 14px; border-bottom: 1px solid var(--rule); }
+.others > div > div { display: grid; gap: 4px; }
+.others h3 a { color: var(--ink); text-decoration: none; }
+.others h3 a:hover { text-decoration: underline; }
 .others img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; object-position: top; border-radius: 3px; border: 1px solid var(--rule); }
 .others h3 { font-family: var(--font-display); font-size: 1.0625rem; }
 .others p { font-family: var(--font-body); font-size: 0.9375rem; color: var(--muted); line-height: 1.45; }
@@ -153,7 +157,8 @@ pre.block { font-family: var(--font-code); font-size: 0.8125rem; line-height: 1.
 pre.block .c { color: var(--muted); }
 
 footer { padding-top: 28px; border-top: 1px solid var(--rule); font-size: 0.8125rem; color: var(--muted); display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 20px; }
-footer a { text-decoration: none; }
+footer a { color: var(--ink); text-decoration: none; }
+footer a:hover { text-decoration: underline; }
 
 /* Post panel: rests on the post's first figure; pointing at it scrolls the whole post past */
 .scroller { position: relative; display: block; aspect-ratio: 16 / 10; overflow: hidden; border: 1px solid var(--rule); border-radius: 4px; background: #fcfcfa; }
@@ -329,11 +334,11 @@ section > * { min-width: 0; }
     </table>
   </section>
 
-  <section aria-labelledby="more-h">
+  <section id="more" aria-labelledby="more-h">
     <h2 id="more-h">More examples</h2>
     <div class="others">
-      <a href="examples/before-after/post.html"><img src=".github/assets/before-after-compare.webp" alt=""><div><h3>Before and after, side by side</h3><p>uploads.sh · post and 47-second video</p></div></a>
-      <a href="examples/weekly-digests/post.html"><img src=".github/assets/digest-keyed.webp" alt=""><div><h3>Weekly Digests, Rebuilt</h3><p>Release Notes Index · post and one-minute video</p></div></a>
+      <div><a href="examples/before-after/post.html"><img src=".github/assets/before-after-compare.webp" alt=""></a><div><h3><a href="examples/before-after/post.html">Before and after, side by side</a></h3><p>uploads.sh: tag two screenshots and the pull request comment shows them in one row.</p><p class="links"><a href="examples/before-after/post.html">Read the post</a><a href="examples/before-after/motion.mp4">Watch the 47-second video</a></p></div></div>
+      <div><a href="examples/weekly-digests/post.html"><img src=".github/assets/digest-keyed.webp" alt=""></a><div><h3><a href="examples/weekly-digests/post.html">Weekly digests</a></h3><p>Release Notes Index: a card, a replay and one email a week per reader.</p><p class="links"><a href="examples/weekly-digests/post.html">Read the post</a><a href="examples/weekly-digests/motion.mp4">Watch the one-minute video</a></p></div></div>
     </div>
   </section>
 
@@ -346,8 +351,8 @@ section > * { min-width: 0; }
   </section>
 
   <footer>
-    <span>MIT · a prototype; expect the rules to change</span>
-    <a href="https://github.com/buildinternet/buildnotes">github.com/buildinternet/buildnotes</a>
+    <span>MIT · <a href="https://github.com/buildinternet/buildnotes">github.com/buildinternet/buildnotes</a></span>
+    <span>Also from <a href="https://github.com/buildinternet">Build Internet</a>: <a href="https://releases.sh">Release Notes Index</a> · <a href="https://uploads.sh">uploads.sh</a></span>
   </footer>
 </div>
 

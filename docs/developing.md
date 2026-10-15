@@ -54,7 +54,7 @@ Workers Builds deploys it on every push to `main`. The `buildnotes-site` Worker 
 - `<!-- iso post -->` draws one of the site's pictures with [`site/iso.mjs`](../site/iso.mjs), in the anatomy component's style.
 - `/* template: keyed-anatomy */` and `// template: keyed` copy the keyed-figure and anatomy CSS and script from [`template.html`](../skills/buildnotes/assets/template.html), so the live figures behave as they do in a post.
 
-Then it copies every local file the page points at: `site/assets/` from there, `.github/assets/` as `assets/`, and everything else (the example posts and videos) from the repo root. `dev/test/site.test.mjs` builds it into a temp folder.
+Then it copies every local file the page points at: `site/assets/` from there, `.github/assets/` as `assets/`, and everything else from the repo root. Every example in `EXAMPLES` is served whether the page links it or not, as `examples/<name>/post.html` and `motion.mp4`. A post is not copied as is: the committed posts are written for the Artifact viewer, which wraps them in a document, so `wrapPost` adds the doctype, charset and viewport, forces the light theme, and puts a site shell around the post: a bar naming the example with a way back, and a footer with the video, the plan and the other examples. `dev/test/site.test.mjs` builds it into a temp folder.
 
 Link previews: the page's description, Open Graph and Twitter tags come from `SHARE` in `build.mjs`. `og:image` must be an absolute URL, so without `--url` it points at `site/assets/og.png` on GitHub's `main` branch. That image is `site/src/card.html` rendered by `site/card.mjs`: render it again and commit it when the headline or the card figure changes. The favicon is `site/assets/favicon.svg`.
 
