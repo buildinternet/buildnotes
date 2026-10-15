@@ -61,6 +61,12 @@ When the feature makes something that moves (a video, an animation, a walkthroug
 
 `title` is required. `dek` sits under the title on the page, `product` in the top corner of every scene, and `post` (a confirmed public URL, optional) adds a "Read the full post" link. Text is plain; `*words*` are underlined for emphasis.
 
+`output` (optional) sets the exports' defaults once, so a rebuild needs no flags: `name` (the `<story>` part of every file name), `theme` (`light` or `dark`), `size` (the width in pixels) and `fps`. Set `name` when the author names the files, or when the work dir's name wouldn't tell a reader which story a file is from. A flag still wins.
+
+```json
+"output": { "name": "q4-walkthrough-recap", "theme": "dark", "size": 1280 }
+```
+
 Every scene takes `kind`, an optional `label` (top right, usually the chapter: `"02 · What counts as impact"`), and an optional `dur` in seconds. Leave `dur` out: `motion.mjs` sets each scene's length from its motion and from how long its words take to read (a line at about 3.5 words a second, the rest skimmed at about 5). Most scenes take kicker, headline and sub as below.
 
 | Kind | Fields |
@@ -93,9 +99,9 @@ node <skill-dir>/scripts/motion.mjs <work-dir>/motion.json --gif --scene 5 --siz
 
 Building writes `motion.html` with the images embedded (a `clip`'s footage becomes one sheet of frames, which needs `ffmpeg`), then opens it in headless Chrome to check that every scene's text fits the frame. A headline shrinks to fit before it is reported; a reported scene needs fewer words.
 
-`--mp4` (or `--webm`, or `--gif` at half size) writes `<work-dir>/export/motion.mp4` at 1920×1080 and 30 fps. `--poster` writes a still from the end of the title scene, for a thumbnail; `--at <seconds>` picks another moment. The video opens on that same frame, held for one frame, because GitHub and most players show the first frame before play and ignore a poster; the MP4 also carries it as cover art for Finder and QuickTime. `--theme dark` exports the dark theme. Export needs Chrome and `ffmpeg` and takes a couple of minutes for a one-minute cut.
+`--mp4` (or `--webm`, or `--gif` at half size) writes `<work-dir>/export/<story>-motion.mp4` at 1920×1080 and 30 fps. `<story>` is the work dir's name without its date (`walkthrough-videos`), or the cut's title when the dir has a generic name; `--name <slug>` sets it, so exports dragged out of the folder still say which story they belong to. `--poster` writes a still from the end of the title scene, for a thumbnail; `--at <seconds>` picks another moment. The video opens on that same frame, held for one frame, because GitHub and most players show the first frame before play and ignore a poster; the MP4 also carries it as cover art for Finder and QuickTime. `--theme dark` exports the dark theme. Export needs Chrome and `ffmpeg` and takes a couple of minutes for a one-minute cut.
 
-`--scene <n>` exports one scene alone, counted from 1, as `export/motion-scene-<n>.<ext>`. It stops just before the scene fades out, so a GIF loops on the scene. A clip is the right size for a README, a reply in a thread or a changelog entry; the `morph` and `flow` scenes make the best ones. `--size <px>` sets the width (default 1920, or 960 for a GIF): `--gif --scene 5 --size 720` gives a clip of a few hundred kilobytes. With `--poster`, `--scene` gives that scene's last frame.
+`--scene <n>` exports one scene alone, counted from 1, as `export/<story>-motion-scene-<n>.<ext>`. It stops just before the scene fades out, so a GIF loops on the scene. A clip is the right size for a README, a reply in a thread or a changelog entry; the `morph` and `flow` scenes make the best ones. `--size <px>` sets the width (default 1920, or 960 for a GIF): `--gif --scene 5 --size 720` gives a clip of a few hundred kilobytes. With `--poster`, `--scene` gives that scene's last frame.
 
 Look at the result before handing it over: open `motion.html`, play it once, and scrub to the end of each scene. Check that every ring and label sits on the part it names.
 
@@ -106,5 +112,5 @@ Publish `motion.html` as its own private Artifact, titled like the post, next to
 ## Limits
 
 - One look: the Plain style, light and dark. The page doesn't follow the post's field-notes style or a brand yet.
-- 16:9 only. A vertical cut for phones and a click-through deck were tried as prototypes and left out.
+- 16:9 only. A vertical cut for phones was tried as a prototype and left out. For slides, the same script builds a deck ([deck.md](deck.md)).
 - No sound and no captions track. The words are on screen, so the video works muted.

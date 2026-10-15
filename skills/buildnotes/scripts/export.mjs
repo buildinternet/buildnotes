@@ -11,7 +11,9 @@
 //
 // Options:
 //   --select <css>      export this element instead of a numbered figure
-//   --out <path>        default: <post dir>/export/fig-<n>.<ext>
+//   --out <path>        default: <post dir>/export/<story>-fig-<n>.<ext>, or <story>-selection.<ext> with --select;
+//                       <story> is the work dir's name without its date, else the post's title (walkthrough-videos-fig-2.png)
+//   --name <slug>       set the <story> part of the default name yourself
 //   --theme light|dark  default light
 //   --width <px>        page width; 390 gives the phone layout (a flow's stacked drawing). Default 1280
 //   --scale <n>         pixel density; default 2 (1 for GIFs, to keep them small)
@@ -41,6 +43,7 @@ import { tmpdir } from "node:os";
 import { basename, dirname, join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { openPage } from "./chrome.mjs";
+import { exportName, exportStem } from "./names.mjs";
 
 const argv = process.argv.slice(2);
 const has = (k) => argv.includes(`--${k}`);
@@ -90,7 +93,10 @@ try {
   const found = await page.evaluate(`(() => { const el = ${target}; if (!el) return null; window.__target = el; el.scrollIntoView({ block: "center" }); return true; })()`);
   if (!found) await done(1, select ? `nothing matches ${select}` : `there is no figure ${figure}; run with --list`);
 
-  const out = resolve(opt("out") ?? join(dirname(resolve(file)), "export", `${select ? "selection" : `fig-${figure}`}.${format}`));
+  const postDir = dirname(resolve(file));
+  // The title names the story when the folder doesn't (a temp dir, "out").
+  const title = await page.evaluate(`document.title || document.querySelector("h1")?.textContent || ""`);
+  const out = resolve(opt("out") ?? join(postDir, "export", exportName(exportStem({ name: opt("name"), dir: postDir, title }), select ? "selection" : `fig-${figure}`, format)));
   mkdirSync(dirname(out), { recursive: true });
 
   if (format === "svg") {

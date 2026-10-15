@@ -4,7 +4,7 @@
 //
 // Usage:
 //   node motion.mjs <motion.json>                      check the script, write motion.html next to it
-//   node motion.mjs <motion.json> --mp4 | --webm | --gif   and export the reel to <dir>/export/motion.<ext>
+//   node motion.mjs <motion.json> --mp4 | --webm | --gif   and export the reel to <dir>/export/<story>-motion.<ext>
 //   node motion.mjs <motion.json> --poster [--at <s>]  and one still frame as PNG (default: the end of the first scene)
 //   node motion.mjs <motion.json> --gif --scene 5 --size 720   one scene as a short clip, for a README or a reply
 //   node motion.mjs <motion.json> --check              check the script only; exit 1 on an error
@@ -13,9 +13,13 @@
 //   --out <page.html>   default: motion.html next to the script
 //   --theme light|dark  for the export; default light
 //   --fps <n>           for the export; default 30 (15 for a GIF)
-//   --scene <n>         export scene n alone (from 1), to <dir>/export/motion-scene-<n>.<ext>; with --poster, its last frame
+//   --scene <n>         export scene n alone (from 1), to <dir>/export/<story>-motion-scene-<n>.<ext>; with --poster, its last frame
 //   --size <px>         width of the export; default 1920 (960 for a GIF). Height follows at 16:9
+//   --name <slug>       the <story> part of export names; default: the work dir's name without its date, else the title
 //   --no-render         skip the headless pass that checks every scene's text fits the frame
+//
+// The script can set the export's defaults once, so a rebuild needs no flags: "output": { "name": "q4-recap",
+// "theme": "dark", "size": 1280, "fps": 24 }. A flag still wins.
 //
 // The script format and the scene kinds are in references/motion.md. Each scene's length comes from its
 // kind and from how long its words take to read; a "dur" in the script overrides it. Image paths are
@@ -28,6 +32,7 @@ import { tmpdir } from "node:os";
 import { spawnSync } from "node:child_process";
 import { basename, dirname, extname, join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { exportName, exportStem, slugify } from "./names.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const TEMPLATE = join(here, "../assets/motion.html");
@@ -97,12 +102,26 @@ export function imageSize(buf) {
 
 // Check a script and resolve it: each scene gets its length, each image its size.
 // Returns { cut, errors, warnings, images } where images maps each path in the script to its file.
-export function check(input, base) {
+// With { deck: true } the script is checked as slides: no running-time warning, and cut.deck is set.
+export function check(input, base, { deck = false } = {}) {
   const errors = [], warnings = [], images = {};
   const cut = structuredClone(input);
   const err = (i, m) => errors.push(i == null ? m : `scene ${i + 1}: ${m}`);
   const warn = (i, m) => warnings.push(i == null ? m : `scene ${i + 1}: ${m}`);
   if (!cut.title) err(null, `the script needs a "title" (the post's title)`);
+  if (deck) cut.deck = true;
+  const o = cut.output;
+  if (o != null) {
+    const bad = (k, m) => err(null, `"output.${k}": ${m}`);
+    if (typeof o !== "object" || Array.isArray(o)) err(null, `"output" is an object: { "name", "theme", "size", "fps" }`);
+    else {
+      for (const k of Object.keys(o)) if (!OUTPUT.includes(k)) bad(k, `unknown setting (settings: ${OUTPUT.join(", ")})`);
+      if (o.name != null && !slugify(o.name, 8)) bad("name", "needs letters or digits");
+      if (o.theme != null && !["light", "dark"].includes(o.theme)) bad("theme", "light or dark");
+      if (o.size != null && !(o.size >= 160 && o.size <= 3840)) bad("size", "a width from 160 to 3840");
+      if (o.fps != null && !(o.fps >= 1 && o.fps <= 60)) bad("fps", "1 to 60");
+    }
+  }
   if (!Array.isArray(cut.scenes) || !cut.scenes.length) { err(null, `the script needs "scenes"`); return { cut, errors, warnings, images }; }
   const n = cut.scenes.length;
   if (n < 5 || n > 9) warn(null, `${n} scenes: a cut usually has 5 to 9 (a title, the problem, one scene per idea, how to try it)`);
@@ -210,8 +229,22 @@ export function check(input, base) {
   if (cut.scenes.at(-1)?.kind !== "end") warn(null, `the last scene is usually an "end": how to try it`);
   const total = cut.scenes.reduce((a, d) => a + (d.dur || 0), 0);
   cut.total = round(total);
-  if (total > 75) warn(null, `${Math.round(total)} s in all; aim for under a minute. Cut a scene before shortening the rest`);
+  if (total > 75 && !deck) warn(null, `${Math.round(total)} s in all; aim for under a minute. Cut a scene before shortening the rest`);
   return { cut, errors, warnings, images };
+}
+
+// Settings a script may carry in "output", each the default for the flag of the same name.
+const OUTPUT = ["name", "theme", "size", "fps"];
+
+// Each clip scene's footage becomes one sprite sheet in the page. Changes cut and images in place.
+export function addClips(cut, images) {
+  for (const d of cut.scenes.filter((x) => x.kind === "clip")) {
+    const sp = clipSprite(d);
+    const key = `${d.src}#${d.from ?? 0}-${d.to}`;
+    images[key] = sp.sheet;
+    Object.assign(d, { sprite: key, frames: sp.frames, fps: sp.fps, cols: sp.cols, rows: sp.rows, size: sp.size });
+    delete d.file;
+  }
 }
 
 const json = (v) => JSON.stringify(v).replace(/</g, "\\u003c");
@@ -265,23 +298,33 @@ export function clipSprite(d) {
   return { sheet, frames, fps, cols, rows, size: [w, h] };
 }
 
-// Open the page headless and ask it which scenes' text didn't fit, and which images didn't load.
-async function renderCheck(page) {
+// Open the page headless, at the width the cut is checked at, once its fonts have loaded. Null without Chrome.
+export async function openCut(page, opts = {}) {
   const { openPage, chromePath } = await import("./chrome.mjs");
-  if (!chromePath()) return ["no Chrome found, so nothing checked that the text fits (set CHROME_PATH)"];
-  const tab = await openPage(pathToFileURL(page).href, { width: EXPORT.width, height: 900, scale: 1 });
-  try {
-    await tab.evaluate(`document.fonts.ready.then(() => new Promise((r) => setTimeout(r, 300)))`);
-    return await tab.evaluate(`[...window.__cut.problems, ...[...document.images].filter((i) => !i.naturalWidth).map((i) => "an image didn't load: " + i.src.slice(0, 60))]`);
-  } finally { await tab.close(); }
+  if (!chromePath()) return null;
+  const tab = await openPage(pathToFileURL(page).href, { width: EXPORT.width, height: 900, scale: 1, ...opts });
+  await tab.evaluate(`document.fonts.ready.then(() => new Promise((r) => setTimeout(r, 300)))`);
+  return tab;
+}
+
+// Which scenes' text didn't fit an open page's frame, and which images didn't load. `label` names a scene.
+export const problems = (tab, label = "scene") =>
+  tab.evaluate(`[...window.__cut.problems.map((p) => p.replace(/^scene/, ${JSON.stringify(label)})), ...[...document.images].filter((i) => !i.naturalWidth).map((i) => "an image didn't load: " + i.src.slice(0, 60))]`);
+
+const NO_CHROME = "no Chrome found, so nothing checked that the text fits (set CHROME_PATH)";
+
+async function renderCheck(page) {
+  const tab = await openCut(page);
+  if (!tab) return [NO_CHROME];
+  try { return await problems(tab); } finally { await tab.close(); }
 }
 
 async function main(argv) {
   const has = (k) => argv.includes(`--${k}`);
   const opt = (k) => { const i = argv.indexOf(`--${k}`); return i >= 0 ? argv[i + 1] : undefined; };
-  const file = argv.find((a, i) => !a.startsWith("--") && !["--out", "--theme", "--fps", "--at", "--scene", "--size"].includes(argv[i - 1]));
+  const file = argv.find((a, i) => !a.startsWith("--") && !["--out", "--theme", "--fps", "--at", "--scene", "--size", "--name"].includes(argv[i - 1]));
   if (!file || has("help")) {
-    console.error("usage: motion.mjs <motion.json> [--check] [--mp4 | --webm | --gif] [--poster [--at s]] [--scene n] [--size px] [--out page.html] [--theme light|dark] [--fps n] [--no-render]");
+    console.error("usage: motion.mjs <motion.json> [--check] [--mp4 | --webm | --gif] [--poster [--at s]] [--scene n] [--size px] [--out page.html] [--theme light|dark] [--fps n] [--name slug] [--no-render]");
     return has("help") ? 0 : 2;
   }
   const base = dirname(resolve(file));
@@ -295,15 +338,7 @@ async function main(argv) {
   if (has("check")) { console.log(`ok: ${cut.scenes.length} scenes, ${cut.total} s (${lengths})`); return 0; }
 
   const page = resolve(opt("out") ?? join(base, "motion.html"));
-  for (const d of cut.scenes.filter((x) => x.kind === "clip")) {
-    try {
-      const sp = clipSprite(d);
-      const key = `${d.src}#${d.from ?? 0}-${d.to}`;
-      images[key] = sp.sheet;
-      Object.assign(d, { sprite: key, frames: sp.frames, fps: sp.fps, cols: sp.cols, rows: sp.rows, size: sp.size });
-      delete d.file;
-    } catch (e) { console.error(`error: ${e.message}`); return 1; }
-  }
+  try { addClips(cut, images); } catch (e) { console.error(`error: ${e.message}`); return 1; }
   const html = build(cut, images);
   writeFileSync(page, html);
   console.log(`wrote ${page} (${cut.scenes.length} scenes, ${cut.total} s, ${Math.round(html.length / 1024)} KB)`);
@@ -312,12 +347,15 @@ async function main(argv) {
     for (const p of problems) console.error(`warning: ${p}`);
   }
 
-  const theme = opt("theme") ?? "light";
+  // A flag beats the script's "output" settings, which beat the defaults.
+  const set = (k) => opt(k) ?? cut.output?.[k];
+  const theme = set("theme") ?? "light";
   const video = ["mp4", "webm", "gif"].find(has);
   let plan;
-  try { plan = exportPlan(cut, { scene: opt("scene"), size: opt("size"), gif: video === "gif" }); } catch (e) { console.error(`error: ${e.message}`); return 2; }
+  try { plan = exportPlan(cut, { scene: opt("scene"), size: set("size"), gif: video === "gif" }); } catch (e) { console.error(`error: ${e.message}`); return 2; }
+  const stem = exportStem({ name: set("name"), dir: base, title: cut.title });
   const exportOne = (fmt, extra) => {
-    const out = join(dirname(page), "export", `${basename(page, ".html")}${plan.suffix}.${fmt}`);
+    const out = join(dirname(page), "export", exportName(stem, `motion${plan.suffix}`, fmt));
     const args = [join(here, "export.mjs"), page, "--select", "#stage", `--${fmt}`, "--width", String(EXPORT.width), "--pad", "0", "--theme", theme, "--out", out, ...extra];
     const r = spawnSync(process.execPath, args, { stdio: ["ignore", "inherit", "inherit"] });
     return r.status ?? 1;
@@ -325,7 +363,7 @@ async function main(argv) {
   if (video) {
     // A video opens on the poster frame, since GitHub and most players show frame 0 before play.
     // A GIF at full size is tens of megabytes; half size at 15 fps keeps it shareable.
-    const status = exportOne(video, ["--scale", String(plan.scale), "--fps", opt("fps") ?? (video === "gif" ? "15" : "30"), "--from", String(plan.from), "--seconds", String(plan.seconds), ...(video === "gif" ? [] : ["--cover", opt("at") ?? String(plan.at)])]);
+    const status = exportOne(video, ["--scale", String(plan.scale), "--fps", String(set("fps") ?? (video === "gif" ? 15 : 30)), "--from", String(plan.from), "--seconds", String(plan.seconds), ...(video === "gif" ? [] : ["--cover", opt("at") ?? String(plan.at)])]);
     if (status) return status;
   }
   if (has("poster")) {
