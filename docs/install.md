@@ -46,13 +46,14 @@ Claude Code picks up new skills in a running session. Restart OpenCode or Codex 
 
 [`gather.mjs`](../scripts/gather.mjs) calls `gh` for every issue, PR, review thread and search. It does not talk to an MCP server. Without `gh` on the path:
 
-- `--issue`, `--pr` and `--search` fail, and `--prior` comes back empty.
-- Git-only selectors (`--range`, `--since`, `--grep`, `--path`) still work, as long as you pass `--repo owner/name`. The dossier then holds commits only, and the repo's visibility reads as unknown, so the dossier treats it as private.
+- `--issue`, `--pr` and `--search` stop with exit code 2 and one line saying `gh` is missing or not logged in.
+- Git-only selectors (`--range`, `--since`, `--grep`, `--path`) still work. The repo comes from the `origin` remote (https or ssh), or from `--repo owner/name`. The dossier holds commits only; prior, nearby and later work come back empty.
+- The repo's visibility reads as unknown, so the dossier treats it as private. If you confirmed it another way, pass `--visibility public` or `--visibility private` and the dossier records that.
 
 The skill falls back in this order, and says in the hand-off which source it used:
 
 1. **`gh`**, through the gatherer. The full dossier: review threads, linked issues, nearby and prior work, images.
-2. **A GitHub MCP server**, when the agent has one connected. The agent runs the gatherer git-only, then reads the issues, PRs and review comments it needs through the MCP tools, and confirms the repo's visibility there. The story works, but you lose what the dossier computes for you: nearby work, prior work, "since then", story candidates and `--download`.
+2. **A GitHub MCP server**, when the agent has one connected. The agent confirms the repo's visibility there, runs the gatherer git-only with `--visibility`, then reads the issues, PRs and review comments it needs through the MCP tools. The story works, but you lose what the dossier computes for you: nearby work, prior work, "since then", story candidates and `--download`.
 3. **Public GitHub pages**, as a last resort and for public repos only. The agent reads the issue and PR pages on github.com the way it reads any web page. Those pages show less than the API (long threads fold, some review comments hide), so the post leans on what is plainly on the page.
 
 With none of these, the post is built from commit history alone, and is thinner for it.
