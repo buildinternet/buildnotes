@@ -1,0 +1,492 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>buildnotes promo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500;600&family=Shantell+Sans:wght@400;500;600&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap">
+<style>
+/* The promo: a 1920 × 1080 stage that plays itself, in the skill's own output styles. It opens and closes on
+   the motion cut's blue title card (assets/motion.html); in between is the field-notes page, light, marked up
+   in red pen: the one line you type, the site's "how it works" drawing, the post being read, and the cut.
+   render(t) sets every element from the clock, so export.mjs can step it frame by frame: no CSS transitions. */
+:root {
+  --paper: #fcfcfa; --ink: #1f1f1d; --muted: #64645f; --rule: #e3e3dd; --wash: #f1f1ec; --card: #f5f5f1;
+  --accent: #3358d4; --accent-wash: #e7ebf7; --mark: #df004e; --dot: #d8d8d1; --dim: #b9b9b2;
+  --hero: #3358d4; --hero-ink: #ffffff; --hero-muted: rgb(255 255 255 / 0.88);
+  --font-display: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --font-body: "Source Serif 4", Georgia, "Times New Roman", serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  --font-code: var(--font-mono);
+  --font-hand: "Shantell Sans", "Comic Neue", cursive;
+  --font-note: var(--font-body);
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--paper); }
+body { width: 1920px; height: 1080px; overflow: hidden; color: var(--ink); -webkit-font-smoothing: antialiased; }
+#stage, #stage * { transition: none !important; animation: none !important; }
+#stage { position: relative; width: 1920px; height: 1080px; overflow: hidden; background: radial-gradient(circle, var(--dot) 1.2px, transparent 1.6px) 0 0 / 24px 24px, var(--paper); }
+#stage > * { position: absolute; }
+
+/* the motion cut's frame: product top left, the scene's label top right */
+.meta { left: 120px; right: 120px; top: 64px; display: flex; justify-content: space-between; font: 500 22px/1 var(--font-mono); letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+.k { font: 500 26px/1 var(--font-mono); letter-spacing: 0.14em; text-transform: uppercase; color: var(--mark); }
+.hd { font-family: var(--font-display); font-weight: 800; font-stretch: 86%; font-size: 92px; line-height: 0.98; letter-spacing: -0.012em; margin: 26px 0 0; text-wrap: balance; }
+.hd .w { display: inline-block; white-space: pre; }
+.sub { font: 400 36px/1.32 var(--font-body); color: var(--muted); margin: 28px 0 0; text-wrap: pretty; }
+.hand { font: 500 38px/1.1 var(--font-hand); color: var(--mark); white-space: nowrap; transform-origin: 0 50%; }
+.pen { overflow: visible; pointer-events: none; }
+.pen path { fill: none; stroke: var(--mark); stroke-width: 3.2; stroke-linecap: round; stroke-linejoin: round; }
+
+/* the blue title cards */
+.slate { inset: 0; background: var(--hero); color: var(--hero-ink); }
+.slate > * { position: absolute; }
+.slate .meta, .slate .k { color: var(--hero-muted); }
+.slate em { font-style: normal; background: linear-gradient(var(--hero-ink), var(--hero-ink)) 0 94% / var(--u, 0%) 12px no-repeat; }
+.ticks { left: 120px; right: 120px; bottom: 120px; display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; border-top: 2px solid var(--hero-muted); }
+.ticks span { padding-top: 22px; font: 500 26px/1 var(--font-mono); color: var(--hero-muted); white-space: nowrap; }
+.ticks i { position: absolute; top: -14px; width: 4px; height: 28px; margin-left: -2px; background: var(--hero-ink); border-radius: 2px; }
+.pill { display: inline-flex; align-items: center; gap: 22px; background: #fff; color: #161616; border-radius: 999px; padding: 28px 44px; font: 500 40px/1 var(--font-mono); white-space: pre; }
+.pill .p { color: #7a7a7a; }
+.cursor { display: inline-block; width: 3px; height: 1.05em; vertical-align: -0.15em; background: currentColor; margin-left: 2px; }
+
+/* 1 · the command, as the template's command bar */
+#cmd { left: 200px; top: 470px; width: 1520px; height: 120px; transform-origin: 0 0; background: var(--card); border: 1px solid var(--rule); border-radius: 10px; display: flex; align-items: center; padding: 0 44px; gap: 22px; font: 400 38px/1 var(--font-mono); color: color-mix(in oklab, var(--ink) 80%, var(--paper)); white-space: pre; }
+#cmd .gt { color: var(--dim); }
+#cmd b { color: var(--ink); font-weight: 600; }
+#cmd .v { color: var(--accent); }
+
+/* 2 · it does the rest: the site's "how it works" drawing */
+.copy { left: 120px; top: 230px; width: 1680px; }
+#flow { left: 120px; top: 500px; width: 1680px; overflow: visible; }
+
+/* 3 · the post, in the field-notes style */
+#post { left: 0; top: 0; width: 1920px; height: 1080px; overflow: hidden; -webkit-mask-image: linear-gradient(to bottom, transparent 110px, #000 200px); mask-image: linear-gradient(to bottom, transparent 110px, #000 200px); }
+.col { position: relative; margin-left: 520px; width: 880px; padding-top: 200px; padding-bottom: 600px; }
+.col > *, .col section > * { margin: 0; }
+.p-title { font: 600 68px/1.08 var(--font-body); letter-spacing: -0.015em; text-wrap: balance; }
+.p-title .w { display: inline-block; white-space: pre; }
+.p-dek { margin-top: 24px !important; font: 400 31px/1.42 var(--font-body); color: var(--muted); }
+.p-date { margin-top: 22px !important; font: 400 19px/1 var(--font-mono); color: var(--muted); }
+.p-toc { margin-top: 44px !important; padding-top: 34px; border-top: 1px solid var(--rule); display: grid; grid-template-columns: 1fr 1fr; gap: 14px 40px; font: 400 21px/1.35 var(--font-mono); color: var(--ink); }
+.p-toc span { color: var(--muted); margin-right: 14px; }
+.p-ch { margin-top: 80px !important; padding-top: 50px; border-top: 1px solid var(--rule); position: relative; }
+.p-ch h2 { font: 600 44px/1.15 var(--font-body); }
+.p-ch .nr { position: absolute; left: -84px; top: 46px; width: 58px; height: 58px; border: 2px solid var(--mark); border-radius: 50%; display: grid; place-items: center; font: 500 20px/1 var(--font-mono); color: var(--ink); }
+.p-body { margin-top: 26px !important; font: 400 29px/1.6 var(--font-body); color: color-mix(in oklab, var(--ink) 88%, var(--paper)); }
+.p-body strong { color: var(--ink); font-weight: 600; }
+.p-fig { margin-top: 40px !important; position: relative; }
+.plate { border: 1px solid var(--rule); border-radius: 6px; background: radial-gradient(circle, var(--dot) 1px, transparent 1.4px) 0 0 / 16px 16px, var(--paper); }
+.p-fig .plate { height: 560px; position: relative; }
+.p-fig .plate svg { position: absolute; left: 250px; top: 30px; height: 500px; width: auto !important; max-width: none !important; }
+.cap { margin-top: 18px; font: 400 22px/1.45 var(--font-body); color: var(--muted); font-style: italic; }
+.cap b { font-style: normal; color: var(--ink); font-weight: 600; margin-right: 6px; }
+.shot { position: relative; }
+.shot img { display: block; width: 880px; height: 495px; border-radius: 6px; border: 1px solid var(--rule); }
+.key { position: absolute; width: 40px; height: 40px; margin: -20px 0 0 -20px; border-radius: 50%; background: var(--ink); color: var(--paper); box-shadow: 0 0 0 3px var(--paper); display: grid; place-items: center; font: 600 18px/1 var(--font-mono); }
+.key.hot { background: var(--mark); color: #fff; }
+.p-find { margin-top: 56px !important; }
+.p-find .label { font: 600 19px/1 var(--font-mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.p-find p { position: relative; margin: 16px 0 0; font: italic 400 36px/1.45 var(--font-body); color: var(--ink); }
+.margin-l { left: 120px; top: 220px; width: 300px; display: grid; gap: 14px; font: 400 21px/1.3 var(--font-mono); color: var(--muted); }
+.margin-l b { color: var(--ink); font-weight: 500; }
+.margin-l .ok::before { content: "✓"; color: #1a7f37; margin-right: 12px; }
+.note { position: absolute; left: 920px; width: 360px; }
+.note .hand { white-space: normal; font-size: 32px; line-height: 1.2; }
+
+/* 4 · the cut */
+#player { left: 780px; top: 196px; width: 1020px; }
+#player canvas { display: block; width: 1020px; height: 574px; border-radius: 10px; border: 1px solid var(--rule); background: #fff; box-shadow: 0 30px 70px -45px rgb(0 0 0 / 0.35); }
+.strip { margin-top: 26px; display: grid; grid-template-columns: repeat(7, 1fr); gap: 12px; }
+.strip img { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 4px; border: 1px solid var(--rule); }
+.strip img.on { outline: 3px solid var(--accent); outline-offset: 2px; }
+.track { position: relative; margin-top: 22px; height: 4px; background: var(--rule); border-radius: 2px; }
+.track .fill { position: absolute; left: 0; top: 0; bottom: 0; background: var(--accent); border-radius: 2px; }
+.time { margin-top: 16px; display: flex; justify-content: space-between; font: 400 20px/1 var(--font-mono); color: var(--muted); }
+
+/* 5 · what it makes: the motion cut's list scene */
+#items { left: 120px; right: 120px; top: 500px; display: grid; grid-template-columns: repeat(5, 1fr); gap: 48px; }
+#items > div { border-top: 4px solid var(--ink); padding-top: 34px; display: grid; gap: 24px; align-content: start; }
+#items .art { height: 170px; display: grid; place-items: center start; }
+#items .art svg { height: 160px; width: auto; max-width: 290px; }
+#items b { font: 700 46px/1.05 var(--font-display); font-stretch: 88%; }
+#items p { margin: 10px 0 0; font: 400 28px/1.3 var(--font-body); color: var(--muted); }
+
+/* the site's isometric drawings (site/src/index.html), with lines heavy enough for 1080p */
+.iso { display: block; overflow: visible; }
+.iso .face { stroke: var(--ink); stroke-width: 1.4; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+.iso .flat { stroke: none; }
+.iso .fp { fill: var(--paper); }
+.iso .f2 { fill: color-mix(in oklab, var(--ink) 16%, var(--paper)); }
+.iso .f3 { fill: color-mix(in oklab, var(--ink) 34%, var(--paper)); }
+.iso .l1 { fill: color-mix(in oklab, var(--accent) 14%, var(--paper)); }
+.iso .l2 { fill: color-mix(in oklab, var(--accent) 34%, var(--paper)); }
+.iso .l3 { fill: var(--accent); }
+.iso .s1 { fill: color-mix(in oklab, var(--ink) 9%, var(--paper)); }
+.iso .s2 { fill: color-mix(in oklab, var(--ink) 14%, var(--paper)); }
+.iso .ls1 { fill: color-mix(in oklab, var(--accent) 34%, var(--paper)); }
+.iso .ls2 { fill: color-mix(in oklab, var(--accent) 48%, var(--paper)); }
+.iso .shadow { fill: color-mix(in oklab, var(--ink) 6%, var(--paper)); }
+.iso .play { fill: var(--accent); }
+.iso .cur { fill: var(--paper); stroke: var(--ink); stroke-width: 0.9; stroke-linejoin: round; }
+.iso .pin circle { fill: var(--paper); stroke: var(--mark); stroke-width: 1.4; vector-effect: non-scaling-stroke; }
+.iso .pin text { font: 500 8px var(--font-hand); fill: var(--mark); text-anchor: middle; }
+.iso .route { fill: none; stroke: var(--accent); stroke-width: 2.4; stroke-linecap: round; stroke-dasharray: 3 9; vector-effect: non-scaling-stroke; }
+.iso .tip { fill: none; stroke: var(--accent); stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+.iso .dot { fill: var(--accent); stroke: var(--paper); stroke-width: 2; vector-effect: non-scaling-stroke; }
+.iso .name { font: 500 13px var(--font-hand); fill: var(--ink); }
+.iso .file { font: 400 8.5px var(--font-code); fill: var(--muted); }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div class="meta" id="meta"><span>buildnotes</span><span id="label"></span></div>
+
+  <!-- 1 · one line -->
+  <div id="cmd"></div>
+  <div class="hand" id="cmdNote">point it at a feature</div>
+  <svg class="pen" id="cmdArrow" width="90" height="100" viewBox="0 0 90 100"><path pathLength="1" d="M70 6 C 40 20, 22 44, 26 88 M 12 72 L 26 90 L 40 74"/></svg>
+
+  <!-- 2 · it does the rest -->
+  <div class="copy" id="copyRest"><div class="k">Then</div><div class="hd">It does the rest.</div><p class="sub">Reads the pull requests, finds the story, writes it up and cuts the video.</p></div>
+  <svg class="iso" id="flow"></svg>
+
+  <!-- 3 · the post -->
+  <div id="post"><div class="col" id="col">
+    <h1 class="p-title" id="pTitle"></h1>
+    <p class="p-dek" id="pDek">One export turns a room, a floor or a whole project into a 1080p loop that tours it for you. A small plan in the corner shows where the camera stands.</p>
+    <p class="p-date" id="pDate">October 2026</p>
+    <div class="p-toc" id="pToc">
+      <div><span>01</span>A camera that plans its own shots</div><div><span>02</span>The plan in the corner goes where the clip goes</div>
+      <div><span>03</span>Floors and projects, one room after another</div><div><span>04</span>Nothing between the camera and the room</div>
+      <div><span>05</span>Recorded in your browser</div>
+    </div>
+    <section class="p-ch" id="ch1"><span class="nr">01</span><h2>A camera that plans its own shots</h2>
+      <p class="p-body">You don't set up any shots. <strong>The room decides them: its size, where the furniture sits, and which corner gives the best view at eye level.</strong></p>
+      <figure class="p-fig" id="fig1"><div class="plate"><!-- svg examples/walkthrough-videos/viz/camera-path.svg --></div>
+        <figcaption class="cap"><b>Fig. 1.</b>The camera's path through the Reception Lounge, seen from above. The path comes from the shot planner itself.</figcaption></figure>
+      <div class="note" id="note1" style="top:0"><div class="hand">drawn from the product's own shot planner</div></div>
+    </section>
+    <section class="p-ch" id="ch2"><span class="nr">02</span><h2>The plan in the corner goes where the clip goes</h2>
+      <p class="p-body"><strong>The plan is drawn into the frames themselves, not over the video by the player.</strong></p>
+      <figure class="p-fig" id="fig2"><div class="shot"><img src="examples/walkthrough-videos/viz/img/frame-boardroom.png" alt="">
+        <div class="key" style="left:296px;top:360px">1</div><div class="key" style="left:699px;top:153px">2</div><div class="key" style="left:866px;top:93px">3</div><div class="key" style="left:761px;top:12px">4</div><div class="key" style="left:201px;top:457px">5</div></div>
+        <figcaption class="cap"><b>Fig. 2.</b>One frame of a floor tour, at eye level in the Boardroom, with its parts named.</figcaption></figure>
+      <div class="note" id="note2" style="top:0"><div class="hand">a real frame, every part named</div></div>
+      <aside class="p-find" id="find"><div class="label">Finding</div><p id="findP">A plan in the player stays on the share page; a plan in the frames goes everywhere the file does.<svg class="pen" id="findPen" style="position:absolute;left:0;top:0" width="880" height="120"></svg></p></aside>
+    </section>
+  </div></div>
+  <div class="margin-l" id="marginL">
+    <div><b>post.html</b></div>
+    <div id="mWords"></div>
+    <div>5 chapters · 5 figures</div>
+    <div style="height:10px"></div>
+    <div class="ok" id="mc1">lint</div>
+    <div class="ok" id="mc2">links</div>
+    <div class="ok" id="mc3">render: desktop, phone,<br>light, dark</div>
+  </div>
+
+  <!-- 4 · the cut -->
+  <div class="copy" id="copyVideo" style="top:250px;width:640px"><div class="k">Video</div><div class="hd">And cuts the reel.</div><p class="sub">52 seconds, seven scenes. Every word and number on screen comes from the post.</p></div>
+  <div id="player"><canvas width="1280" height="720"></canvas>
+    <div class="strip"><!-- thumbs --></div>
+    <div class="track"><div class="fill"></div></div>
+    <div class="time"><span>motion.mp4</span><span id="clock">0:00 / 0:52</span></div>
+  </div>
+
+  <!-- 5 · what it makes -->
+  <div class="copy" id="copyMakes" style="top:210px"><div class="k">One skill</div><div class="hd">Ask for a post, a video or a deep dive.</div></div>
+  <div id="items">
+    <div><div class="art"><!-- iso post --></div><div><b>Post</b><p>Chapters, drawn figures and real code.</p></div></div>
+    <div><div class="art"><!-- iso video --></div><div><b>Video</b><p>The post as a reel, in under a minute.</p></div></div>
+    <div><div class="art"><!-- iso deep --></div><div><b>Deep dive</b><p>How it works inside, and the trade-offs.</p></div></div>
+    <div><div class="art"><!-- iso release --></div><div><b>Release story</b><p>What's new, and how to try it.</p></div></div>
+    <div><div class="art"><!-- iso figures --></div><div><b>Figures</b><p>Any figure as an image, GIF or video.</p></div></div>
+  </div>
+
+  <!-- 0 and 6 · the blue title cards -->
+  <div class="slate" id="slateA">
+    <div class="meta"><span>buildnotes</span><span>A build story</span></div>
+    <div class="k" style="left:120px;top:250px">How it was built, and why</div>
+    <div class="hd" id="hA1" style="left:120px;top:300px;width:1680px;font-size:150px;line-height:0.95"></div>
+    <div class="hd" id="hA2" style="left:120px;top:300px;width:1680px;font-size:150px;line-height:0.95"></div>
+    <div class="ticks" id="ticks"><span>Issues</span><span>Pull requests</span><span>Commits</span><span>Reviews</span><i></i></div>
+  </div>
+  <div class="slate" id="slateB">
+    <div class="meta"><span>buildnotes</span><span>Try it</span></div>
+    <div class="hd" id="hB" style="left:120px;top:210px;width:1680px;font-size:118px;line-height:0.96"></div>
+    <p class="sub" id="hBsub" style="left:120px;top:500px;margin:0;font-size:52px;color:var(--hero-muted)">How it was built, and why.</p>
+    <div class="pill" id="pillB" style="left:120px;top:680px"></div>
+    <div class="hand" id="noteB" style="color:#fff">start here</div>
+    <svg class="pen" id="arrowB" width="120" height="110" viewBox="0 0 120 110"><path pathLength="1" style="stroke:#fff" d="M100 10 C 70 14, 40 40, 34 96 M 20 80 L 34 98 L 48 82"/></svg>
+    <div style="left:120px;bottom:110px;font:500 24px/1 var(--font-mono);color:var(--hero-muted)" id="footB">For Claude Code, Codex and OpenCode · MIT</div>
+  </div>
+</div>
+<div style="display:none" id="frames"><!-- frames --></div>
+
+<script>
+/* config */
+// iso.mjs
+
+const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const seg = (t, a, b) => clamp((t - a) / (b - a));
+const eo = (x) => 1 - Math.pow(1 - x, 3);
+const eio = (x) => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2);
+const back = (x) => { const c = 1.7; return x <= 0 ? 0 : 1 + (c + 1) * Math.pow(x - 1, 3) + c * Math.pow(x - 1, 2); };
+const lerp = (a, b, p) => a + (b - a) * p;
+const $ = (s) => document.querySelector(s);
+const css = (el, o) => { for (const k in o) el.style[k] = o[k]; };
+const show = (el, op, extra = {}) => css(el, { opacity: op, visibility: op > 0.001 ? "visible" : "hidden", ...extra });
+const draw = (path, p) => css(path, { strokeDasharray: "1", strokeDashoffset: String(1 - clamp(p)) });
+function rng(seed) { return () => { seed |= 0; seed = (seed + 0x6d2b79f5) | 0; let x = Math.imul(seed ^ (seed >>> 15), 1 | seed); x = (x + Math.imul(x ^ (x >>> 7), 61 | x)) ^ x; return ((x ^ (x >>> 14)) >>> 0) / 4294967296; }; }
+function words(el, text) { el.innerHTML = text.split(" ").map((w) => `<span class="w">${w}</span>`).join(" "); return [...el.querySelectorAll(".w")]; }
+function rise(ws, t, a, step = 0.07, dur = 0.5) { ws.forEach((w, i) => { const p = eo(seg(t, a + i * step, a + i * step + dur)); css(w, { opacity: p, transform: `translateY(${(1 - p) * 0.35}em)` }); }); }
+function kids(el) { return [...el.children]; }
+
+// The beats, in seconds. The cut ends at SECONDS (from build.mjs).
+const B = { open: 0, cmd: 5.0, rest: 8.4, write: 14.2, video: 23.5, play: 24.0, makes: 30.4, end: 34.6 };
+const LABELS = [[B.cmd, "01 · One line"], [B.rest, "02 · The rest"], [B.write, "03 · The post"], [B.video, "04 · The video"], [B.makes, "05 · What it makes"]];
+
+function underlinePath(x0, x1, y, seed) {
+  const r = rng(seed); let d = `M${x0.toFixed(1)} ${y.toFixed(1)}`;
+  for (let x = x0 + 50; x <= x1; x += 50) d += ` L${x.toFixed(1)} ${(y + (r() - 0.5) * 5).toFixed(1)}`;
+  return d + ` L${x1.toFixed(1)} ${y.toFixed(1)}`;
+}
+
+// ── 0 · opening card ──
+const hA1 = words($("#hA1"), "Every feature has a story.");
+$("#hA2").innerHTML = `<span class="w">It’s</span> <span class="w"><em>buried</em></span> <span class="w">in</span> <span class="w">the</span> <span class="w">pull</span> <span class="w">requests.</span>`;
+const hA2 = [...$("#hA2").querySelectorAll(".w")];
+function renderOpen(t) {
+  const wipe = eio(seg(t, 4.6, 5.1));
+  show($("#slateA"), t < 5.2 ? 1 : 0, { clipPath: `inset(0 0 ${wipe * 100}% 0)` });
+  show($("#hA1"), 1 - seg(t, 2.1, 2.35));
+  // the first line is set from frame one, so the first frame works as a thumbnail
+  rise(hA1, 1, 0);
+  show($("#hA2"), seg(t, 2.35, 2.4));
+  rise(hA2, t, 2.4);
+  $("#hA2 em").style.setProperty("--u", `${eio(seg(t, 3.2, 3.7)) * 100}%`);
+  $("#ticks i").style.left = `${seg(t, 0.2, 4.6) * 100}%`;
+}
+
+// ── 1 · one line ──
+const PROMPT = [["/buildnotes", "b"], [" "], ["video", "v"], [" how we built walkthrough videos in Sunny"]];
+const PROMPT_LEN = PROMPT.reduce((n, [s]) => n + s.length, 0);
+function promptHTML(n, cursor) {
+  let left = n, html = `<span class="gt">›</span><span>`;
+  for (const [s, cls] of PROMPT) { const part = s.slice(0, Math.max(0, left)); left -= s.length; if (part) html += cls === "b" ? `<b>${part}</b>` : cls === "v" ? `<span class="v">${part}</span>` : part; }
+  return html + `${cursor ? `<span class="cursor"></span>` : ""}</span>`;
+}
+function renderCmd(t) {
+  const inP = eo(seg(t, B.cmd, B.cmd + 0.4));
+  const up = eio(seg(t, 7.9, 8.6));
+  const out = seg(t, B.write - 0.3, B.write + 0.1);
+  const n = Math.round(PROMPT_LEN * seg(t, 5.4, 7.2));
+  const cur = t < 5.4 || t > 7.2 ? Math.floor(t * 2.2) % 2 === 0 : true;
+  const cmd = $("#cmd"), html = promptHTML(n, cur && t < 7.8);
+  if (cmd.dataset.h !== html) { cmd.innerHTML = html; cmd.dataset.h = html; }
+  show(cmd, inP * lerp(1, 0.75, up) * (1 - out), { transform: `translate(${lerp(0, -80, up)}px, ${lerp((1 - inP) * 30, -330, up)}px) scale(${lerp(1, 0.5, up)})` });
+  const note = eo(seg(t, 5.8, 6.2)) * (1 - seg(t, 7.7, 8.0));
+  show($("#cmdNote"), note, { left: "232px", top: "330px", transform: `rotate(-3deg) scale(${lerp(0.9, 1, note)})` });
+  show($("#cmdArrow"), t > 5.9 ? 1 - seg(t, 7.7, 8.0) : 0, { left: "228px", top: "372px" });
+  draw($("#cmdArrow path"), seg(t, 6.0, 6.5));
+}
+
+// ── 2 · it does the rest: the site's drawing (site/iso.mjs pipeline), built object by object ──
+const flow = $("#flow");
+const FLOW = (() => {
+  const step = 150, all = [], objs = [];
+  const anchors = [record, dossier, plan, post].map((fn, i) => {
+    const dr = new Draw(), s = (i * step) / C / 2;
+    fn(dr, s, -s);
+    objs.push(dr.parts.join(""));
+    all.push(...dr.pts);
+    return P(s + 32, -s + 42);
+  });
+  const segs = [];
+  for (let i = 0; i < 3; i++) {
+    const [u0, v0] = anchors[i], [u1] = anchors[i + 1], a = u0 + 52, b = u1 - 50, y = v0 - 6;
+    segs.push({ d: `M${a},${y} C${a + 18},${y - 12} ${b - 18},${y + 12} ${b},${y}`, tip: `M${b - 6},${y - 4} L${b},${y} L${b - 6},${y + 4}` });
+  }
+  const NAMES = [["the record", "issues · PRs · reviews"], ["dossier", "dossier.md"], ["plan", "plan.md"], ["post, video", "post.html · motion.mp4"]];
+  const us = all.map((p) => p[0]), vs = all.map((p) => p[1]);
+  const x0 = Math.min(...us) - 70, y0 = Math.min(...vs) - 8, x1 = Math.max(...us) + 70, y1 = Math.max(...anchors.map((a) => a[1])) + 92;
+  flow.setAttribute("viewBox", `${x0} ${y0} ${x1 - x0} ${y1 - y0}`);
+  flow.setAttribute("height", `${(1680 * (y1 - y0)) / (x1 - x0)}`);
+  flow.innerHTML = `<g id="flowAll">` +
+    objs.map((o, i) => `<g class="obj">${o}</g>`).join("") +
+    segs.map((s) => `<g class="seg"><path class="route" d="${s.d}"/><path class="tip" d="${s.tip}"/></g>`).join("") +
+    anchors.map(([u, v], i) => `<g class="lbl"><text class="name" x="${u}" y="${v + 70}" text-anchor="middle">${NAMES[i][0]}</text><text class="file" x="${u}" y="${v + 85}" text-anchor="middle">${NAMES[i][1]}</text></g>`).join("") +
+    `<path id="flowRoute" d="${segs.map((s, i) => (i ? s.d.replace("M", "L") : s.d)).join(" ")}" fill="none" stroke="none"/><circle class="dot" r="4.5"/></g>`;
+  return { anchors };
+})();
+const flowObjs = [...flow.querySelectorAll(".obj")], flowSegs = [...flow.querySelectorAll(".seg")], flowLbls = [...flow.querySelectorAll(".lbl")];
+const flowRoute = $("#flowRoute"), flowDot = flow.querySelector(".dot"), flowLen = flowRoute.getTotalLength();
+const rest = kids($("#copyRest"));
+function renderRest(t) {
+  const on = t > B.rest - 0.1 && t < B.write + 0.2 ? 1 : 0;
+  const zoom = eio(seg(t, 13.3, 14.3));
+  show($("#copyRest"), on * (1 - seg(t, 13.1, 13.5)));
+  rest.forEach((e, j) => { const p = eo(seg(t, 8.5 + j * 0.15, 9.0 + j * 0.15)); css(e, { opacity: p, transform: `translateY(${(1 - p) * 24}px)` }); });
+  show(flow, on * (1 - seg(t, 13.8, 14.3)));
+  // each object drops in as the dot reaches it; the route ahead of the dot appears segment by segment
+  const ARRIVE = [9.1, 10.1, 11.1, 12.1];
+  flowObjs.forEach((o, i) => { const p = eo(seg(t, ARRIVE[i] - 0.15, ARRIVE[i] + 0.35)); css(o, { opacity: p, transform: `translateY(${(1 - p) * -16}px)` }); });
+  flowLbls.forEach((o, i) => css(o, { opacity: eo(seg(t, ARRIVE[i] + 0.1, ARRIVE[i] + 0.45)) }));
+  flowSegs.forEach((s, i) => css(s, { opacity: eo(seg(t, ARRIVE[i] + 0.25, ARRIVE[i] + 0.55)) }));
+  const travel = seg(t, ARRIVE[0] + 0.35, ARRIVE[3] - 0.1);
+  const pt = flowRoute.getPointAtLength(flowLen * eio(travel));
+  flowDot.setAttribute("cx", pt.x); flowDot.setAttribute("cy", pt.y);
+  css(flowDot, { opacity: travel > 0 && travel < 1 ? 1 : 0 });
+  // then the camera goes into the post
+  const [u, v] = FLOW.anchors[3], vb = flow.viewBox.baseVal;
+  const cx = lerp(u, vb.x + vb.width / 2, zoom), cy = lerp(v - 20, vb.y + vb.height / 2, zoom);
+  $("#flowAll").setAttribute("transform", `translate(${cx} ${cy}) scale(${1 + zoom * 2.6}) translate(${-u} ${-(v - 20)})`);
+}
+
+// ── 3 · the post (times below are written for a beat that starts at 21.0) ──
+const pTitle = words($("#pTitle"), "Walk through any room, floor or project in a looping video");
+const route = $("#fig1 .route");
+const stations = [...document.querySelectorAll("#fig1 .stn")];
+const keys = [...document.querySelectorAll("#fig2 .key")];
+let anchors = null;
+function measurePost() {
+  const top = (el) => { let y = 0; for (let e = el; e && e.id !== "col"; e = e.offsetParent) y += e.offsetTop; return y; };
+  anchors = { ch1: top($("#ch1")), fig1: top($("#fig1")), ch2: top($("#ch2")), fig2: top($("#fig2")), find: top($("#find")) };
+  $("#note1").style.top = `${anchors.fig1 - anchors.ch1 + 70}px`;
+  $("#note2").style.top = `${anchors.fig2 - anchors.ch2 + 120}px`;
+  const p = $("#findP"), r = document.createRange(); r.selectNodeContents(p.firstChild);
+  const pb = p.getBoundingClientRect();
+  const lines = [...r.getClientRects()].filter((l) => l.width > 4);
+  $("#findPen").setAttribute("height", p.offsetHeight + 20);
+  $("#findPen").innerHTML = lines.map((l, i) => `<path pathLength="1" d="${underlinePath(l.left - pb.left, l.right - pb.left, l.bottom - pb.top + 2, 70 + i)}"/>`).join("");
+}
+function renderPost(T) {
+  const t = T - B.write + 21.0;
+  const inP = eo(seg(t, 21.0, 21.5)), out = seg(t, 29.9, 30.25);
+  show($("#post"), inP * (1 - out), { transform: `scale(${lerp(0.96, 1, inP)})` });
+  show($("#marginL"), inP * (1 - out));
+  if (t < 20.9 || t > 30.6) return;
+  if (!anchors && document.fonts.status === "loaded") measurePost();
+  if (!anchors) return;
+  // the reader's scroll: the first chapter, its figure, the second figure, the finding
+  const at = (y) => Math.max(0, y - 170);
+  const stops = [[22.5, 23.2, at(anchors.ch1)], [23.9, 24.6, at(anchors.fig1) - 30], [26.2, 27.0, at(anchors.fig2) - 60], [28.1, 28.8, at(anchors.find) - 260]];
+  let y = 0;
+  for (const [a, b, to] of stops) y = lerp(y, to, eio(seg(t, a, b)));
+  css($("#col"), { transform: `translateY(${-y}px)` });
+  rise(pTitle, t, 21.15, 0.05);
+  [["#pDek", 21.6], ["#pDate", 21.8]].forEach(([s, a]) => { const p = eo(seg(t, a, a + 0.4)); css($(s), { opacity: p, transform: `translateY(${(1 - p) * 12}px)` }); });
+  [...$("#pToc").children].forEach((c, i) => css(c, { opacity: eo(seg(t, 21.9 + i * 0.1, 22.3 + i * 0.1)) }));
+  [["#ch1", 22.8], ["#ch2", 26.3]].forEach(([s, a]) => {
+    const sec = $(s), p = eo(seg(t, a, a + 0.4));
+    css(sec.querySelector("h2"), { opacity: p, transform: `translateX(${(1 - p) * -16}px)` });
+    css(sec.querySelector(".nr"), { opacity: p, transform: `scale(${back(seg(t, a, a + 0.4))})` });
+    css(sec.querySelector(".p-body"), { clipPath: `inset(0 ${(1 - eio(seg(t, a + 0.3, a + 1.0))) * 100}% 0 0)` });
+  });
+  const f1 = eo(seg(t, 24.0, 24.5));
+  css($("#fig1"), { opacity: f1, transform: `translateY(${(1 - f1) * 20}px)` });
+  if (route) { const L = route.getTotalLength(); css(route, { strokeDasharray: `${L}`, strokeDashoffset: `${L * (1 - eio(seg(t, 24.4, 25.9)))}` }); }
+  stations.forEach((s, i) => css(s, { opacity: eo(seg(t, 24.6 + i * 0.25, 24.9 + i * 0.25)) }));
+  const n1 = eo(seg(t, 25.2, 25.6));
+  css($("#note1"), { opacity: n1, transform: `rotate(-3deg) translateY(${(1 - n1) * 10}px)` });
+  const f2 = eo(seg(t, 26.6, 27.1));
+  css($("#fig2"), { opacity: f2, transform: `translateY(${(1 - f2) * 20}px)` });
+  keys.forEach((k, i) => { const p = back(seg(t, 27.2 + i * 0.13, 27.55 + i * 0.13)); k.className = `key${i === 1 && t > 27.9 && t < 28.6 ? " hot" : ""}`; css(k, { transform: `scale(${p})`, opacity: Math.min(1, p * 2) }); });
+  const n2 = eo(seg(t, 27.6, 28.0));
+  css($("#note2"), { opacity: n2, transform: `rotate(-3deg) translateY(${(1 - n2) * 10}px)` });
+  css($("#find"), { opacity: eo(seg(t, 28.5, 28.9)) });
+  $("#findPen").querySelectorAll("path").forEach((p, i) => draw(p, seg(t, 29.0 + i * 0.35, 29.4 + i * 0.35)));
+  // the left margin: the page's numbers, then its checks
+  $("#mWords").textContent = `${Math.round(1191 * eo(seg(t, 21.2, 29.0))).toLocaleString("en-US")} words`;
+  ["#mc1", "#mc2", "#mc3"].forEach((s, i) => { const p = eo(seg(t, 29.2 + i * 0.25, 29.45 + i * 0.25)); css($(s), { opacity: p, transform: `translateX(${(1 - p) * -10}px)` }); });
+}
+
+// ── 4 · the cut ──
+const FRAMES = [...document.querySelectorAll("#frames img")];
+const THUMBS = [...document.querySelectorAll(".strip img")];
+const SCENES = [0, 4, 10, 20, 28, 36, 46, 52]; // where each scene of the 52-second cut starts
+const canvas = $("#player canvas"), ctx = canvas.getContext("2d");
+const videoCopy = kids($("#copyVideo"));
+let shown = -1;
+function renderVideo(t) {
+  const inP = eo(seg(t, B.video, B.video + 0.5)), out = seg(t, B.makes - 0.3, B.makes);
+  show($("#copyVideo"), inP * (1 - out));
+  videoCopy.forEach((e, j) => { const p = eo(seg(t, B.video + j * 0.12, B.video + 0.5 + j * 0.12)); css(e, { opacity: p, transform: `translateY(${(1 - p) * 24}px)` }); });
+  show($("#player"), inP * (1 - out), { transform: `translateX(${(1 - inP) * 60}px)` });
+  if (inP <= 0 || out >= 1) return;
+  const k = clamp(Math.floor((t - B.play) * 30), 0, FRAMES.length - 1);
+  if (k !== shown && FRAMES[k]?.complete) { ctx.drawImage(FRAMES[k], 0, 0, 1280, 720); shown = k; }
+  const at = Number(FRAMES[k]?.dataset.at ?? 0);
+  const scene = SCENES.findIndex((s, i) => at >= s && at < SCENES[i + 1]);
+  THUMBS.forEach((th, i) => { th.className = i === scene ? "on" : ""; th.style.opacity = i === scene ? 1 : 0.5; });
+  $("#player .fill").style.width = `${(at / 52) * 100}%`;
+  $("#clock").textContent = `scene ${scene + 1} of 7 · 0:${String(Math.floor(at)).padStart(2, "0")} / 0:52`;
+}
+
+// ── 5 · what it makes ──
+const items = [...$("#items").children];
+const makesK = $("#copyMakes .k");
+const makesHd = words($("#copyMakes .hd"), "Ask for a post, a video or a deep dive.");
+function renderMakes(t) {
+  const on = t > B.makes - 0.1 ? 1 : 0, out = seg(t, B.end - 0.4, B.end);
+  show($("#copyMakes"), on * (1 - out));
+  show($("#items"), on * (1 - out));
+  css(makesK, { opacity: eo(seg(t, B.makes, B.makes + 0.4)) });
+  rise(makesHd, t, B.makes + 0.1, 0.06);
+  items.forEach((it, i) => { const p = eo(seg(t, B.makes + 0.6 + i * 0.16, B.makes + 1.2 + i * 0.16)); css(it, { opacity: p, transform: `translateY(${(1 - p) * 40}px)` }); });
+}
+
+// ── 6 · closing card ──
+const hB = words($("#hB"), "Turn pull requests into posts and videos worth sharing.");
+const CMD = "npx skills add buildinternet/buildnotes";
+function renderEnd(t) {
+  const wipe = eio(seg(t, B.end - 0.2, B.end + 0.35));
+  show($("#slateB"), t > B.end - 0.2 ? 1 : 0, { clipPath: `inset(0 0 ${(1 - wipe) * 100}% 0)` });
+  if (t < B.end - 0.2) return;
+  rise(hB, t, B.end + 0.3, 0.06);
+  const s = eo(seg(t, B.end + 1.1, B.end + 1.5));
+  css($("#hBsub"), { opacity: s, transform: `translateY(${(1 - s) * 16}px)` });
+  const pp = eo(seg(t, B.end + 1.5, B.end + 1.9));
+  const n = Math.round(CMD.length * seg(t, B.end + 1.8, B.end + 3.0));
+  const blink = t < B.end + 1.8 || t > B.end + 3.0 ? Math.floor(t * 2.2) % 2 === 0 : true;
+  const html = `<span class="p">$</span><span>${CMD.slice(0, n)}<span class="cursor" style="opacity:${blink ? 1 : 0}"></span></span>`;
+  if ($("#pillB").dataset.h !== html) { $("#pillB").innerHTML = html; $("#pillB").dataset.h = html; }
+  css($("#pillB"), { opacity: pp, transform: `scale(${lerp(0.92, 1, pp)})`, transformOrigin: "0 50%" });
+  const nb = eo(seg(t, B.end + 3.1, B.end + 3.5));
+  show($("#noteB"), nb, { left: "1260px", top: "600px", transform: `rotate(-4deg) scale(${lerp(0.9, 1, nb)})` });
+  show($("#arrowB"), t > B.end + 3.2 ? 1 : 0, { left: "1150px", top: "632px", transform: "scaleX(-1) rotate(-30deg)" });
+  draw($("#arrowB path"), seg(t, B.end + 3.2, B.end + 3.7));
+  css($("#footB"), { opacity: eo(seg(t, B.end + 3.4, B.end + 3.8)) });
+}
+
+// ── the frame ──
+let label = "";
+function render(t) {
+  renderOpen(t);
+  renderCmd(t);
+  renderRest(t);
+  renderPost(t);
+  renderVideo(t);
+  renderMakes(t);
+  renderEnd(t);
+  let l = ""; for (const [a, s] of LABELS) if (t >= a) l = s;
+  if (l !== label) { $("#label").textContent = l; label = l; }
+  show($("#meta"), t > B.cmd && t < B.end ? 1 : 0);
+}
+
+// Live: play in a loop. ?t=12.5 holds one moment. Under export.mjs the clock is virtual and starts at 0.
+const params = new URLSearchParams(location.search);
+const hold = params.has("t") ? Number(params.get("t")) : null;
+window.__render = render;
+if (hold !== null) document.fonts.ready.then(() => render(hold));
+else {
+  const start = performance.now();
+  const loop = (now) => { render(((now - start) / 1000) % SECONDS); requestAnimationFrame(loop); };
+  requestAnimationFrame(loop);
+}
+</script>
+</body>
+</html>

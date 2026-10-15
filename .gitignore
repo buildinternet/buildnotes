@@ -5,3 +5,4 @@ runs/
 .context/
 examples/*/export/
 site/dist/
+site/promo/dist/
