@@ -52,6 +52,7 @@ Until the first release, changes are recorded under [Unreleased].
 - Several images in one figure (a strip's frames) page with ← and → in the expanded view, with arrow buttons, a count and each frame's label.
 - `render.mjs` fails an SVG label cut off at the drawing's edge, and reminds you to look at the screenshots even when every check passes.
 - `references/visuals.md`: a row and a recipe for a path over a plan (computed from the product's own code), hotspot placement in a crowded corner, a screenshot key that needs no part, and how wide a hand drawing should be. `workdir.mjs` says where to start `house-style.md` when there isn't one.
+- Video exports open on the poster frame: GitHub's player shows the first frame before play and ignores a poster, so the README's cuts showed a blank title card. `export.mjs --cover <s>` swaps frame 0 for that moment's frame and adds it to an MP4 as cover art; `motion.mjs` passes the poster moment for MP4 and WebM. The three example cuts are re-exported with it.
 
 ### Fixed
 

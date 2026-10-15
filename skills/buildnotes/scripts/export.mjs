@@ -19,6 +19,8 @@
 //   --seconds <s>       length of the loop; default: found from the figure's own animations
 //   --at <s>            for --png: the moment to freeze; default 0
 //   --from <s>          for GIF and video: start the loop this far in (after a figure settles); default 0
+//   --cover <s>         for video: show the frame at this moment as the first frame, the one a player shows
+//                       before play (GitHub ignores a poster); an MP4 also carries it as cover art
 //   --click <css>       click this element first, as a reader would (a "Run" or "Ignite" button);
 //                       repeat it for several clicks, in order
 //   --caption           include the figure's caption
@@ -34,7 +36,7 @@
 // --seconds. Needs Chrome (set CHROME_PATH if it isn't found).
 
 import { spawnSync } from "node:child_process";
-import { mkdirSync, writeFileSync, mkdtempSync, rmSync, existsSync, renameSync } from "node:fs";
+import { copyFileSync, mkdirSync, writeFileSync, mkdtempSync, rmSync, existsSync, renameSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { basename, dirname, join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
@@ -162,11 +164,19 @@ try {
     await page.evaluate(`window.__seek(${(from + k / fps).toFixed(4)})`);
     writeFileSync(join(frames, `frame-${String(k).padStart(4, "0")}.png`), await page.screenshot(clip));
   }
+  // A player shows frame 0 until play, so the cover replaces it: one frame, a thirtieth of a second.
+  const name = (k) => join(frames, `frame-${String(k).padStart(4, "0")}.png`);
+  const cover = opt("cover") !== undefined && format !== "gif" ? Math.min(count - 1, Math.max(0, Math.round((Number(opt("cover")) - from) * fps))) : 0;
+  if (cover) {
+    copyFileSync(name(cover), join(frames, "cover.png"));
+    copyFileSync(name(cover), name(0));
+  }
   const input = ["-framerate", String(fps), "-i", join(frames, "frame-%04d.png")];
+  const art = cover ? ["-i", join(frames, "cover.png"), "-map", "0", "-map", "1", "-c:v:1", "png", "-disposition:v:1", "attached_pic"] : [];
   const even = "pad=ceil(iw/2)*2:ceil(ih/2)*2";
   const args = {
     gif: [...input, "-vf", "split[a][b];[a]palettegen=stats_mode=diff[p];[b][p]paletteuse=dither=bayer:bayer_scale=4:diff_mode=rectangle", "-loop", "0"],
-    mp4: [...input, "-vf", even, "-c:v", "libx264", "-pix_fmt", "yuv420p", "-crf", "18", "-movflags", "+faststart"],
+    mp4: [...input, ...art, "-filter:v:0", even, "-c:v:0", "libx264", "-pix_fmt:v:0", "yuv420p", "-crf", "18", "-movflags", "+faststart"],
     webm: [...input, "-vf", even, "-c:v", "libvpx-vp9", "-b:v", "0", "-crf", "32", "-pix_fmt", "yuv420p"],
   }[format];
   const run = spawnSync("ffmpeg", ["-y", "-loglevel", "error", ...args, out], { encoding: "utf8" });

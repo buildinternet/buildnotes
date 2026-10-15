@@ -323,8 +323,9 @@ async function main(argv) {
     return r.status ?? 1;
   };
   if (video) {
+    // A video opens on the poster frame, since GitHub and most players show frame 0 before play.
     // A GIF at full size is tens of megabytes; half size at 15 fps keeps it shareable.
-    const status = exportOne(video, ["--scale", String(plan.scale), "--fps", opt("fps") ?? (video === "gif" ? "15" : "30"), "--from", String(plan.from), "--seconds", String(plan.seconds)]);
+    const status = exportOne(video, ["--scale", String(plan.scale), "--fps", opt("fps") ?? (video === "gif" ? "15" : "30"), "--from", String(plan.from), "--seconds", String(plan.seconds), ...(video === "gif" ? [] : ["--cover", opt("at") ?? String(plan.at)])]);
     if (status) return status;
   }
   if (has("poster")) {
