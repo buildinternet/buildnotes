@@ -33,6 +33,8 @@ Until the first release, changes are recorded under [Unreleased].
 
 ### Changed
 
+- Work dirs live under `$BUILDNOTES_DIR`, default `~/.buildnotes/<repo>/`, after the rename to buildnotes. `scripts/workdir.mjs` still reads `BUILD_STORY_DIR` when the new variable is unset, and keeps using an existing `~/.build-stories` (printing the `mv` command to move it) until `~/.buildnotes` exists, so each repo's `house-style.md` is still found.
+
 - Each beat now passes a reader test: what would a reader see differently if this had gone the other way? In a release or build story, a beat that only shows in the service's logs, costs or dashboards is cut. The build flavor keeps internals only where they explain something the reader sees.
 - `SKILL.md` adds *understood beats exact*, and `references/evidence.md` a section on how far to check a claim: check what would mislead, and treat a claim only production data can confirm as a sign the beat is about running the service.
 - Field notes sets margin notes in Source Serif 4 italic, in the note colour, instead of a handwritten face. The handwritten face (`--font-hand`, Shantell Sans) is kept for keyed-figure numbers and labels of a few words: no editorial site we checked sets sidenotes in one, and past a few words it reads slowly and re-wraps when the font loads. Margin notes have their own `--font-note` and `--note-style` tokens.
