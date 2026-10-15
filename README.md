@@ -68,7 +68,7 @@ Three full runs are kept as committed examples. Each folder holds the finished p
 
 [`examples/walkthrough-videos/`](examples/walkthrough-videos) is a build story about walkthrough videos in [Sunny](https://app.sunnysdk.com), a furniture and space planner: one export turns a room, a floor or a project into a looping 1080p tour. The repo behind it is private, so the post quotes no code and links nothing internal; it is about the product as its users meet it. Open [`post.html`](examples/walkthrough-videos/post.html) for the post, in the field notes style, or watch its 52-second cut:
 
-https://github.com/user-attachments/assets/5499d909-0c1c-4c1b-a207-5e49b7a20098
+https://github.com/user-attachments/assets/1b29303e-cece-4965-8a56-79e020bb0df1
 
 <p align="center"><sub>The walkthrough-videos cut, 52 seconds. Its third scene is Sunny's own room export. The file is <a href="examples/walkthrough-videos/motion.mp4"><code>examples/walkthrough-videos/motion.mp4</code></a>.</sub></p>
 
@@ -87,7 +87,7 @@ https://github.com/user-attachments/assets/5499d909-0c1c-4c1b-a207-5e49b7a20098
 
 [`examples/before-after/`](examples/before-after) is a build story about before/after comparison on [uploads.sh](https://uploads.sh), from the public `buildinternet/uploads` repo: tag two screenshots before and after, and the pull request comment shows them in one row; open either one, and a divider slides across both. Its figures are the product in use, captured live: a real pull request comment and the file page in Compare. Open [`post.html`](examples/before-after/post.html) for the post, in the Plain style, or watch its 47-second cut:
 
-https://github.com/user-attachments/assets/5c541151-33c4-4d45-88db-3cd2f7172e4b
+https://github.com/user-attachments/assets/823fa2d3-08f8-4dfc-83b5-44403d81c6a9
 
 <p align="center"><sub>The before-after cut, 47 seconds. Its fifth scene is a recording of the live file page. The file is <a href="examples/before-after/motion.mp4"><code>examples/before-after/motion.mp4</code></a>.</sub></p>
 
@@ -194,7 +194,7 @@ Also: **steps** (a numbered pipeline with a moving highlight) and **bars** (a ba
 
 Some people won't read a 1,500-word post but will watch a minute of video. The motion cut is the post as a reel of five to nine scenes that plays itself: the title, the problem, one scene for each idea, and how to try it. The agent writes a short scene script (`motion.json`) from the finished post, so every word, number and screenshot comes from the post. [`motion.mjs`](skills/buildnotes/scripts/motion.mjs) checks the script, times each scene by how long its words take to read, builds one self-contained page, and exports a 1920×1080 MP4, a GIF, a still, or one scene as a short clip. Ask for one with `/buildnotes video …`, or after a post.
 
-https://github.com/user-attachments/assets/263542d1-f540-487b-9e6e-287414ff8ba6
+https://github.com/user-attachments/assets/71d8e409-987b-4ecc-bd23-531934297078
 
 <p align="center"><sub>The weekly-digests cut, one minute. The file is <a href="examples/weekly-digests/motion.mp4"><code>examples/weekly-digests/motion.mp4</code></a>.</sub></p>
 
