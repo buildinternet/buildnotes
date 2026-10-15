@@ -70,6 +70,7 @@ export const EXAMPLES = [
     blurb: "A card at the top of the digest, a replay of the week, and one email a week per reader. Its first figure is the shipped card, measured, drawn at an angle and taken apart." },
 ];
 const REPO = "https://github.com/buildinternet/buildnotes";
+const RAW = "https://raw.githubusercontent.com/buildinternet/buildnotes/main";
 const POST = /^examples\/([^/]+)\/index\.html$/;
 
 // The shell's own styles, prefixed so they can't collide with the post's. Colours are the site's light
@@ -83,8 +84,11 @@ const SHELL_CSS = `
 .site-bar a.site-accent:hover { text-decoration: underline; }
 .site-bar .site-label { font-family: "Martian Mono", ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.6875rem; font-stretch: 87.5%; letter-spacing: 0.02em; }
 /* body already pads the sides and the top (3rem); the bars take the post's column width (--col, from its :root). */
-.site-top { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 20px; max-width: var(--col, 42rem); margin: -1rem auto 3rem; }
+.site-top { display: flex; align-items: baseline; gap: 6px 20px; max-width: var(--col, 42rem); margin: -1rem auto 3rem; }
+.site-top .site-label { margin-left: auto; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .site-top nav { display: flex; flex-wrap: wrap; gap: 4px 20px; }
+/* On a phone: the name and the label on one line (the label gives way), the links under them. */
+@media (max-width: 40rem) { .site-top { display: grid; grid-template-columns: auto minmax(0, 1fr); } .site-top .site-label { justify-self: end; max-width: 100%; } .site-top nav { grid-column: 1 / -1; } }
 .site-end { max-width: var(--col, 42rem); margin: 4rem auto 0; display: grid; gap: 20px; }
 .site-end .site-rule { border-top: 1px solid #e3e3dd; }
 .site-end h2 { font: 600 1.0625rem/1.3 "Source Serif 4", Georgia, serif; color: #1f1f1d; margin: 0; }
@@ -97,8 +101,9 @@ const SHELL_CSS = `
 .site-end .site-foot { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 20px; padding-top: 20px; border-top: 1px solid #e3e3dd; font-size: 0.8125rem; }
 `;
 
-// Wrap one example's committed post.html in a full document and the site shell.
-export function wrapPost(slug, post) {
+// Wrap one example's committed post.html in a full document and the site shell. `url` is where the site
+// is served (--url), for the canonical link and an image inside the site; without it the image is on GitHub.
+export function wrapPost(slug, post, url) {
   const i = EXAMPLES.findIndex((e) => e.slug === slug);
   if (i < 0) throw new Error(`examples/${slug} is not in EXAMPLES (site/build.mjs)`);
   const ex = EXAMPLES[i];
@@ -109,19 +114,30 @@ export function wrapPost(slug, post) {
   const head = post.slice(0, at).trim();
   const body = post.slice(at);
   const title = head.match(/<title>([^<]*)<\/title>/)?.[1] ?? ex.name;
+  const share = shareTags({
+    url: url && new URL(`examples/${ex.slug}/`, url).href,
+    type: "article",
+    title: `${ex.product}: ${ex.name}`,
+    description: ex.blurb,
+    image: absolute(url, locate(ex.image).to, ex.image),
+    imageAlt: `A figure from the ${ex.product} post, ${ex.name.toLowerCase()}.`,
+  });
   return `<!doctype html>
 <html lang="en" data-theme="light">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 ${head.replace(/<title>[^<]*<\/title>/, `<title>${esc(title)} · buildnotes example</title>`)}
+<meta name="description" content="${esc(ex.blurb)}">
+${share}
 <link rel="icon" href="../../assets/favicon.svg" type="image/svg+xml">
 <style>${SHELL_CSS}</style>
 </head>
 <body>
 <header class="site-bar site-top">
   <a class="site-name" href="../../">buildnotes</a>
-  <nav aria-label="Site"><span class="site-label">Example ${i + 1} of ${EXAMPLES.length} · ${esc(ex.product)}</span><a href="#site-video">Video</a><a href="../">All examples</a><a href="${REPO}">GitHub</a></nav>
+  <span class="site-label">Example ${i + 1} of ${EXAMPLES.length} · ${esc(ex.product)}</span>
+  <nav aria-label="Site"><a href="#site-video">Video</a><a href="../">All examples</a><a href="${REPO}">GitHub</a></nav>
 </header>
 ${body}
 <footer class="site-bar site-end" id="site-video">
@@ -148,30 +164,33 @@ export const SHARE = {
   description: "A skill for coding agents. It reads a feature's issues, PRs and reviews, finds the few decisions that shaped it, and writes them up as a post, a short video or a deep dive.",
   image: "assets/og.png",
   imageAlt: "buildnotes: Turn pull requests into posts and videos worth sharing. How it was built, and why. Beside it, an isometric drawing of a weekly digest card with numbered parts.",
-  fallback: "https://raw.githubusercontent.com/buildinternet/buildnotes/main/site/assets/og.png",
+  fallback: `${RAW}/site/assets/og.png`,
 };
 
 const esc = (t) => t.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
 
-function shareTags(url) {
-  const image = url ? new URL(SHARE.image, url).href : SHARE.fallback;
+// A published file's absolute URL: inside the built site with --url, else the committed file on GitHub.
+const absolute = (url, published, committed) => (url ? new URL(published, url).href : `${RAW}/${committed}`);
+
+// The link-preview tags for one page. `url` is the page's own address (with --url), `image` absolute.
+function shareTags({ url, type = "website", title, description, image, imageType, width, height, imageAlt }) {
   const tags = [
     url && `<link rel="canonical" href="${esc(url)}">`,
-    `<meta property="og:type" content="website">`,
+    `<meta property="og:type" content="${type}">`,
     `<meta property="og:site_name" content="buildnotes">`,
-    `<meta property="og:title" content="${esc(SHARE.title)}">`,
-    `<meta property="og:description" content="${esc(SHARE.description)}">`,
+    `<meta property="og:title" content="${esc(title)}">`,
+    `<meta property="og:description" content="${esc(description)}">`,
     url && `<meta property="og:url" content="${esc(url)}">`,
     `<meta property="og:image" content="${esc(image)}">`,
-    `<meta property="og:image:type" content="image/png">`,
-    `<meta property="og:image:width" content="1200">`,
-    `<meta property="og:image:height" content="630">`,
-    `<meta property="og:image:alt" content="${esc(SHARE.imageAlt)}">`,
+    imageType && `<meta property="og:image:type" content="${imageType}">`,
+    width && `<meta property="og:image:width" content="${width}">`,
+    height && `<meta property="og:image:height" content="${height}">`,
+    `<meta property="og:image:alt" content="${esc(imageAlt)}">`,
     `<meta name="twitter:card" content="summary_large_image">`,
-    `<meta name="twitter:title" content="${esc(SHARE.title)}">`,
-    `<meta name="twitter:description" content="${esc(SHARE.description)}">`,
+    `<meta name="twitter:title" content="${esc(title)}">`,
+    `<meta name="twitter:description" content="${esc(description)}">`,
     `<meta name="twitter:image" content="${esc(image)}">`,
-    `<meta name="twitter:image:alt" content="${esc(SHARE.imageAlt)}">`,
+    `<meta name="twitter:image:alt" content="${esc(imageAlt)}">`,
   ];
   return tags.filter(Boolean).join("\n");
 }
@@ -181,7 +200,9 @@ export function fill(html, { url, warnings = [] } = {}) {
   const { css, js } = templateParts();
   html = html.replace("/* template: keyed-anatomy */", () => `/* From skills/buildnotes/assets/template.html, unchanged */\n${css}`);
   html = html.replace("// template: keyed\n", () => js);
-  html = html.replace("<!-- share -->", () => shareTags(url));
+  html = html.replace("<!-- share -->", () => shareTags({
+    ...SHARE, url, image: absolute(url, SHARE.image, `site/${SHARE.image}`), imageType: "image/png", width: 1200, height: 630,
+  }));
   html = html.replace("<!-- description -->", () => `<meta name="description" content="${esc(SHARE.description)}">`);
   html = html.replace("<!-- footer -->", () => footer());
   html = html.replace(/<!-- iso (\w+) -->/g, (_, name) => drawing(name));
@@ -293,12 +314,14 @@ export function build({ out = join(here, "dist"), url } = {}) {
   for (const ex of EXAMPLES) {
     files.set(`examples/${ex.slug}/index.html`, join(root, "examples", ex.slug, ex.file));
     files.set(`examples/${ex.slug}/motion.mp4`, join(root, "examples", ex.slug, "motion.mp4"));
+    const { from, to } = locate(ex.image); // its link-preview image, whether or not a page shows it
+    files.set(to, from);
   }
   for (const [to, from] of files) {
     if (!existsSync(from)) throw new Error(`missing ${from}${to === SHARE.image ? " (make it with node site/card.mjs)" : ""}`);
     mkdirSync(dirname(join(out, to)), { recursive: true });
     const post = to.match(POST);
-    if (post) writeFileSync(join(out, to), wrapPost(post[1], readFileSync(from, "utf8")));
+    if (post) writeFileSync(join(out, to), wrapPost(post[1], readFileSync(from, "utf8"), url));
     else copyFileSync(from, join(out, to));
   }
   writeFileSync(join(out, "examples/index.html"), examples);
