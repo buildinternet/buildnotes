@@ -18,10 +18,13 @@
 // Warnings (sizes, long labels) go to stderr. Specs and kinds: references/visuals.md#components.
 // The page's style (data-style on the article, plain by default) goes to the renderers: in field notes
 // a flow is drawn by hand. The style is part of the stamp, so changing it marks every flow stale.
+// build also writes the repo's brand into the post when there is one (brand.json next to the work dir;
+// scripts/brand.mjs), so a rebuild picks up a change to it.
 
 import { readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { hash, takeWarnings, STYLES } from "./viz/util.mjs";
+import { brandPost } from "./brand.mjs";
 import * as flow from "./viz/flow.mjs";
 import * as bars from "./viz/bars.mjs";
 import * as delta from "./viz/delta.mjs";
@@ -103,7 +106,12 @@ if (isMain) {
     if (cmd === "build") {
       const check = argv.includes("--check");
       const { html, count, problems } = build(readFileSync(file, "utf8"), dirname(resolve(file)), { check });
-      if (!check) writeFileSync(file, html);
+      if (!check) {
+        const b = brandPost(html, file);
+        for (const w of [...b.errors, ...b.warnings]) console.error(`! ${w}`);
+        if (b.applied) console.error(`branded from ${b.file}`);
+        writeFileSync(file, b.html);
+      }
       for (const p of problems) console.error(`! ${p}`);
       console.error(`${check ? "checked" : "rendered"} ${count} marker${count === 1 ? "" : "s"} in ${file}`);
       process.exit(check && problems.length ? 1 : 0);

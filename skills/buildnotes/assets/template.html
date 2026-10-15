@@ -10,8 +10,9 @@
   The markers below point at the skill's example specs (specs/…); replace them. Every kind, with its
   spec, is previewed in assets/components.html. Specs: references/visuals.md#components.
   Two styles share this markup. Plain is the default. For field notes, set data-style="field-notes" on
-  the article and render the viz markers again (flows get hand-drawn strokes). Restyle by editing the
-  tokens only: a brand changes the Plain block. Keep the light/dark structure.
+  the article and render the viz markers again (flows get hand-drawn strokes). A brand restyles Plain from
+  the repo's brand.json: viz.mjs build (or scripts/brand.mjs) writes it after these styles, so leave the
+  tokens here as they are. Keep the light/dark structure.
   Colour roles: --accent fills and the series that matters, --mark highlights and commentary (never
   a fill), --landmark a landmark or star, --dim the data that isn't the point.
 -->
