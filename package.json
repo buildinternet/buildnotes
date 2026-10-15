@@ -5,6 +5,7 @@
     "node": ">=22"
   },
   "scripts": {
-    "test": "node --test dev/test/*.test.mjs"
+    "test": "node --test dev/test/*.test.mjs",
+    "site": "node site/build.mjs"
   }
 }
