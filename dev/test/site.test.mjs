@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import { existsSync, mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { build } from "../../site/build.mjs";
+import { build, SHARE } from "../../site/build.mjs";
 import { drawing, NAMES } from "../../site/iso.mjs";
 
 test("the site builds: markers filled, files copied, every command copyable", () => {
@@ -28,6 +28,36 @@ test("the site builds: markers filled, files copied, every command copyable", ()
     assert.ok(files.includes("examples/walkthrough-videos/post.html"));
     assert.ok(files.includes("assets/digest-keyed.webp"));
     assert.doesNotMatch(html, /\.github\//);
+  } finally {
+    rmSync(out, { recursive: true, force: true });
+  }
+});
+
+test("link previews: description, Open Graph and Twitter tags, favicon", () => {
+  const out = mkdtempSync(join(tmpdir(), "buildnotes-site-"));
+  try {
+    const meta = (html, attr, key) => html.match(new RegExp(`<meta ${attr}="${key}" content="([^"]*)"`))?.[1];
+    // without --url: no canonical link, and the image is the committed one on GitHub
+    let { html, files } = build({ out });
+    assert.equal((html.match(/<title>([^<]*)<\/title>/) ?? [])[1], SHARE.title);
+    assert.ok(meta(html, "name", "description")?.length > 50);
+    for (const k of ["og:type", "og:site_name", "og:title", "og:description", "og:image", "og:image:alt", "og:image:width", "og:image:height"]) {
+      assert.ok(meta(html, "property", k), k);
+    }
+    for (const k of ["twitter:card", "twitter:title", "twitter:description", "twitter:image", "twitter:image:alt"]) assert.ok(meta(html, "name", k), k);
+    assert.equal(meta(html, "name", "twitter:card"), "summary_large_image");
+    assert.equal(meta(html, "property", "og:image"), SHARE.fallback);
+    assert.doesNotMatch(html, /rel="canonical"|og:url/);
+    assert.match(html, /<link rel="icon" href="assets\/favicon\.svg" type="image\/svg\+xml">/);
+    assert.ok(files.includes("assets/og.png") && files.includes("assets/favicon.svg"));
+    assert.ok(existsSync(join(out, "assets/og.png")));
+    // with --url: canonical, og:url, and an absolute image inside the site
+    ({ html } = build({ out, url: "https://example.com/buildnotes" }));
+    assert.match(html, /<link rel="canonical" href="https:\/\/example\.com\/buildnotes\/">/);
+    assert.equal(meta(html, "property", "og:url"), "https://example.com/buildnotes/");
+    assert.equal(meta(html, "property", "og:image"), "https://example.com/buildnotes/assets/og.png");
+    assert.equal(meta(html, "name", "twitter:image"), "https://example.com/buildnotes/assets/og.png");
+    assert.throws(() => build({ out, url: "example.com" }), /must start with http/);
   } finally {
     rmSync(out, { recursive: true, force: true });
   }

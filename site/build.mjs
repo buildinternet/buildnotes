@@ -4,8 +4,10 @@
 // Usage:
 //   node site/build.mjs                 build into site/dist
 //   node site/build.mjs --out <dir>     build somewhere else
+//   node site/build.mjs --url <url>     where it will be served: sets the canonical link, og:url and an og:image there
 //
-// site/src/index.html is the page. The build fills in four kinds of marker:
+// site/src/index.html is the page. The build fills in its markers (<!-- share --> and <!-- description -->
+// become the link-preview tags, from SHARE below), including these:
 //   <!-- figure anatomy examples/…/spec.json -->   a live figure, rendered by the skill's own viz.mjs
 //   <!-- iso post -->                              one of the site's pictures, drawn by site/iso.mjs
 //   /* template: keyed-anatomy */                  the keyed-figure and anatomy CSS, copied from the post template
@@ -51,20 +53,49 @@ function locate(ref) {
 
 const LOCAL = /\b(src|href|poster)="(?!https?:|data:|mailto:|#|\/)([^"]+)"/g;
 
-export function build({ out = join(here, "dist") } = {}) {
-  const warnings = [];
-  let html = readFileSync(join(here, "src/index.html"), "utf8");
-  const { css, js } = templateParts();
+// What link previews show. og:image must be an absolute URL, and the site has no home yet: with --url it
+// points into the built site, without it at the committed image on GitHub (live once merged to main).
+export const SHARE = {
+  title: "buildnotes: turn pull requests into posts and videos worth sharing",
+  description: "A skill for coding agents. It reads a feature's issues, PRs and reviews, finds the few decisions that shaped it, and writes them up as a post, a short video or a deep dive.",
+  image: "assets/og.png",
+  imageAlt: "buildnotes: Turn pull requests into posts and videos worth sharing. How it was built, and why. Beside it, an isometric drawing of a weekly digest card with numbered parts.",
+  fallback: "https://raw.githubusercontent.com/buildinternet/buildnotes/main/site/assets/og.png",
+};
 
-  const count = (re) => (html.match(re) ?? []).length;
-  if (count(/\/\* template: keyed-anatomy \*\//g) !== 1 || count(/\/\/ template: keyed\n/g) !== 1) {
-    throw new Error("src/index.html needs exactly one of each template marker");
-  }
+const esc = (t) => t.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
+
+function shareTags(url) {
+  const image = url ? new URL(SHARE.image, url).href : SHARE.fallback;
+  const tags = [
+    url && `<link rel="canonical" href="${esc(url)}">`,
+    `<meta property="og:type" content="website">`,
+    `<meta property="og:site_name" content="buildnotes">`,
+    `<meta property="og:title" content="${esc(SHARE.title)}">`,
+    `<meta property="og:description" content="${esc(SHARE.description)}">`,
+    url && `<meta property="og:url" content="${esc(url)}">`,
+    `<meta property="og:image" content="${esc(image)}">`,
+    `<meta property="og:image:type" content="image/png">`,
+    `<meta property="og:image:width" content="1200">`,
+    `<meta property="og:image:height" content="630">`,
+    `<meta property="og:image:alt" content="${esc(SHARE.imageAlt)}">`,
+    `<meta name="twitter:card" content="summary_large_image">`,
+    `<meta name="twitter:title" content="${esc(SHARE.title)}">`,
+    `<meta name="twitter:description" content="${esc(SHARE.description)}">`,
+    `<meta name="twitter:image" content="${esc(image)}">`,
+    `<meta name="twitter:image:alt" content="${esc(SHARE.imageAlt)}">`,
+  ];
+  return tags.filter(Boolean).join("\n");
+}
+
+// Fill a page's markers: template CSS and script, iso drawings, live figures, share tags.
+export function fill(html, { url, warnings = [] } = {}) {
+  const { css, js } = templateParts();
   html = html.replace("/* template: keyed-anatomy */", () => `/* From skills/buildnotes/assets/template.html, unchanged */\n${css}`);
   html = html.replace("// template: keyed\n", () => js);
-
+  html = html.replace("<!-- share -->", () => shareTags(url));
+  html = html.replace("<!-- description -->", () => `<meta name="description" content="${esc(SHARE.description)}">`);
   html = html.replace(/<!-- iso (\w+) -->/g, (_, name) => drawing(name));
-
   html = html.replace(/<!-- figure (\w+) (\S+) -->/g, (_, kind, spec) => {
     const path = join(root, spec);
     const frag = renderKind(kind, readFileSync(path, "utf8"), {
@@ -76,11 +107,25 @@ export function build({ out = join(here, "dist") } = {}) {
     for (const w of takeWarnings()) warnings.push(`${spec}: ${w}`);
     return frag;
   });
-
-  const leftover = html.match(/<!-- (figure|iso) [^>]*-->|\/\* template: |\/\/ template: /);
+  const leftover = html.match(/<!-- (figure|iso|share|description)\b[^>]*-->|\/\* template: |\/\/ template: /);
   if (leftover) throw new Error(`unfilled marker: ${leftover[0]}`);
+  return html;
+}
 
-  const files = new Map();
+// url: where site/dist will be served, e.g. https://example.com/buildnotes/ (a trailing slash is added).
+export function build({ out = join(here, "dist"), url } = {}) {
+  if (url) {
+    if (!/^https?:\/\//.test(url)) throw new Error(`--url must start with http:// or https:// (got "${url}")`);
+    if (!url.endsWith("/")) url += "/";
+  }
+  const warnings = [];
+  const src = readFileSync(join(here, "src/index.html"), "utf8");
+  for (const m of ["/* template: keyed-anatomy */", "// template: keyed\n", "<!-- share -->", "<!-- description -->"]) {
+    if (src.split(m).length !== 2) throw new Error(`src/index.html needs exactly one ${m.trim()}`);
+  }
+  let html = fill(src, { url, warnings });
+
+  const files = new Map([[SHARE.image, join(here, SHARE.image)]]);
   html = html.replace(LOCAL, (all, attr, ref) => {
     const { from, to } = locate(ref);
     if (!existsSync(from)) throw new Error(`${attr}="${ref}": no such file (${from})`);
@@ -92,6 +137,7 @@ export function build({ out = join(here, "dist") } = {}) {
   mkdirSync(out, { recursive: true });
   writeFileSync(join(out, "index.html"), html);
   for (const [to, from] of files) {
+    if (!existsSync(from)) throw new Error(`missing ${from}${to === SHARE.image ? " (make it with node site/card.mjs)" : ""}`);
     mkdirSync(dirname(join(out, to)), { recursive: true });
     copyFileSync(from, join(out, to));
   }
@@ -102,14 +148,15 @@ const isMain = process.argv[1] && resolve(process.argv[1]) === fileURLToPath(imp
 if (isMain) {
   const argv = process.argv.slice(2);
   if (argv.includes("--help") || argv.includes("-h")) {
-    console.error("usage: node site/build.mjs [--out <dir>]");
+    console.error("usage: node site/build.mjs [--out <dir>] [--url https://where.it.is.served/]");
     process.exit(0);
   }
-  const i = argv.indexOf("--out");
+  const opt = (k) => { const i = argv.indexOf(`--${k}`); return i >= 0 ? argv[i + 1] : undefined; };
   try {
-    const { files, warnings, out } = build(i >= 0 ? { out: resolve(argv[i + 1]) } : {});
+    const out = opt("out");
+    const { files, warnings, out: dir } = build({ out: out ? resolve(out) : undefined, url: opt("url") });
     for (const w of warnings) console.error(`! ${w}`);
-    console.error(`built ${out}/index.html and ${files.length} file${files.length === 1 ? "" : "s"}`);
+    console.error(`built ${dir}/index.html and ${files.length} file${files.length === 1 ? "" : "s"}`);
   } catch (err) {
     console.error(`site/build.mjs: ${err.message}`);
     process.exit(1);

@@ -30,6 +30,8 @@ To keep a public run as a committed example, check it, then copy its page, plan 
 
 ```bash
 node site/build.mjs                  # or: npm run site
+node site/build.mjs --url https://example.com/buildnotes/   # once it has a home: canonical link, og:url, og:image there
+node site/card.mjs                   # re-render the link-preview image, site/assets/og.png (needs Chrome)
 open site/dist/index.html
 ```
 
@@ -40,5 +42,7 @@ open site/dist/index.html
 - `/* template: keyed-anatomy */` and `// template: keyed` copy the keyed-figure and anatomy CSS and script from [`template.html`](../skills/buildnotes/assets/template.html), so the live figures behave as they do in a post.
 
 Then it copies every local file the page points at: `site/assets/` from there, `.github/assets/` as `assets/`, and everything else (the example posts and videos) from the repo root. `dev/test/site.test.mjs` builds it into a temp folder.
+
+Link previews: the page's description, Open Graph and Twitter tags come from `SHARE` in `build.mjs`. `og:image` must be an absolute URL, so without `--url` it points at `site/assets/og.png` on GitHub's `main` branch. That image is `site/src/card.html` rendered by `site/card.mjs`: render it again and commit it when the headline or the card figure changes. The favicon is `site/assets/favicon.svg`.
 
 `site/assets/sunny-post-full.webp` is the whole walkthrough-videos post, rendered by headless Chrome at 1100 px wide in light mode and trimmed to its column. Re-make it if that post changes.
