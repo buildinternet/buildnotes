@@ -34,10 +34,11 @@ node site/build.mjs --url https://buildnotes.releases.sh   # canonical link, og:
 node site/card.mjs                   # re-render the link-preview image, site/assets/og.png (needs Chrome)
 open site/dist/index.html
 npm run site:dev                     # build, then serve it as the Worker does at http://localhost:8787
+# or, in Claude Code desktop, the "site" entry in .claude/launch.json does the same (autoPort: it moves if 8787 is taken)
 npm run deploy                       # build, then deploy (wrangler login, Build Internet account)
 ```
 
-Hosting: [`wrangler.jsonc`](../wrangler.jsonc) is an assets-only Cloudflare Worker (no script) that serves `site/dist` on the `buildnotes.releases.sh` custom domain. The `releases.sh` zone is on the same Cloudflare account, so the domain needs no DNS records by hand. `.html` URLs redirect to the extensionless path (`post.html` → `post`), and relative links still resolve.
+Hosting: [`wrangler.jsonc`](../wrangler.jsonc) is a Cloudflare Worker that serves `site/dist` as static assets on the `buildnotes.releases.sh` custom domain. Its only script, [`site/worker.mjs`](../site/worker.mjs), runs first for the example videos alone (`run_worker_first`) to answer HTTP Range requests, which the asset layer ignores; without it a browser cannot scrub a video. The `releases.sh` zone is on the same Cloudflare account, so the domain needs no DNS records by hand. `.html` URLs redirect to the extensionless path (`post.html` → `post`), and relative links still resolve.
 
 Workers Builds deploys it on every push to `main`. The `buildnotes-site` Worker is connected to this repo in the Cloudflare dashboard (Workers & Pages → buildnotes-site → Settings → Build) with:
 
@@ -48,6 +49,8 @@ Workers Builds deploys it on every push to `main`. The `buildnotes-site` Worker 
 - Builds for non-production branches: off (preview URLs are off in `wrangler.jsonc`)
 - Build watch paths: `site/*`, `examples/*`, `skills/buildnotes/assets/*`, `skills/buildnotes/scripts/viz*`, `.github/assets/*`, `wrangler.jsonc`
 
+The example pages share the home page's footer: `wrapPost` copies the footer CSS block from `src/index.html` with the light palette inlined, scoped under `.site-footer`.
+
 `site/src/index.html` is the page. The build fills in its markers:
 
 - `<!-- figure anatomy examples/…/spec.json -->` renders a live figure from an example's spec with the skill's own `viz.mjs`.
@@ -56,7 +59,7 @@ Workers Builds deploys it on every push to `main`. The `buildnotes-site` Worker 
 
 Then it copies every local file the page points at: `site/assets/` from there, `.github/assets/` as `assets/`, and everything else from the repo root. Every example in `EXAMPLES` is served whether the page links it or not, as a folder: `examples/<slug>/` (its `index.html` is the post named by `file`, so the digests example is the field-notes page) with `motion.mp4` beside it, and `examples/` lists them all, built from `site/src/examples.html` with the home page's stylesheet. A post is not copied as is: the committed posts are written for the Artifact viewer, which wraps them in a document, so `wrapPost` adds the doctype, charset and viewport, forces the light theme, and puts a site shell around the post: a bar naming the example with a way back, and a footer with the video, the plan and the other examples. `dev/test/site.test.mjs` builds it into a temp folder.
 
-Link previews: the page's description, Open Graph and Twitter tags come from `SHARE` in `build.mjs`. `og:image` must be an absolute URL, so without `--url` it points at `site/assets/og.png` on GitHub's `main` branch. That image is `site/src/card.html` rendered by `site/card.mjs`: render it again and commit it when the headline or the card figure changes. The favicon is `site/assets/favicon.svg`.
+Link previews: the page's description, Open Graph and Twitter tags come from `SHARE` in `build.mjs`. `og:image` must be an absolute URL, so without `--url` it points at `site/assets/og.png` on GitHub's `main` branch. That image is `site/src/card.html` rendered by `site/card.mjs`: render it again and commit it when the headline or the card figure changes. The favicon is `site/assets/favicon.svg`. Each example page gets its own tags from its `EXAMPLES` entry (an article titled by product and name, the blurb as description, its `image` as the picture), with a canonical link and `og:url` when built with `--url`.
 
 `site/assets/sunny-post-full.webp` is the whole sunny-walkthrough-videos post, rendered by headless Chrome at 1100 px wide in light mode and trimmed to its column. Re-make it if that post changes.
 

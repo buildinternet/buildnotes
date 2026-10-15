@@ -108,6 +108,33 @@ test("link previews: description, Open Graph and Twitter tags, favicon", () => {
     assert.equal(meta(html, "property", "og:url"), "https://example.com/buildnotes/");
     assert.equal(meta(html, "property", "og:image"), "https://example.com/buildnotes/assets/og.png");
     assert.equal(meta(html, "name", "twitter:image"), "https://example.com/buildnotes/assets/og.png");
+    // every example page: its own tags from EXAMPLES, the image published under assets/
+    const tags = (base) => {
+      for (const ex of EXAMPLES) {
+        const post = readFileSync(join(out, `examples/${ex.slug}/index.html`), "utf8");
+        const image = base ? `${base}assets/${ex.image.split("/").pop()}` : `https://raw.githubusercontent.com/buildinternet/buildnotes/main/${ex.image}`;
+        assert.equal(meta(post, "name", "description"), ex.blurb, ex.slug);
+        assert.equal(meta(post, "property", "og:type"), "article", ex.slug);
+        assert.equal(meta(post, "property", "og:site_name"), "buildnotes", ex.slug);
+        assert.equal(meta(post, "property", "og:title"), `${ex.product}: ${ex.name}`, ex.slug);
+        assert.equal(meta(post, "name", "twitter:title"), `${ex.product}: ${ex.name}`, ex.slug);
+        assert.equal(meta(post, "property", "og:description"), ex.blurb, ex.slug);
+        assert.equal(meta(post, "name", "twitter:description"), ex.blurb, ex.slug);
+        assert.equal(meta(post, "property", "og:image"), image, ex.slug);
+        assert.equal(meta(post, "name", "twitter:image"), image, ex.slug);
+        assert.ok(meta(post, "property", "og:image:alt"), ex.slug);
+        assert.equal(meta(post, "name", "twitter:card"), "summary_large_image", ex.slug);
+        if (base) {
+          assert.match(post, new RegExp(`<link rel="canonical" href="${base}examples/${ex.slug}/">`), ex.slug);
+          assert.equal(meta(post, "property", "og:url"), `${base}examples/${ex.slug}/`, ex.slug);
+          assert.ok(existsSync(join(out, `assets/${ex.image.split("/").pop()}`)), ex.slug);
+        } else assert.doesNotMatch(post, /rel="canonical"|og:url/, ex.slug);
+      }
+    };
+    build({ out });
+    tags();
+    build({ out, url: "https://example.com/buildnotes" });
+    tags("https://example.com/buildnotes/");
     assert.throws(() => build({ out, url: "example.com" }), /must start with http/);
   } finally {
     rmSync(out, { recursive: true, force: true });
@@ -123,4 +150,31 @@ test("iso drawings: every name draws; only the pipeline is announced", () => {
   }
   assert.match(drawing("pipeline"), /<circle class="dot" cx="0" cy="0"/);
   assert.throws(() => drawing("nope"), /unknown drawing "nope"/);
+});
+
+test("the video Worker answers Range requests: 206 with Content-Range, 416 when unsatisfiable, 200 without", async () => {
+  const { ranged } = await import("../../site/worker.mjs");
+  const buf = new Uint8Array(100).map((_, i) => i).buffer;
+  const base = new Headers({ "Content-Type": "video/mp4", "Content-Length": "100", ETag: '"x"' });
+  const full = ranged(null, buf, base);
+  assert.equal(full.status, 200);
+  assert.equal(full.headers.get("Accept-Ranges"), "bytes");
+  assert.equal(full.headers.get("Content-Length"), "100");
+  assert.equal(full.headers.get("ETag"), '"x"', "the asset's headers are kept");
+  const part = ranged("bytes=10-19", buf, base);
+  assert.equal(part.status, 206);
+  assert.equal(part.headers.get("Content-Range"), "bytes 10-19/100");
+  assert.equal(part.headers.get("Content-Length"), "10");
+  assert.deepEqual([...new Uint8Array(await part.arrayBuffer())], [10, 11, 12, 13, 14, 15, 16, 17, 18, 19]);
+  const open = ranged("bytes=90-", buf, base);
+  assert.equal(open.headers.get("Content-Range"), "bytes 90-99/100");
+  const past = ranged("bytes=50-500", buf, base);
+  assert.equal(past.headers.get("Content-Range"), "bytes 50-99/100", "an end past the file is shortened");
+  const suffix = ranged("bytes=-5", buf, base);
+  assert.equal(suffix.headers.get("Content-Range"), "bytes 95-99/100");
+  for (const bad of ["bytes=100-", "bytes=20-10", "bytes=", "chars=0-1"]) {
+    const r = ranged(bad, buf, base);
+    assert.equal(r.status, 416, bad);
+    assert.equal(r.headers.get("Content-Range"), "bytes */100", bad);
+  }
 });
