@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// save-run.mjs: keep a local history of build-story runs, outside git.
+// save-run.mjs: keep a local history of buildnotes runs, outside git.
 //
 // Usage:
 //   node dev/save-run.mjs <work-dir> [--name 2026-10-12-weekly-digests] [--artifact <url>] [--note "what this run tested"]
@@ -55,7 +55,7 @@ if (!argv.includes("--index")) {
 mkdirSync(runs, { recursive: true });
 const metas = readdirSync(runs).filter((d) => existsSync(join(runs, d, "meta.json"))).map((d) => JSON.parse(readFileSync(join(runs, d, "meta.json"), "utf8"))).sort((a, b) => a.name.localeCompare(b.name));
 const pages = (m) => m.files.filter((f) => f.endsWith("post.html"));
-const md = ["# Runs", "", "Local history of build-story runs (git-ignored). Rebuild with `node dev/save-run.mjs --index`.", "", "| Run | What it tested | Pages | Skill | Artifact |", "|---|---|---|---|---|",
+const md = ["# Runs", "", "Local history of buildnotes runs (git-ignored). Rebuild with `node dev/save-run.mjs --index`.", "", "| Run | What it tested | Pages | Skill | Artifact |", "|---|---|---|---|---|",
   ...metas.map((m) => `| ${m.name} | ${m.note ?? ""} | ${pages(m).map((p) => `[${p}](${m.name}/${p})`).join(" · ") || "frame only"} | ${m.skillCommit ?? ""} | ${m.artifact ? `[link](${m.artifact})` : ""} |`)];
 writeFileSync(join(runs, "INDEX.md"), md.join("\n") + "\n");
 const esc = (s = "") => s.replace(/&/g, "&amp;").replace(/</g, "&lt;");
