@@ -173,14 +173,14 @@ footer .by { padding-block: 20px 36px; border-top: 1px solid var(--rule); displa
 }
 
 /* Post panel: rests on the post's first figure; pointing at it scrolls the whole post past */
-.scroller { position: relative; display: block; aspect-ratio: 16 / 10; overflow: hidden; border: 1px solid var(--rule); border-radius: 4px; background: #fcfcfa; }
+.scroller { position: relative; display: block; aspect-ratio: 16 / 9; overflow: hidden; border: 1px solid var(--rule); border-radius: 4px; background: #fcfcfa; }
 .scroller img { position: absolute; top: 0; left: 0; width: 100%; height: auto; transform: translateY(var(--rest)); transition: transform 0.8s cubic-bezier(.22,1,.36,1); }
 .scroller:hover img, .scroller:focus-visible img { transform: translateY(var(--end)); transition: transform 14s linear; }
 .scroller .hint { position: absolute; right: 8px; bottom: 8px; font: 400 0.625rem/1 var(--font-mono); color: #64645f; background: #fcfcfa; border: 1px solid #e3e3dd; border-radius: 3px; padding: 4px 6px; }
 .two { display: grid; gap: 20px; grid-template-columns: minmax(0, 1fr); }
 @media (min-width: 760px) { .two { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .two figure { display: grid; gap: 10px; align-content: start; }
-.two video { width: 100%; aspect-ratio: 16 / 10; object-fit: contain; background: #000; border-radius: 4px; border: 1px solid var(--rule); }
+.two video { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; background: var(--accent); border-radius: 4px; border: 1px solid var(--rule); }
 .two figcaption { font-size: 0.875rem; color: var(--muted); line-height: 1.45; }
 .two figcaption b { color: var(--ink); font-weight: 600; }
 .live { display: grid; gap: 12px; }

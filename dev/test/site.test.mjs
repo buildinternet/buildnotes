@@ -140,3 +140,30 @@ test("iso drawings: every name draws; only the pipeline is announced", () => {
   assert.match(drawing("pipeline"), /<circle class="dot" cx="0" cy="0"/);
   assert.throws(() => drawing("nope"), /unknown drawing "nope"/);
 });
+
+test("the video Worker answers Range requests: 206 with Content-Range, 416 when unsatisfiable, 200 without", async () => {
+  const { ranged } = await import("../../site/worker.mjs");
+  const buf = new Uint8Array(100).map((_, i) => i).buffer;
+  const base = new Headers({ "Content-Type": "video/mp4", "Content-Length": "100", ETag: '"x"' });
+  const full = ranged(null, buf, base);
+  assert.equal(full.status, 200);
+  assert.equal(full.headers.get("Accept-Ranges"), "bytes");
+  assert.equal(full.headers.get("Content-Length"), "100");
+  assert.equal(full.headers.get("ETag"), '"x"', "the asset's headers are kept");
+  const part = ranged("bytes=10-19", buf, base);
+  assert.equal(part.status, 206);
+  assert.equal(part.headers.get("Content-Range"), "bytes 10-19/100");
+  assert.equal(part.headers.get("Content-Length"), "10");
+  assert.deepEqual([...new Uint8Array(await part.arrayBuffer())], [10, 11, 12, 13, 14, 15, 16, 17, 18, 19]);
+  const open = ranged("bytes=90-", buf, base);
+  assert.equal(open.headers.get("Content-Range"), "bytes 90-99/100");
+  const past = ranged("bytes=50-500", buf, base);
+  assert.equal(past.headers.get("Content-Range"), "bytes 50-99/100", "an end past the file is shortened");
+  const suffix = ranged("bytes=-5", buf, base);
+  assert.equal(suffix.headers.get("Content-Range"), "bytes 95-99/100");
+  for (const bad of ["bytes=100-", "bytes=20-10", "bytes=", "chars=0-1"]) {
+    const r = ranged(bad, buf, base);
+    assert.equal(r.status, 416, bad);
+    assert.equal(r.headers.get("Content-Range"), "bytes */100", bad);
+  }
+});

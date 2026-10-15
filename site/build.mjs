@@ -98,11 +98,24 @@ const SHELL_CSS = `
 .site-end .site-others { display: grid; gap: 0; border-top: 1px solid #e3e3dd; }
 .site-end .site-others a { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 2px 16px; padding: 12px 0; border-bottom: 1px solid #e3e3dd; }
 .site-end .site-others a b { color: #1f1f1d; font-weight: 600; }
-.site-end .site-foot { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 20px; padding-top: 20px; border-top: 1px solid #e3e3dd; font-size: 0.8125rem; }
 `;
 
 // Wrap one example's committed post.html in a full document and the site shell. `url` is where the site
 // is served (--url), for the canonical link and an image inside the site; without it the image is on GitHub.
+// The home page's footer CSS (the block starting "/* Footer:" in src/index.html), scoped under .site-footer
+// with the light palette inlined, so the example pages' footer matches the home page's without sharing
+// the post's variables.
+function footerCss() {
+  const src = readFileSync(join(here, "src/index.html"), "utf8");
+  const a = src.indexOf("/* Footer:");
+  const b = a < 0 ? -1 : src.indexOf("\n\n", a);
+  if (a < 0 || b < 0) throw new Error('src/index.html: no "/* Footer:" block');
+  const vars = { "--rule": "#e3e3dd", "--ink": "#1f1f1d", "--muted": "#64645f", "--font-body": '"Source Serif 4", Georgia, serif', "--font-mono": '"Martian Mono", ui-monospace, SFMono-Regular, Menlo, monospace' };
+  return src.slice(a, b)
+    .replace(/var\((--[\w-]+)\)/g, (all, v) => { if (!(v in vars)) throw new Error(`footer CSS uses ${v}, not in the shell's palette`); return vars[v]; })
+    .replace(/^(\s*)footer\b/gm, "$1.site-footer footer");
+}
+
 export function wrapPost(slug, post, url) {
   const i = EXAMPLES.findIndex((e) => e.slug === slug);
   if (i < 0) throw new Error(`examples/${slug} is not in EXAMPLES (site/build.mjs)`);
@@ -131,7 +144,11 @@ ${head.replace(/<title>[^<]*<\/title>/, `<title>${esc(title)} · buildnotes exam
 <meta name="description" content="${esc(ex.blurb)}">
 ${share}
 <link rel="icon" href="../../assets/favicon.svg" type="image/svg+xml">
-<style>${SHELL_CSS}</style>
+<style>${SHELL_CSS}
+.site-footer { font-family: "Archivo", "Helvetica Neue", Arial, sans-serif; max-width: var(--col, 42rem); margin: 3rem auto 0; -webkit-font-smoothing: antialiased; }
+.site-footer footer ul { margin: 0; padding: 0; }
+.site-footer footer h4, .site-footer footer p { margin: 0; }
+${footerCss()}</style>
 </head>
 <body>
 <header class="site-bar site-top">
@@ -140,7 +157,7 @@ ${share}
   <nav aria-label="Site"><a href="#site-video">Video</a><a href="../">All examples</a><a href="${REPO}">GitHub</a></nav>
 </header>
 ${body}
-<footer class="site-bar site-end" id="site-video">
+<section class="site-bar site-end" id="site-video" aria-label="About this example">
   <div class="site-rule"></div>
   <p class="site-label">This post is a buildnotes example</p>
   <h2>The same story in ${esc(ex.cut)}</h2>
@@ -150,8 +167,10 @@ ${body}
   <div class="site-others">
 ${others.map((o) => `    <a href="../${o.slug}/"><b>${esc(o.name)}</b><span>${esc(o.product)} · post and ${esc(o.cut)} video</span></a>`).join("\n")}
   </div>
-  <div class="site-foot"><a href="../../">buildnotes: turn pull requests into posts and videos worth sharing</a><a href="../">All examples</a><a href="${REPO}">github.com/buildinternet/buildnotes</a></div>
-</footer>
+</section>
+<div class="site-footer">
+${footer("../../")}
+</div>
 </body>
 </html>
 `;
