@@ -14,10 +14,10 @@
 </p>
 
 <p align="center">
-  <img src=".github/assets/post-masthead.webp" width="720" alt="The top of a build story titled 'Making the weekly digest worth opening'. The dek reads: a collection's weekly digest now opens with a picture of the week, can play that week back, and comes to your inbox on Monday. Below it, a short intro, three bullet points (a card, a replay, a weekly email) and a five-chapter table of contents.">
+  <img src=".github/assets/digest-card-hero.webp" width="720" alt="An isometric line drawing of the 'week at a glance' card from a weekly digest: product tiles split into columns, the largest one in blue, flame marks on two tiles, and five release rows below. Five numbered keys name its parts: flames, tile size, columns, click a tile, and the five biggest releases. Above it, an Assembled / Apart toggle; below it, the post's figure caption.">
 </p>
 
-<p align="center"><sub><code>examples/weekly-digests</code>: the masthead and opening of a build story written by the skill from a public repo's PRs.</sub></p>
+<p align="center"><sub><code>examples/weekly-digests</code>: Fig. 1 of a build story the skill wrote from a public repo's PRs. Its parts are measured from the shipped card, and on the page they lift, come apart and explain themselves.</sub></p>
 
 > [!NOTE]
 > Prototype. Expect the rules and scripts to change.
