@@ -6,6 +6,7 @@
   },
   "scripts": {
     "test": "node --test dev/test/*.test.mjs",
-    "site": "node site/build.mjs"
+    "site": "node site/build.mjs",
+    "promo": "node site/promo/build.mjs"
   }
 }

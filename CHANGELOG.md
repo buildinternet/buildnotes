@@ -31,6 +31,7 @@ Until the first release, changes are recorded under [Unreleased].
 - `docs/install.md`, `docs/scripts.md` and `docs/developing.md`, split out of the README, which now keeps the overview, examples and components. `SKILL.md` and `docs/install.md` give a fallback when `gh` isn't installed: a GitHub MCP server, then public GitHub pages for a public repo, then commits alone.
 - `gather.mjs` without `gh`: git-only runs read the repo from the `origin` remote instead of crashing, `--issue`, `--pr` and `--search` exit 2 with one line pointing at [Without the GitHub CLI](docs/install.md#without-the-github-cli), and `--visibility public|private` records a visibility confirmed elsewhere, such as through a GitHub MCP server.
 - `site/`: the project's one-page website. `node site/build.mjs` builds it into `site/dist/`, with two live figures rendered from the examples by `viz.mjs`, pictures drawn in the anatomy style by `site/iso.mjs`, a copy button on every command, and link-preview tags (description, Open Graph, Twitter) with a 1200 × 630 card made by `site/card.mjs`. See [Developing](docs/developing.md#website).
+- A 40-second promo video for social posts, `site/assets/promo.mp4`, in the skill's own output styles (the motion cut's title card and the field-notes page). `site/promo/build.mjs` builds it from the site's drawings and the walkthrough-videos example, and exports it with the skill's own `export.mjs`.
 
 ### Changed
 
