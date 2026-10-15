@@ -60,7 +60,7 @@ With none of these, the post is built from commit history alone, and is thinner 
 
 ## Codex: if gathering or the render pass is blocked
 
-Codex runs commands in a sandbox. Two steps can trip it: `gather.mjs` calls `gh` over the network, and the render pass starts headless Chrome, which writes a temporary profile and talks to it over a local port. Work dirs also live outside the repo, in `~/.build-stories`. In order of preference:
+Codex runs commands in a sandbox. Two steps can trip it: `gather.mjs` calls `gh` over the network, and the render pass starts headless Chrome, which writes a temporary profile and talks to it over a local port. Work dirs also live outside the repo, in `~/.buildnotes`. In order of preference:
 
 1. When Codex asks to run one of these outside the sandbox, approve it for that command. This needs the default `approval_policy = "on-request"`.
 2. Or allow it in `~/.codex/config.toml`:
@@ -71,14 +71,14 @@ Codex runs commands in a sandbox. Two steps can trip it: `gather.mjs` calls `gh`
 
    [sandbox_workspace_write]
    network_access = true
-   writable_roots = ["/Users/you/.build-stories", "/tmp"]   # absolute paths
+   writable_roots = ["/Users/you/.buildnotes", "/tmp"]   # absolute paths
    ```
 
    Newer Codex releases may name these settings differently; check the config reference for your version.
-3. Or set `BUILD_STORY_DIR` to a folder Codex can already write to.
+3. Or set `BUILDNOTES_DIR` to a folder Codex can already write to.
 
 ## Configuration
 
-- `BUILD_STORY_DIR`: where work dirs go (default `~/.build-stories/<repo>/`). They live outside any repo, so runs survive worktrees and never land in tracked files.
+- `BUILDNOTES_DIR`: where work dirs go (default `~/.buildnotes/<repo>/`). They live outside any repo, so runs survive worktrees and never land in tracked files.
 - `house-style.md`: put one beside a repo's work dirs to record the product's exact name, shorthand, and terms to use or avoid. The skill reads it first and adds to it when you settle a term.
 - `CHROME_PATH`: the Chrome or Chromium binary, when it isn't found on its own.

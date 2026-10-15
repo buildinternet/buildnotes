@@ -34,6 +34,7 @@ Until the first release, changes are recorded under [Unreleased].
 ### Changed
 
 - The skill is renamed from `build-story` to `buildnotes`, so it runs as `/buildnotes` (`$buildnotes` in Codex). Reinstall it, or rename the folder under your skills directory. Build story is still the name of the default flavor.
+- Work dirs live under `$BUILDNOTES_DIR`, default `~/.buildnotes/<repo>/`, after the rename to buildnotes. `scripts/workdir.mjs` still reads `BUILD_STORY_DIR` when the new variable is unset, and keeps using an existing `~/.build-stories` (printing the `mv` command to move it) until `~/.buildnotes` exists, so each repo's `house-style.md` is still found.
 - A request can open with the output it wants: `post` (the default) or `video`, which writes the post and then its motion cut, as in `/buildnotes video tech explainer of our latest PR`. `SKILL.md` has an `argument-hint` and an Output section for this. The rest of the request is read as plain words, as before.
 - Each beat now passes a reader test: what would a reader see differently if this had gone the other way? In a release or build story, a beat that only shows in the service's logs, costs or dashboards is cut. The build flavor keeps internals only where they explain something the reader sees.
 - `SKILL.md` adds *understood beats exact*, and `references/evidence.md` a section on how far to check a claim: check what would mislead, and treat a claim only production data can confirm as a sign the beat is about running the service.

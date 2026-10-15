@@ -91,7 +91,7 @@ Settle these from the request, the repo and the defaults. Don't ask about scope 
 Make a work dir outside the repo, so it survives worktrees and never lands in tracked files. `<work-dir>` below means this path, or the author's own place if they name one. `<skill-dir>` means the folder this `SKILL.md` was loaded from (for example `~/.claude/skills/buildnotes`, `~/.agents/skills/buildnotes` or `~/.config/opencode/skills/buildnotes`).
 
 ```bash
-WORK=$(node <skill-dir>/scripts/workdir.mjs preview-links)   # → $BUILD_STORY_DIR (default ~/.build-stories)/<repo>/<date>-preview-links
+WORK=$(node <skill-dir>/scripts/workdir.mjs preview-links)   # → $BUILDNOTES_DIR (default ~/.buildnotes)/<repo>/<date>-preview-links
 ```
 
 Run the gatherer (needs `git` and an authenticated `gh`; `--help` lists every flag):
@@ -182,7 +182,7 @@ Play it once and scrub to the end of each scene before handing it over. Publish 
 ## Files
 
 - `scripts/gather.mjs`: evidence dossier from git and GitHub
-- `scripts/workdir.mjs`: a work dir under `$BUILD_STORY_DIR` (default `~/.build-stories/<repo>/`)
+- `scripts/workdir.mjs`: a work dir under `$BUILDNOTES_DIR` (default `~/.buildnotes/<repo>/`)
 - `scripts/lint.mjs`: the mechanical half of the Check step
 - `scripts/module.mjs`: an opt-in module (build log, numbers, timeline) from the dossier
 - `scripts/viz.mjs`: visual components rendered from small specs (`scripts/viz/`, one file per kind)
