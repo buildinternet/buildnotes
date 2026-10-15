@@ -33,6 +33,7 @@ Until the first release, changes are recorded under [Unreleased].
 
 ### Changed
 
+- The README's top image is now Fig. 1 of the weekly-digests field-notes post, the "week at a glance" card drawn at an angle with its five keys, in place of the post's masthead, which was almost all text.
 - The skill moved into `skills/buildnotes/` (`SKILL.md`, `references/`, `assets/`, `scripts/`, `agents/` and a copy of the license). `npx skills add buildinternet/buildnotes` now copies that folder alone, about 1 MB, instead of the whole repo (about 16 MB, most of it `examples/` and README images). The examples, docs, tests and `dev/` stay at the root. A git checkout now links `skills/buildnotes`, not the checkout: see [Install](docs/install.md#with-git).
 - The skill is renamed from `build-story` to `buildnotes`, so it runs as `/buildnotes` (`$buildnotes` in Codex). Reinstall it, or rename the folder under your skills directory. Build story is still the name of the default flavor.
 - Work dirs live under `$BUILDNOTES_DIR`, default `~/.buildnotes/<repo>/`, after the rename to buildnotes. `scripts/workdir.mjs` still reads `BUILD_STORY_DIR` when the new variable is unset, and keeps using an existing `~/.build-stories` (printing the `mv` command to move it) until `~/.buildnotes` exists, so each repo's `house-style.md` is still found.
