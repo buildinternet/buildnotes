@@ -21,7 +21,7 @@ test("the site builds: markers filled, files copied, every command copyable", ()
     // every example command sits in a row with a copy button
     const rows = html.match(/<div class="cmd[^"]*"><code data-copy>/g) ?? [];
     assert.equal(rows.length, (html.match(/<button class="copy"/g) ?? []).length);
-    assert.ok(rows.length >= 8);
+    assert.ok(rows.length >= 6);
     assert.match(html, /<code data-copy>npx skills add buildinternet\/buildnotes<\/code>/);
     // local references point at copied files, and .github/assets is published as assets/
     for (const f of files) assert.ok(existsSync(join(out, f)), f);

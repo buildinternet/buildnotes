@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Examples · buildnotes</title>
-<meta name="description" content="Three posts and videos buildnotes wrote from real pull requests: a walkthrough-video export in Sunny, before/after screenshots on uploads.sh, and weekly digests on Release Notes Index.">
+<meta name="description" content="Three posts and videos buildnotes wrote from real pull requests: a walkthrough-video export in Sunny, before and after screenshots in Uploads, and weekly digests on Release Notes Index.">
 <meta name="color-scheme" content="light">
 <meta name="theme-color" content="#fcfcfa">
 <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
@@ -16,8 +16,9 @@
 /* The home page's stylesheet, pasted by site/build.mjs, then the list below. */
 /* site: css */
 
-.examples { display: grid; gap: 0; border-top: 1px solid var(--rule); }
-.examples > div { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; padding-block: 28px; border-bottom: 1px solid var(--rule); }
+section.list { border-top: 0; padding-block: 32px 64px; gap: 40px; }
+.examples { display: grid; gap: 40px; }
+.examples > div { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; }
 .examples > div > div { display: grid; gap: 8px; align-content: start; }
 .examples img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; object-position: top; border-radius: 4px; border: 1px solid var(--rule); }
 .show-head h1 { font-family: var(--font-display); font-size: 1.75rem; line-height: 1.2; }
@@ -25,14 +26,14 @@
 .examples h2 a { color: var(--ink); text-decoration: none; }
 .examples h2 a:hover { text-decoration: underline; }
 .examples p { font-family: var(--font-body); font-size: 1rem; color: var(--muted); line-height: 1.5; max-width: 38rem; }
-.examples p.label, .examples p.links { font-family: inherit; }
+.examples p.links { font-family: inherit; }
 @media (min-width: 720px) {
   .examples > div { grid-template-columns: 14rem minmax(0, 1fr); align-items: start; }
 }
 </style>
 </head>
 <body>
-<div class="wrap">
+<div class="page">
   <header class="top">
     <a class="name" href="../" id="top">buildnotes</a>
     <nav aria-label="Site">
@@ -44,11 +45,11 @@
     </nav>
   </header>
 
-  <section aria-labelledby="ex-h">
+  <section class="list" aria-labelledby="ex-h">
     <div class="show-head">
       <p class="label">Examples</p>
       <h1 id="ex-h">Three features, written up</h1>
-      <p class="sub">Each one started from the pull requests behind a real feature. buildnotes gathered the record, picked the few decisions that shaped it, wrote the post, and cut the video from the post. Every post ships with the plan it was written from.</p>
+      <p class="sub">Three real features, each made into a post, a video and slides.</p>
     </div>
     <div class="examples">
 <!-- examples -->

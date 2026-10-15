@@ -58,17 +58,17 @@ function locate(ref) {
 
 const LOCAL = /\b(src|href|poster)="(?!https?:|data:|mailto:|#|\/)([^"]+)"/g;
 
-// The committed examples, in the order the shell's footer walks them. `product` is who the post is about,
-// `cut` how long its video runs; the plan link goes to GitHub, where plan.md reads as a page.
+// The committed examples, in the order the shell's footer walks them. `product` is who the post is about
+// and leads wherever an example is listed; `blurb` names the feature and says what it does, in one line.
 // `file` is the committed page to serve as the example's index.html; `image` its card on the examples page.
 // `deck`: the example also has deck.html and deck.pdf, the cut as slides, served next to its video.
 export const EXAMPLES = [
-  { slug: "sunny-walkthrough-videos", name: "Walkthrough videos", product: "Sunny", about: "a furniture and space planner", cut: "52 seconds", deck: true, file: "post.html", style: "field notes", image: ".github/assets/walkthrough-keyed.webp",
-    blurb: "One export turns a room, a floor or a project into a looping 1080p tour. The repo is private, so the post quotes no code and links nothing internal." },
-  { slug: "uploads-before-after", name: "Before and after, side by side", product: "uploads.sh", about: "screenshots for pull requests", cut: "47 seconds", deck: true, file: "post.html", style: "Plain", image: ".github/assets/before-after-compare.webp",
-    blurb: "Tag two screenshots before and after, and the pull request comment shows them in one row. Its figures are the product in use, captured live." },
-  { slug: "releases-weekly-digests", name: "Weekly digests", product: "Release Notes Index", about: "release notes, indexed", cut: "one minute", deck: true, file: "post-field-notes.html", style: "field notes", image: ".github/assets/digest-apart.webp",
-    blurb: "A card at the top of the digest, a replay of the week, and one email a week per reader. Its first figure is the shipped card, measured, drawn at an angle and taken apart." },
+  { slug: "sunny-walkthrough-videos", name: "Walkthrough videos", product: "Sunny", deck: true, file: "post.html", image: ".github/assets/walkthrough-keyed.webp",
+    blurb: "Walkthrough videos: one export turns a room, a floor or a project into a looping tour." },
+  { slug: "uploads-before-after", name: "Before and after, side by side", product: "Uploads", deck: true, file: "post.html", image: ".github/assets/before-after-compare.webp",
+    blurb: "Before and after screenshots: tag two, and the pull request comment shows them side by side." },
+  { slug: "releases-weekly-digests", name: "Weekly digests", product: "Release Notes Index", deck: true, file: "post-field-notes.html", image: ".github/assets/digest-apart.webp",
+    blurb: "Weekly digests: a card, a replay of the week, and one email a week per reader." },
 ];
 const REPO = "https://github.com/buildinternet/buildnotes";
 const RAW = "https://raw.githubusercontent.com/buildinternet/buildnotes/main";
@@ -154,19 +154,18 @@ ${footerCss()}</style>
 <body>
 <header class="site-bar site-top">
   <a class="site-name" href="../../">buildnotes</a>
-  <span class="site-label">Example ${i + 1} of ${EXAMPLES.length} · ${esc(ex.product)}</span>
+  <span class="site-label">${esc(ex.product)}</span>
   <nav aria-label="Site"><a href="#site-video">Video</a><a href="../">All examples</a><a href="${REPO}">GitHub</a></nav>
 </header>
 ${body}
 <section class="site-bar site-end" id="site-video" aria-label="About this example">
   <div class="site-rule"></div>
   <p class="site-label">This post is a buildnotes example</p>
-  <h2>The same story in ${esc(ex.cut)}</h2>
-  <p>buildnotes wrote this post from the pull requests behind one ${esc(ex.product)} feature, then cut the video from the post: every word, number and screenshot in it comes from the page above.</p>
-  <video src="motion.mp4" controls preload="metadata" playsinline aria-label="The ${esc(ex.cut)} video cut of this post."></video>
-  <div class="site-links"><a class="site-accent" href="motion.mp4" download>Download the video</a>${ex.deck ? `<a class="site-accent" href="deck.html">Click through it as slides</a><a class="site-accent" href="deck.pdf" download>Download the slides as a PDF</a>` : ""}<a class="site-accent" href="${REPO}/blob/main/examples/${ex.slug}/plan.md">See the plan behind it</a><a class="site-accent" href="${REPO}/tree/main/examples/${ex.slug}">The example on GitHub</a></div>
+  <h2>The same story as a video</h2>
+  <video src="motion.mp4" controls preload="metadata" playsinline aria-label="The video cut of this post."></video>
+  <div class="site-links"><a class="site-accent" href="motion.mp4" download>Download the video</a>${ex.deck ? `<a class="site-accent" href="deck.html">See the slides</a>` : ""}<a class="site-accent" href="${REPO}/blob/main/examples/${ex.slug}/plan.md">See the plan behind it</a></div>
   <div class="site-others">
-${others.map((o) => `    <a href="../${o.slug}/"><b>${esc(o.name)}</b><span>${esc(o.product)} · post and ${esc(o.cut)} video</span></a>`).join("\n")}
+${others.map((o) => `    <a href="../${o.slug}/"><b>${esc(o.product)}</b><span>${esc(o.name)}</span></a>`).join("\n")}
   </div>
 </section>
 <div class="site-footer">
@@ -247,9 +246,9 @@ export function footer(up = "") {
   const docs = [["Install", "docs/install.md"], ["Scripts and references", "docs/scripts.md"], ["Visual components", "docs/components.md"], ["Developing", "docs/developing.md"], ["SKILL.md", "skills/buildnotes/SKILL.md"]];
   return `  <footer>
     <div class="cols">
-      <div class="brand"><b>buildnotes</b><p>Turn pull requests into posts and videos worth sharing. A skill for coding agents, MIT licensed.</p></div>
+      <div class="brand"><b>buildnotes</b><p>Turn pull requests into posts and videos worth sharing. A skill for coding agents.</p></div>
       <div><h4>Examples</h4><ul>
-${EXAMPLES.map((ex) => `        <li><a href="${up}examples/${ex.slug}/">${esc(ex.name)}</a></li>`).join("\n")}
+${EXAMPLES.map((ex) => `        <li><a href="${up}examples/${ex.slug}/">${esc(ex.product)}</a></li>`).join("\n")}
         <li><a href="${up}examples/">All examples</a></li>
       </ul></div>
       <div><h4>Docs</h4><ul>
@@ -259,13 +258,11 @@ ${docs.map(([name, path]) => `        <li><a href="${REPO}/blob/main/${path}">${
         <li><a href="${REPO}">GitHub</a></li>
         <li><a href="${REPO}/blob/main/CHANGELOG.md">Changelog</a></li>
         <li><a href="${REPO}/blob/main/LICENSE">License</a></li>
-        <li><a href="https://releases.sh">Release Notes Index</a></li>
-        <li><a href="https://uploads.sh">uploads.sh</a></li>
       </ul></div>
     </div>
     <div class="by">
       <span>Maintained by <a href="https://zachdunn.com">Zach Dunn</a> / <a href="https://buildinternet.com">Build Internet</a>.</span>
-      <span>Also from Build Internet: <a href="https://releases.sh">Release Notes Index →</a> <a href="https://uploads.sh">uploads.sh →</a></span>
+      <span>Also from Build Internet: <a href="https://releases.sh">Release Notes Index →</a> <a href="https://uploads.sh">Uploads →</a></span>
     </div>
   </footer>`;
 }
@@ -278,13 +275,12 @@ function examplesPage(homeHtml, url) {
   if (!css) throw new Error("src/index.html: no <style> to share with the examples page");
   if (page.split("/* site: css */").length !== 2) throw new Error("src/examples.html needs exactly one /* site: css */");
   page = page.replace("/* site: css */", () => css);
-  page = page.replace("<!-- examples -->", () => EXAMPLES.map((ex, i) => `      <div>
+  page = page.replace("<!-- examples -->", () => EXAMPLES.map((ex) => `      <div>
         <a href="${ex.slug}/"><img src="../${ex.image}" alt="" loading="lazy"></a>
         <div>
-          <p class="label">Example ${i + 1} of ${EXAMPLES.length} · ${esc(ex.product)}, ${esc(ex.about)}</p>
-          <h2><a href="${ex.slug}/">${esc(ex.name)}</a></h2>
+          <h2><a href="${ex.slug}/">${esc(ex.product)}</a></h2>
           <p>${esc(ex.blurb)}</p>
-          <p class="links"><a href="${ex.slug}/">Read the post</a><a href="${ex.slug}/motion.mp4">Watch the video, ${esc(ex.cut)}</a>${ex.deck ? `<a href="${ex.slug}/deck.html">Click through the slides</a>` : ""}<a href="${REPO}/blob/main/examples/${ex.slug}/plan.md">See the plan behind it</a></p>
+          <p class="links"><a href="${ex.slug}/">Post</a><a href="${ex.slug}/motion.mp4">Video</a>${ex.deck ? `<a href="${ex.slug}/deck.html">Slides</a>` : ""}</p>
         </div>
       </div>`).join("\n"));
   page = page.replace("<!-- footer -->", () => footer("../"));
