@@ -6,10 +6,11 @@ import { mkdtempSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { gather } from "../../scripts/gather.mjs";
+import { gather } from "../../skills/buildnotes/scripts/gather.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
-const script = join(root, "scripts/gather.mjs");
+const skill = join(root, "skills/buildnotes");
+const script = join(skill, "scripts/gather.mjs");
 const ghFx = JSON.parse(readFileSync(new URL("./fixtures/gather/gh.json", import.meta.url), "utf8"));
 const gitFx = JSON.parse(readFileSync(new URL("./fixtures/gather/git.json", import.meta.url), "utf8"));
 

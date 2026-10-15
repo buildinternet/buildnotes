@@ -6,10 +6,11 @@ import { mkdtempSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, dirname, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { chromePath } from "../../scripts/chrome.mjs";
+import { chromePath } from "../../skills/buildnotes/scripts/chrome.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
-const run = (...args) => execFileSync("node", [join(root, "scripts/export.mjs"), join(root, "assets/template.html"), ...args], { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
+const skill = join(root, "skills/buildnotes");
+const run = (...args) => execFileSync("node", [join(skill, "scripts/export.mjs"), join(skill, "assets/template.html"), ...args], { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
 const noChrome = !chromePath() && "no Chrome";
 const out = mkdtempSync(join(tmpdir(), "export-"));
 
@@ -53,7 +54,7 @@ test("a still figure says so instead of making a video", { skip: noChrome }, () 
 const fixture = join(root, "dev/test/fixtures/canvas.html");
 const shoot = (n, at, ...more) => {
   const f = join(out, `c${n}-${at}-${more.length}.png`);
-  execFileSync("node", [join(root, "scripts/export.mjs"), fixture, "--figure", String(n), "--png", "--scale", "1", "--at", String(at), "--out", f, ...more], { stdio: "ignore" });
+  execFileSync("node", [join(skill, "scripts/export.mjs"), fixture, "--figure", String(n), "--png", "--scale", "1", "--at", String(at), "--out", f, ...more], { stdio: "ignore" });
   return readFileSync(f);
 };
 
@@ -65,7 +66,7 @@ for (const [n, kind] of [[1, "2D canvas"], [2, "WebGL"]]) {
 }
 
 test("a canvas with no declared loop asks for one", { skip: noChrome }, () => {
-  assert.throws(() => execFileSync("node", [join(root, "scripts/export.mjs"), fixture, "--figure", "3", "--gif"], { stdio: "pipe" }), /data-loop/);
+  assert.throws(() => execFileSync("node", [join(skill, "scripts/export.mjs"), fixture, "--figure", "3", "--gif"], { stdio: "pipe" }), /data-loop/);
 });
 
 test("--click starts the figure, and a clamped game loop still reaches its end state", { skip: noChrome }, () => {
@@ -81,7 +82,7 @@ test("a shader component loops exactly on u_phase", { skip: noChrome }, () => {
   execFileSync("node", [join(root, "dev/gallery.mjs"), "--only", "shader", "--out", page], { stdio: "ignore" });
   const at = (s) => {
     const f = join(out, `jitter-${s}.png`);
-    execFileSync("node", [join(root, "scripts/export.mjs"), page, "--select", "#shader-jitter .shader", "--png", "--scale", "1", "--at", String(s), "--out", f], { stdio: "ignore" });
+    execFileSync("node", [join(skill, "scripts/export.mjs"), page, "--select", "#shader-jitter .shader", "--png", "--scale", "1", "--at", String(s), "--out", f], { stdio: "ignore" });
     return readFileSync(f);
   };
   assert.ok(at(2).equals(at(7)), "one loop (5 s) apart is the same frame");
@@ -90,11 +91,11 @@ test("a shader component loops exactly on u_phase", { skip: noChrome }, () => {
 
 test("render.mjs fails clipped code at desktop width and cut-off SVG labels, notes scrolling code on a phone, and saves four screenshots", { skip: noChrome }, () => {
   const dir = mkdtempSync(join(tmpdir(), "render-"));
-  const tpl = readFileSync(join(root, "assets/template.html"), "utf8");
+  const tpl = readFileSync(join(skill, "assets/template.html"), "utf8");
   const css = tpl.slice(tpl.indexOf("<style>"), tpl.indexOf("</style>") + 8);
   const long = "x".repeat(200);
   writeFileSync(join(dir, "post.html"), `<!doctype html><meta name="viewport" content="width=device-width">${css}<article class="post"><figure class="code"><figcaption><span>a.js</span></figcaption><pre><code>const s = "${long}";</code></pre></figure><figure class="diagram"><svg viewBox="0 0 200 100"><text x="-30" y="50">Corner label</text></svg></figure></article>`);
-  const r = spawnSync("node", [join(root, "scripts/render.mjs"), join(dir, "post.html")], { encoding: "utf8" });
+  const r = spawnSync("node", [join(skill, "scripts/render.mjs"), join(dir, "post.html")], { encoding: "utf8" });
   assert.equal(r.status, 1);
   assert.match(r.stdout, /1280 light: ✗ code clipped by \d+ px: a\.js/);
   assert.match(r.stdout, /1280 light: .*✗ label cut off by \d+ px at the drawing's edge: "Corner label"/);
@@ -103,8 +104,8 @@ test("render.mjs fails clipped code at desktop width and cut-off SVG labels, not
 });
 
 test("a command line gets a copy button and coloured words, and copies the command as typed", { skip: noChrome }, async () => {
-  const { openPage } = await import("../../scripts/chrome.mjs");
-  const page = await openPage(pathToFileURL(join(root, "assets/template.html")).href, { width: 800, height: 600, scale: 1 });
+  const { openPage } = await import("../../skills/buildnotes/scripts/chrome.mjs");
+  const page = await openPage(pathToFileURL(join(skill, "assets/template.html")).href, { width: 800, height: 600, scale: 1 });
   try {
     const r = JSON.parse(await page.evaluate(`(() => {
       const cmd = document.querySelector(".cmd");

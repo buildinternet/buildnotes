@@ -28,7 +28,7 @@ jobs:
       - name: Syntax
         run: |
           shopt -s globstar
-          for f in scripts/**/*.mjs dev/**/*.mjs; do
+          for f in skills/buildnotes/scripts/**/*.mjs dev/**/*.mjs; do
             node --check "$f"
           done
 
@@ -37,7 +37,7 @@ jobs:
           node --input-type=module <<'EOF'
           import { readFileSync } from "node:fs";
 
-          const text = readFileSync("SKILL.md", "utf8");
+          const text = readFileSync("skills/buildnotes/SKILL.md", "utf8");
           if (!text.startsWith("---\n")) {
             console.error("SKILL.md frontmatter must start with ---");
             process.exit(1);
@@ -87,7 +87,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with:
-          # One test reads scripts/gather.mjs at 2cddb0c. A shallow clone does not have it.
+          # One test reads scripts/gather.mjs at 2cddb0c (from before the move to skills/buildnotes). A shallow clone does not have it.
           fetch-depth: 0
 
       - uses: actions/setup-node@v7
@@ -103,7 +103,7 @@ jobs:
           bin="$(command -v google-chrome || command -v google-chrome-stable || true)"
           echo "path=$bin" >> "$GITHUB_OUTPUT"
 
-      # Chrome for Testing lands outside the paths scripts/chrome.mjs searches, so export CHROME_PATH.
+      # Chrome for Testing lands outside the paths skills/buildnotes/scripts/chrome.mjs searches, so export CHROME_PATH.
       - uses: browser-actions/setup-chrome@v2
         id: setup-chrome
         if: steps.chrome.outputs.path == ''

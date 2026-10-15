@@ -3,13 +3,13 @@
 ```bash
 node --test dev/test/*.test.mjs                    # renderer, lint and export tests
 node dev/shots.mjs                                 # every component at 1280 and 390 px, light and dark → runs/components/
-node dev/gallery.mjs --publish                     # rebuild assets/components.html after changing a renderer or spec
-node scripts/viz.mjs build assets/template.html    # re-render the template's examples
+node dev/gallery.mjs --publish                     # rebuild skills/buildnotes/assets/components.html after changing a renderer or spec
+node skills/buildnotes/scripts/viz.mjs build skills/buildnotes/assets/template.html    # re-render the template's examples
 ```
 
-Like the render pass and figure export, `dev/shots.mjs` drives headless Chrome through [`scripts/chrome.mjs`](../scripts/chrome.mjs), with no packages. It runs the four modes in parallel.
+Like the render pass and figure export, `dev/shots.mjs` drives headless Chrome through [`scripts/chrome.mjs`](../skills/buildnotes/scripts/chrome.mjs), with no packages. It runs the four modes in parallel.
 
-The images in the README were made with [`scripts/export.mjs`](../scripts/export.mjs) and live in [`.github/assets/`](../.github/assets).
+The images in the README were made with [`scripts/export.mjs`](../skills/buildnotes/scripts/export.mjs) and live in [`.github/assets/`](../.github/assets).
 
 ## Run history
 

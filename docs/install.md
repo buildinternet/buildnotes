@@ -1,6 +1,6 @@
 # Install
 
-buildnotes is a standard [Agent Skill](https://agentskills.io): a folder with a `SKILL.md` at its root. This repository is that folder. It is written for Claude Code, and OpenCode and Codex load it too; on those hosts the finished page stays as a file in the work dir instead of going up as an Artifact.
+buildnotes is a standard [Agent Skill](https://agentskills.io): a folder with a `SKILL.md` at its root. In this repository that folder is [`skills/buildnotes/`](../skills/buildnotes); the examples, docs and tests around it stay out of installs. It is written for Claude Code, and OpenCode and Codex load it too; on those hosts the finished page stays as a file in the work dir instead of going up as an Artifact.
 
 ## With the skills CLI
 
@@ -8,7 +8,7 @@ buildnotes is a standard [Agent Skill](https://agentskills.io): a folder with a 
 npx skills add buildinternet/buildnotes -g -a claude-code
 ```
 
-The [`skills`](https://github.com/vercel-labs/skills) CLI finds the `SKILL.md` at the root of this repository and installs it as `buildnotes`. `-g` installs it for your user; leave it out to install into the current project, and the CLI asks which agents to set up. `-a` picks the agent:
+The [`skills`](https://github.com/vercel-labs/skills) CLI finds `skills/buildnotes/SKILL.md`, copies only that folder (under 1 MB), and installs it as `buildnotes`. `-g` installs it for your user; leave it out to install into the current project, and the CLI asks which agents to set up. `-a` picks the agent:
 
 | Agent | `-g` installs to | Project install goes to | Run it with |
 |---|---|---|---|
@@ -18,17 +18,17 @@ The [`skills`](https://github.com/vercel-labs/skills) CLI finds the `SKILL.md` a
 
 ## With git
 
-Clone into the folder from the table above, for example:
+Clone the repository anywhere, then link its `skills/buildnotes` folder into the folder from the table above, for example:
 
 ```bash
-git clone https://github.com/buildinternet/buildnotes.git ~/.claude/skills/buildnotes
+git clone https://github.com/buildinternet/buildnotes.git ~/Code/buildnotes
 ```
-
-Update by running `git pull` in that folder. If you already keep a checkout elsewhere, link it in instead, so the skill stays in step with it:
 
 ```bash
-ln -s /path/to/buildnotes ~/.claude/skills/buildnotes
+ln -s ~/Code/buildnotes/skills/buildnotes ~/.claude/skills/buildnotes
 ```
+
+Update by running `git pull` in the checkout. Link the subfolder, not the checkout: the agent loads `SKILL.md` from the folder it finds, and the checkout's root has none.
 
 Claude Code picks up new skills in a running session. Restart OpenCode or Codex if the skill doesn't show.
 
@@ -44,7 +44,7 @@ Claude Code picks up new skills in a running session. Restart OpenCode or Codex 
 
 ## Without the GitHub CLI
 
-[`gather.mjs`](../scripts/gather.mjs) calls `gh` for every issue, PR, review thread and search. It does not talk to an MCP server. Without `gh` on the path:
+[`gather.mjs`](../skills/buildnotes/scripts/gather.mjs) calls `gh` for every issue, PR, review thread and search. It does not talk to an MCP server. Without `gh` on the path:
 
 - `--issue`, `--pr` and `--search` stop with exit code 2 and one line saying `gh` is missing or not logged in.
 - Git-only selectors (`--range`, `--since`, `--grep`, `--path`) still work. The repo comes from the `origin` remote (https or ssh), or from `--repo owner/name`. The dossier holds commits only; prior, nearby and later work come back empty.

@@ -1,16 +1,17 @@
 // Checks for the table, code, terminal and strip renderers. Run: node --test dev/test/*.test.mjs
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { dirname, resolve } from "node:path";
+import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import * as options from "../../scripts/viz/options.mjs";
-import * as matrix from "../../scripts/viz/matrix.mjs";
-import { render as code, highlight, excerpt } from "../../scripts/viz/code.mjs";
-import { render as term } from "../../scripts/viz/term.mjs";
-import { render as strip } from "../../scripts/viz/strip.mjs";
-import { inline, mdTable, takeWarnings } from "../../scripts/viz/util.mjs";
+import * as options from "../../skills/buildnotes/scripts/viz/options.mjs";
+import * as matrix from "../../skills/buildnotes/scripts/viz/matrix.mjs";
+import { render as code, highlight, excerpt } from "../../skills/buildnotes/scripts/viz/code.mjs";
+import { render as term } from "../../skills/buildnotes/scripts/viz/term.mjs";
+import { render as strip } from "../../skills/buildnotes/scripts/viz/strip.mjs";
+import { inline, mdTable, takeWarnings } from "../../skills/buildnotes/scripts/viz/util.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
+const skill = join(root, "skills/buildnotes");
 
 test("inline Markdown escapes everything else", () => {
   assert.equal(inline("a <b> `x<y>` **bold** [docs](https://e.com)"), 'a &lt;b&gt; <code>x&lt;y&gt;</code> <strong>bold</strong> <a href="https://e.com">docs</a>');
@@ -93,7 +94,7 @@ test("strip: 2–4 frames, last one accented, commit labels warned", () => {
 });
 
 test("steps: --i/--n, hot box, live highlight", async () => {
-  const { render } = await import("../../scripts/viz/steps.mjs");
+  const { render } = await import("../../skills/buildnotes/scripts/viz/steps.mjs");
   const html = render({ label: "Flow", live: true, steps: [{ label: "A", sub: "a" }, { label: "B", hot: true }] });
   assert.match(html, /<ol class="steps live" style="--n:2" aria-label="Flow">/);
   assert.match(html, /<li style="--i:1" class="hot"><div class="box"><b>B<\/b><\/div><\/li>/);
@@ -101,7 +102,7 @@ test("steps: --i/--n, hot box, live highlight", async () => {
 });
 
 test("shader: attributes, fallback, and the checks on its source", async () => {
-  const { render } = await import("../../scripts/viz/shader.mjs");
+  const { render } = await import("../../skills/buildnotes/scripts/viz/shader.mjs");
   const html = render({ label: "Waves <cross>", glsl: "uniform vec2 u_a; void main() { gl_FragColor = vec4(u_paper, 1.0); }", loop: 4, rest: 1, uniforms: { u_a: [0.3, 0.5] } });
   assert.match(html, /<div class="shader" data-loop="4" data-rest="1" data-uniforms="\{&quot;u_a&quot;:\[0\.3,0\.5\]\}" style="--aspect:16 \/ 9">/);
   assert.match(html, /<canvas role="img" aria-label="Waves &lt;cross&gt;"><\/canvas>/);
@@ -116,7 +117,7 @@ test("shader: attributes, fallback, and the checks on its source", async () => {
 });
 
 test("build re-renders a shader when only its .glsl changed", async () => {
-  const { build } = await import("../../scripts/viz.mjs");
+  const { build } = await import("../../skills/buildnotes/scripts/viz.mjs");
   const { mkdtempSync, writeFileSync, mkdirSync } = await import("node:fs");
   const { tmpdir } = await import("node:os");
   const { join } = await import("node:path");
@@ -141,13 +142,13 @@ test("matrix warns when a row's marks tell nothing apart; code takes wrap", () =
 });
 
 test("strip: image paths are relative to the spec, written relative to the page", () => {
-  const specs = resolve(root, "assets/specs");
+  const specs = resolve(skill, "assets/specs");
   const frames = [{ label: "Round one", src: "img/round-1.svg", alt: "a" }, { label: "As it ships", src: "img/round-3.svg", alt: "b" }];
   takeWarnings();
-  assert.match(strip({ frames }, { base: specs, page: root }), /<img src="assets\/specs\/img\/round-1\.svg"/);
+  assert.match(strip({ frames }, { base: specs, page: skill }), /<img src="assets\/specs\/img\/round-1\.svg"/);
   assert.deepEqual(takeWarnings(), []);
   // A path that only works from the page still renders, and says so.
-  const old = strip({ frames: frames.map((f) => ({ ...f, src: `assets/specs/${f.src}` })) }, { base: specs, page: root });
+  const old = strip({ frames: frames.map((f) => ({ ...f, src: `assets/specs/${f.src}` })) }, { base: specs, page: skill });
   assert.match(old, /<img src="assets\/specs\/img\/round-1\.svg"/);
   assert.match(takeWarnings().join("\n"), /resolves from the page, not the spec/);
 });
