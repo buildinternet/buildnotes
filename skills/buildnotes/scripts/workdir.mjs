@@ -7,7 +7,8 @@
 // The root is $BUILDNOTES_DIR, or ~/.buildnotes by default. Runs are grouped by repo name
 // (the main checkout's folder name, so every worktree of a repo shares one folder). The repo folder
 // may hold house-style.md (the product's name, terms to use or avoid), settled by the author once and
-// read on every run; its path is printed to stderr when it exists.
+// read on every run; its path is printed to stderr when it exists. Next to it, brand.json holds the
+// product's colours, fonts and logo (scripts/brand.mjs); the post, motion cut and deck follow it.
 //
 // Before the rename to buildnotes the root was $BUILD_STORY_DIR or ~/.build-stories. Both still work:
 // the old variable is read when the new one is unset, and the old folder is kept (with a note on how
@@ -39,4 +40,6 @@ const dir = join(root, repo, name);
 mkdirSync(dir, { recursive: true });
 const style = join(root, repo, "house-style.md");
 console.error(existsSync(style) ? `house style: ${style} (read it before writing)` : `house style: none yet; when the author settles a name or term, start ${style}`);
+const brand = join(root, repo, "brand.json");
+console.error(existsSync(brand) ? `brand: ${brand} (the post, motion cut and deck follow it)` : `brand: none; if the author has brand colours, fonts or a logo, save them once to ${brand}`);
 console.log(dir);

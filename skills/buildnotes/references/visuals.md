@@ -180,7 +180,34 @@ The handwritten face (`--font-hand`) is for a number or a label of a few words: 
 
 Field notes' strokes are drawn at render time: `viz.mjs build` reads the style from the post and draws flow boxes and wires by hand, seeded by the figure's id, so the same spec gives the same strokes on every build. Data lines (a `line` series, a bar's length) stay exact in both styles. The style is part of each marker's stamp, so switching it shows every flow as stale until you build again.
 
-A brand restyles Plain: change the tokens in the first `:root` block, keep the role of each one, and keep the dark block in step.
+### Brand
+
+A brand restyles Plain, and the motion cut and deck with it. It lives in one file per repo, `brand.json` next to `house-style.md` in the folder of work dirs (`~/.buildnotes/<repo>/brand.json`; `workdir.mjs` prints the path), so it is set once and every run follows it. Don't edit the template's tokens by hand.
+
+```json
+{
+  "name": "Acme",
+  "colors": {
+    "light": { "accent": "#15803d", "mark": "#b45309", "paper": "#fbfaf6", "ink": "#14261b" },
+    "dark":  { "accent": "#4ade80", "paper": "#0f1712", "ink": "#e8f5ec" }
+  },
+  "fonts": {
+    "display": "Space Grotesk", "body": "Literata", "mono": "JetBrains Mono",
+    "stylesheet": "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Literata:wght@400;600&family=JetBrains+Mono:wght@400;500&display=swap"
+  },
+  "logo": { "light": "logo.svg", "dark": "logo-dark.svg" }
+}
+```
+
+Every part is optional, and an accent alone is a brand.
+
+- **Colours** are hex, by role, in `light` and `dark`: `paper`, `ink`, `muted`, `rule`, `wash`, `card`, `accent`, `accent-wash`, `mark`, `landmark`, `dim`, and for the motion cut's title and end cards `hero`, `hero-ink` and `hero-muted`. The roles mean what they mean above. A role left out is derived when it follows from another: rules, washes and `muted` from the paper and ink, `accent-wash` from the accent, a dark accent or mark from the light one (lightened until it reads on the dark paper), and the hero from the accent (a deep accent in dark). Otherwise it keeps the template's value. Give `dark` values when the author has them; derived ones are a fallback.
+- **Fonts**: `display` (headings, labels), `body` (text) and `mono` (code, data labels), each a family name, which gets the template's fallbacks, or a full stack. `stylesheet` loads them; use Google Fonts, the only stylesheets an Artifact page loads.
+- **Logo**: an SVG (best), PNG, WebP or JPEG, relative to `brand.json`. One path, or `light`, `dark` and `hero` (the logo on the hero colour, default the dark one). It sits above the post's title and in the top corner of every scene and slide.
+
+`node <skill-dir>/scripts/brand.mjs --check <path>` checks the file: unknown keys and colours that aren't hex are errors, and text below 4.5:1 on its ground (ink, muted, accent and mark on the paper, the hero's ink on the hero) is a warning. Fix a contrast warning by asking the author for a deeper shade; don't ship it.
+
+`viz.mjs build` writes the brand into the post as a `<style id="brand">` block after the template's styles, so rebuilding picks up a change to the file; `node <skill-dir>/scripts/brand.mjs <work-dir>/post.html` does it alone, and `--none` takes it out. Field notes keeps its own colours and type; with a brand, use Plain. Look at the render in both themes after branding: a brand's colours are the author's, but the contrast is still yours to check.
 
 ## Checking the render
 
