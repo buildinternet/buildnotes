@@ -418,3 +418,92 @@ test("--show prints one item from a dossier in full", () => serial(async () => {
   assert.equal(missing.status, 2);
   assert.match(missing.stderr, /9999 is not in .*dossier\.json; add it with --pr or --issue/);
 }));
+
+function noGhCommand({ remote = "git@github.com:acme/app.git", gh = "missing", calls = null } = {}) {
+  return (cmd, args) => {
+    if (calls) calls.push([cmd, ...args]);
+    if (cmd === "gh") {
+      if (gh === "missing") throw Object.assign(new Error("spawnSync gh ENOENT"), { code: "ENOENT" });
+      throw Object.assign(new Error("gh failed"), { status: 4, stderr: "To get started with GitHub CLI, please run:  gh auth login\n" });
+    }
+    if (cmd === "git" && args[0] === "remote") {
+      if (!remote) throw new Error("No such remote 'origin'");
+      return `${remote}\n`;
+    }
+    if (cmd === "git") return gitCommand(args);
+    throw new Error(`unexpected command ${cmd}`);
+  };
+}
+
+// die() exits the process; inside the test runner, turn that into a throw and keep the message.
+async function exitOf(fn) {
+  const errors = [];
+  const [exit, err] = [process.exit, console.error];
+  process.exit = (code) => { throw Object.assign(new Error("exit"), { exitCode: code }); };
+  console.error = (...parts) => errors.push(parts.join(" "));
+  try {
+    await fn();
+    return { code: null, errors };
+  } catch (e) {
+    if (e.exitCode === undefined) throw e;
+    return { code: e.exitCode, errors };
+  } finally {
+    process.exit = exit;
+    console.error = err;
+  }
+}
+
+test("without gh, git-only selectors read the repo from the origin remote", () => serial(async () => {
+  for (const [remote, expected] of [
+    ["git@github.com:acme/app.git", "acme/app"],
+    ["https://github.com/acme/app.git", "acme/app"],
+    ["https://github.com/acme/app", "acme/app"],
+    ["ssh://git@github.com/acme/my.app.git", "acme/my.app"],
+  ]) {
+    const dir = mkdtempSync(join(tmpdir(), "gather-nogh-"));
+    let dossier;
+    const { code, errors } = await exitOf(async () => {
+      dossier = await gather(["--out", dir, "--since", "2026-09-01", "--window", "0"], { command: noGhCommand({ remote }) });
+    });
+    assert.equal(code, null, errors.join("\n"));
+    assert.equal(dossier.repo, expected);
+    assert.equal(dossier.visibility, "unknown");
+    assert.ok(dossier.commits.length > 0);
+    assert.ok(errors.some((e) => /^gh is not installed: visibility is unknown \(pass --visibility/.test(e)));
+  }
+}));
+
+test("--visibility records what the agent confirmed and skips the gh lookup", () => serial(async () => {
+  const calls = [];
+  const dir = mkdtempSync(join(tmpdir(), "gather-vis-"));
+  let dossier;
+  await exitOf(async () => {
+    dossier = await gather(["--out", dir, "--since", "2026-09-01", "--window", "0", "--visibility", "public"], { command: noGhCommand({ calls }) });
+  });
+  assert.equal(dossier.visibility, "public");
+  assert.ok(!calls.some((c) => c[0] === "gh" && c.includes("visibility")));
+  assert.match(readFileSync(join(dir, "dossier.md"), "utf8"), /Repo is \*\*public\*\*/);
+
+  const bad = await exitOf(() => gather(["--out", dir, "--since", "2026-09-01", "--visibility", "internal"], { command: noGhCommand() }));
+  assert.equal(bad.code, 2);
+  assert.match(bad.errors[0], /gather: --visibility takes public or private/);
+}));
+
+test("selectors that need gh exit 2 with one actionable line", () => serial(async () => {
+  for (const [sel, gh, why] of [
+    [["--pr", "120"], "missing", "gh is not installed"],
+    [["--issue", "412"], "missing", "gh is not installed"],
+    [["--search", "limit"], "logged-out", "gh is not logged in"],
+  ]) {
+    const dir = mkdtempSync(join(tmpdir(), "gather-need-"));
+    const { code, errors } = await exitOf(() => gather(["--out", dir, "--repo", "acme/app", ...sel], { command: noGhCommand({ gh }) }));
+    assert.equal(code, 2);
+    assert.equal(errors.length, 1);
+    assert.match(errors[0], new RegExp(`^gather: ${why}; --issue, --pr and --search need it\\..*git-only selectors.*docs/install\\.md#without-the-github-cli$`));
+  }
+
+  const dir = mkdtempSync(join(tmpdir(), "gather-norepo-"));
+  const none = await exitOf(() => gather(["--out", dir, "--since", "2026-09-01"], { command: noGhCommand({ remote: null }) }));
+  assert.equal(none.code, 2);
+  assert.match(none.errors[0], /gather: could not tell the GitHub repo .*pass --repo owner\/name/);
+}));
