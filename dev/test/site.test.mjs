@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { build, SHARE, EXAMPLES, wrapPost, footer, exampleCard, siteFonts } from "../../site/build.mjs";
+import { build, SHARE, EXAMPLES, videoChapters, wrapPost, footer, exampleCard, siteFonts } from "../../site/build.mjs";
 import { drawing, NAMES } from "../../site/iso.mjs";
 
 test("the site builds: markers filled, files copied, every command copyable", () => {
@@ -41,7 +41,18 @@ test("the site builds: markers filled, files copied, every command copyable", ()
       assert.equal(post.match(/<title>/g).length, 1);
       assert.match(post, /<header class="site-bar site-top">/);
       // the video sits under the headline, and the rail lists the examples and every chapter
-      assert.match(post, /<\/header>\s*<aside class="site-bar site-watch" id="site-video"[^>]*>\s*<video src="motion\.mp4"/);
+      assert.match(post, /<\/header>\s*<aside class="site-bar site-watch" id="site-video"[^>]*>\s*<div class="site-player"[^>]*>\s*<video src="motion\.mp4"[^>]* controls /);
+      // its chapters: a track for the player, and a segment and a list entry per cue in motion.vtt
+      assert.ok(files.includes(`examples/${ex.slug}/motion.vtt`), ex.slug);
+      assert.match(post, /<track kind="chapters" src="motion\.vtt"/);
+      const cues = videoChapters(ex.slug).length;
+      assert.ok(cues >= 5, ex.slug);
+      // the player's own controls (shown by its script; the browser's stay without it): a scrubber with a segment
+      // per chapter, play, mute and full screen, and the chapters listed under the player
+      assert.match(post, /<div class="site-controls" hidden>/);
+      assert.equal(post.match(/<div class="site-scrub" role="slider"[\s\S]*?<\/div>/)[0].match(/class="sp-seg"/g).length, cues, ex.slug);
+      for (const b of ["sp-play", "sp-mute", "sp-full"]) assert.match(post, new RegExp(`<button type="button" class="${b}" aria-label="[^"]+">`), b);
+      assert.equal(post.match(/<nav class="site-chapters"[\s\S]*?<\/nav>/)[0].match(/<li>/g).length, cues, ex.slug);
       assert.match(post, new RegExp(`<a href="\\.\\./${ex.slug}/" aria-current="page">`), ex.slug);
       assert.equal((post.match(/<nav class="site-bar site-rail"[\s\S]*?<\/nav>/)?.[0].match(/href="#c\d+"/g) ?? []).length, (post.match(/<section class="ch" id="c\d+">/g) ?? []).length, ex.slug);
       for (const o of EXAMPLES) assert.match(post, new RegExp(`href="\\.\\./\\.\\./examples/${o.slug}/"`), `${ex.slug} links ${o.slug}`);
@@ -135,8 +146,20 @@ test("link previews: description, Open Graph and Twitter tags, favicon", () => {
     assert.match(html, /<link rel="icon" href="assets\/favicon\.svg" type="image\/svg\+xml">/);
     assert.ok(files.includes("assets/og.png") && files.includes("assets/favicon.svg"));
     assert.ok(existsSync(join(out, "assets/og.png")));
+    assert.ok(!existsSync(join(out, "sitemap.xml")) && !existsSync(join(out, "robots.txt")), "no sitemap without --url");
     // with --url: canonical, og:url, and an absolute image inside the site
     ({ html } = build({ out, url: "https://example.com/buildnotes" }));
+    // with --url: a sitemap of every page, under that address, and a robots.txt naming it
+    const map = readFileSync(join(out, "sitemap.xml"), "utf8");
+    const locs = [...map.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
+    assert.equal(locs[0], "https://example.com/buildnotes/");
+    assert.ok(locs.includes("https://example.com/buildnotes/examples/"));
+    for (const ex of EXAMPLES) assert.ok(locs.includes(`https://example.com/buildnotes/examples/${ex.slug}/`), ex.slug);
+    for (const l of locs) {
+      const path = l.slice("https://example.com/buildnotes/".length);
+      assert.ok(existsSync(join(out, path.endsWith("/") || !path ? path + "index.html" : path)), `${l} is a built page`);
+    }
+    assert.match(readFileSync(join(out, "robots.txt"), "utf8"), /^Sitemap: https:\/\/example\.com\/buildnotes\/sitemap\.xml$/m);
     assert.match(html, /<link rel="canonical" href="https:\/\/example\.com\/buildnotes\/">/);
     assert.match(readFileSync(join(out, "examples/index.html"), "utf8"), /<link rel="canonical" href="https:\/\/example\.com\/buildnotes\/examples\/">/);
     assert.equal(meta(html, "property", "og:url"), "https://example.com/buildnotes/");

@@ -6,7 +6,7 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 
 import { tmpdir } from "node:os";
 import { join, dirname, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { check, build, clipSprite, exportPlan, imageSize, readingTime } from "../../skills/buildnotes/scripts/motion.mjs";
+import { check, build, chaptersVtt, clipSprite, exportPlan, imageSize, readingTime } from "../../skills/buildnotes/scripts/motion.mjs";
 import { spawnSync } from "node:child_process";
 import { chromePath, openPage } from "../../skills/buildnotes/scripts/chrome.mjs";
 
@@ -110,6 +110,20 @@ test("a clip is one scene: it starts where the scene starts and stops before its
   assert.equal(exportPlan(cut, { gif: true }).scale * 1024, 960);
   assert.throws(() => exportPlan(cut, { scene: 10 }), /a scene from 1 to 9/);
   assert.throws(() => exportPlan(cut, { size: 20 }), /a width from 160/);
+});
+
+test("the whole reel has a chapter per scene, named by its label, starting where the scene starts", () => {
+  const { cut } = check(example, base);
+  const { chapters, seconds } = exportPlan(cut);
+  const starts = cut.scenes.map((d, i) => Math.round(cut.scenes.slice(0, i).reduce((a, x) => a + x.dur, 0) * 10) / 10);
+  // Scenes 5 and 6 share "02 · What counts as impact": one chapter, starting at the first.
+  assert.equal(chapters.length, cut.scenes.length - 1);
+  assert.deepEqual(chapters.map((c) => c.start), starts.filter((_, i) => i !== 5));
+  assert.deepEqual(chapters.map((c) => c.title), cut.scenes.filter((_, i) => i !== 5).map((d) => d.label));
+  assert.equal(exportPlan(cut, { scene: 2 }).chapters, undefined, "a one-scene clip has no chapters");
+  const vtt = chaptersVtt(chapters, seconds);
+  assert.match(vtt, /^WEBVTT\n\n1\n00:00:00\.000 --> /);
+  assert.ok(vtt.trimEnd().endsWith(`--> 00:00:${seconds.toFixed(3)}\nTry it`), "the last cue ends with the video");
 });
 
 test("the page embeds the images, carries the script safely and drops the authoring notes", () => {

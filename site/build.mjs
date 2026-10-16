@@ -4,7 +4,8 @@
 // Usage:
 //   node site/build.mjs                 build into site/dist
 //   node site/build.mjs --out <dir>     build somewhere else
-//   node site/build.mjs --url <url>     where it will be served: sets the canonical link, og:url and an og:image there
+//   node site/build.mjs --url <url>     where it will be served: sets the canonical link, og:url and an og:image there,
+//                                       and writes sitemap.xml and a robots.txt that names it
 //
 // site/src/index.html is the page. The build fills in its markers (<!-- share --> and <!-- description -->
 // become the link-preview tags, from SHARE below), including these:
@@ -18,8 +19,10 @@
 // examples/<slug>/, with its video beside it. Its post is not copied as is: the committed posts are written
 // for the Artifact viewer, which wraps them in a document, so the build wraps each one itself (doctype,
 // charset, viewport) and adds a site shell around it: a bar naming the example with a way back, and a
-// footer with the example's video, its plan, and the other examples. examples/index.html lists them all,
-// built from site/src/examples.html with the home page's stylesheet. Nothing to install; Node 22 or later.
+// footer with the example's video, its plan, and the other examples. The video's chapters come from the
+// motion.vtt beside it: the player has its own controls, with a segment per chapter on its scrubber, and
+// lists them under it. examples/index.html lists them all, built from site/src/examples.html with the home
+// page's stylesheet. Nothing to install; Node 22 or later.
 
 import { readFileSync, writeFileSync, mkdirSync, copyFileSync, rmSync, existsSync, readdirSync } from "node:fs";
 import { dirname, join, resolve, basename } from "node:path";
@@ -95,6 +98,38 @@ const SHELL_CSS = `
 /* The video, in a box under the post's headline. */
 .site-watch { display: grid; gap: 0; border: 1px solid #e3e3dd; border-radius: 6px; background: #f5f5f1; padding: 6px; }
 .site-watch video { width: 100%; aspect-ratio: 16 / 9; background: #000; border-radius: 3px; display: block; }
+/* The player: the video with its own controls (the page's script swaps out the browser's), whose scrubber is
+   one segment per chapter, and the chapters as a list under it. */
+.site-player { position: relative; border-radius: 3px; overflow: hidden; background: #000; }
+.site-player video { border-radius: 0; }
+.site-player:fullscreen { display: flex; align-items: center; border-radius: 0; }
+.site-player:fullscreen video { height: 100%; aspect-ratio: auto; object-fit: contain; }
+.site-controls { position: absolute; left: 0; right: 0; bottom: 0; display: flex; align-items: center; gap: 10px; padding: 32px 12px 8px; background: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.62)); color: #fff; transition: opacity 200ms ease; }
+.site-controls[hidden] { display: none; }
+.site-player.sp-idle .site-controls { opacity: 0; }
+.site-player.sp-idle { cursor: none; }
+.site-controls button { all: unset; flex: none; width: 30px; height: 30px; display: grid; place-items: center; cursor: pointer; border-radius: 3px; }
+.site-controls button:focus-visible, .site-scrub:focus-visible { outline: 2px solid #fff; outline-offset: 1px; }
+.site-controls svg { width: 20px; height: 20px; fill: currentColor; }
+.site-player[data-paused] .sp-i-pause, .site-player:not([data-paused]) .sp-i-play,
+.site-player[data-muted] .sp-i-sound, .site-player:not([data-muted]) .sp-i-muted,
+.site-player[data-full] .sp-i-full, .site-player:not([data-full]) .sp-i-exit { display: none; }
+.site-scrub { flex: 1; min-width: 0; position: relative; display: flex; gap: 3px; align-items: center; height: 22px; cursor: pointer; touch-action: none; border-radius: 3px; }
+.sp-seg { flex: 1 1 0; min-width: 3px; height: 4px; border-radius: 2px; background: linear-gradient(#fff, #fff) no-repeat 0 0 / var(--played, 0%) 100%, rgba(255, 255, 255, 0.32); transition: height 120ms ease; }
+.site-scrub:hover .sp-seg, .site-scrub.sp-drag .sp-seg { height: 6px; }
+.site-scrub .sp-seg.sp-hover { height: 8px; }
+.sp-tip { position: absolute; bottom: 26px; left: 0; max-width: 18rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 4px 8px; border-radius: 3px; background: rgba(24, 24, 22, 0.92); color: #fff; font-size: 0.75rem; line-height: 1.3; pointer-events: none; }
+.sp-tip[hidden] { display: none; }
+.site-player .sp-tip b { font-family: "Martian Mono", ui-monospace, SFMono-Regular, Menlo, monospace; font-weight: 400; font-size: 0.6875rem; margin-right: 8px; color: #fff; }
+.sp-time { flex: none; font-family: "Martian Mono", ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.6875rem; font-stretch: 87.5%; font-variant-numeric: tabular-nums; white-space: nowrap; }
+@media (max-width: 30rem) { .sp-time { display: none; } }
+.site-chapters ol { list-style: none; margin: 0; padding: 10px 6px 2px; columns: 2 15rem; column-gap: 16px; }
+.site-chapters li { break-inside: avoid; }
+.site-chapters button { all: unset; box-sizing: border-box; display: flex; gap: 10px; align-items: baseline; width: 100%; padding: 3px 0; cursor: pointer; color: #64645f; line-height: 1.35; }
+.site-chapters button:hover { color: #1f1f1d; }
+.site-chapters button:focus-visible { outline: 2px solid #3358d4; outline-offset: 2px; border-radius: 2px; }
+.site-chapters button[aria-current] { color: #1f1f1d; font-weight: 600; }
+.site-chapters .site-label { flex: none; min-width: 2.6em; font-weight: 400; font-variant-numeric: tabular-nums; }
 .site-watch .site-watch-bar { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 4px 16px; padding: 10px 6px 4px; }
 .site-watch b { color: #1f1f1d; font-weight: 600; }
 .site-watch .site-links { display: flex; flex-wrap: wrap; gap: 4px 16px; }
@@ -126,6 +161,49 @@ function footerCss() {
     .replace(/^(\s*)footer\b/gm, "$1.site-footer footer");
 }
 
+// The video's chapters, from the motion.vtt beside it (motion.mjs writes one with each export): [{ start, end, title }].
+export function videoChapters(slug) {
+  const file = join(root, "examples", slug, "motion.vtt");
+  if (!existsSync(file)) return [];
+  const secs = (t) => t.split(":").reduce((a, x) => a * 60 + Number(x), 0);
+  return [...readFileSync(file, "utf8").matchAll(/^([\d:.]+) --> ([\d:.]+)\n(.+)$/gm)].map(([, a, b, title]) => ({ start: secs(a), end: secs(b), title }));
+}
+
+const clock = (t) => `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, "0")}`;
+const ICON = (cls, d) => `<svg class="${cls}" viewBox="0 0 20 20" aria-hidden="true">${d}</svg>`;
+const SPEAKER = `<path d="M3 7.5h3l4.5-3.5v12L6 12.5H3z"/>`;
+const ICONS = {
+  play: ICON("sp-i-play", `<path d="M6 4.2v11.6L15.5 10z"/>`),
+  pause: ICON("sp-i-pause", `<path d="M5.5 4h3v12h-3zM11.5 4h3v12h-3z"/>`),
+  sound: ICON("sp-i-sound", `${SPEAKER}<path d="M13.2 7.2a4 4 0 0 1 0 5.6M15.4 5a7 7 0 0 1 0 10" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>`),
+  muted: ICON("sp-i-muted", `${SPEAKER}<path d="M13.5 8l4 4M17.5 8l-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>`),
+  full: ICON("sp-i-full", `<path d="M3.5 8V3.5H8M12 3.5h4.5V8M16.5 12v4.5H12M8 16.5H3.5V12" fill="none" stroke="currentColor" stroke-width="1.8"/>`),
+  exit: ICON("sp-i-exit", `<path d="M8 3.5V8H3.5M16.5 8H12V3.5M12 16.5V12h4.5M3.5 12H8v4.5" fill="none" stroke="currentColor" stroke-width="1.8"/>`),
+};
+
+// The video and its controls. With chapters (the motion.vtt beside it), the page's script replaces the
+// browser's controls with its own, whose scrubber has one segment per chapter, filled as the video plays;
+// the chapters are also listed under it. Without the script, the browser's controls stay. The cue text is
+// already escaped for HTML (WebVTT escapes the same way).
+function player(marks) {
+  const video = (track) => `<video src="motion.mp4" autoplay muted loop playsinline controls preload="metadata" aria-label="The video cut of this post.">${track}</video>`;
+  if (!marks.length) return video("");
+  const total = marks.at(-1).end;
+  return `<div class="site-player" data-paused data-muted>
+      ${video(`<track kind="chapters" src="motion.vtt" srclang="en" label="Chapters" default>`)}
+      <div class="site-controls" hidden>
+        <button type="button" class="sp-play" aria-label="Play">${ICONS.play}${ICONS.pause}</button>
+        <div class="site-scrub" role="slider" tabindex="0" aria-label="Seek" aria-valuemin="0" aria-valuemax="${total}" aria-valuenow="0" aria-valuetext="0:00">${marks.map((c) => `<span class="sp-seg" data-at="${c.start}" data-title="${c.title}" style="flex-grow: ${(c.end - c.start).toFixed(2)}"></span>`).join("")}<span class="sp-tip" hidden></span></div>
+        <span class="sp-time"><span class="sp-now">0:00</span> / ${clock(total)}</span>
+        <button type="button" class="sp-mute" aria-label="Unmute">${ICONS.sound}${ICONS.muted}</button>
+        <button type="button" class="sp-full" aria-label="Full screen">${ICONS.full}${ICONS.exit}</button>
+      </div>
+    </div>
+    <nav class="site-chapters" aria-label="Chapters">
+      <ol>${marks.map((c) => `<li><button type="button" data-at="${c.start}"><span class="site-label">${clock(c.start)}</span>${c.title}</button></li>`).join("")}</ol>
+    </nav>`;
+}
+
 export function wrapPost(slug, post, url) {
   const i = EXAMPLES.findIndex((e) => e.slug === slug);
   if (i < 0) throw new Error(`examples/${slug} is not in EXAMPLES (site/build.mjs)`);
@@ -138,9 +216,10 @@ export function wrapPost(slug, post, url) {
   // The video goes in a box right under the post's headline.
   const mast = body.indexOf("</header>");
   if (mast < 0) throw new Error(`examples/${slug}: no </header> to put the video under`);
+  const marks = videoChapters(slug);
   const watch = `
   <aside class="site-bar site-watch" id="site-video" aria-label="The video">
-    <video src="motion.mp4" autoplay muted loop playsinline controls preload="metadata" aria-label="The video cut of this post."></video>
+    ${player(marks)}
     <div class="site-watch-bar"><b>The same story as a video</b><span class="site-links"><a href="motion.mp4" download>Download</a>${ex.deck ? `<a href="deck.html">Slides</a>` : ""}<a href="${REPO}/blob/main/examples/${ex.slug}/plan.md">The plan behind it</a></span></div>
   </aside>`;
   body = body.slice(0, mast + 9) + watch + body.slice(mast + 9);
@@ -201,6 +280,150 @@ ${footer("../../")}
   }, { rootMargin: "0px 0px -60% 0px" });
   for (const a of links) { const t = document.getElementById(a.hash.slice(1)); if (t) io.observe(t); }
   if (matchMedia("(prefers-reduced-motion: reduce)").matches) document.querySelector(".site-watch video")?.pause();
+})();
+// The player's own controls: a scrubber with a segment per chapter (click, drag, or the arrow keys; Page Up and
+// Page Down move a chapter), play, mute and full screen. They fade while the video plays and the pointer rests.
+(() => {
+  const box = document.querySelector(".site-player");
+  if (!box) return;
+  const video = box.querySelector("video");
+  const bar = box.querySelector(".site-controls");
+  const scrub = bar.querySelector(".site-scrub");
+  const tip = scrub.querySelector(".sp-tip");
+  const now = bar.querySelector(".sp-now");
+  const [play, mute, full] = [".sp-play", ".sp-mute", ".sp-full"].map((s) => bar.querySelector(s));
+  const segs = [...scrub.querySelectorAll(".sp-seg")];
+  const items = [...document.querySelectorAll(".site-chapters button[data-at]")];
+  const starts = segs.map((s) => Number(s.dataset.at));
+  const titles = segs.map((s) => s.dataset.title);
+  const total = () => video.duration || Number(scrub.getAttribute("aria-valuemax"));
+  const end = (i) => starts[i + 1] ?? total();
+  const clamp = (x, a, b) => Math.min(b, Math.max(a, x));
+  const clock = (t) => Math.floor(t / 60) + ":" + String(Math.floor(t % 60)).padStart(2, "0");
+  const chapterAt = (t) => Math.max(0, starts.findLastIndex((a) => a <= t + 0.05));
+  video.controls = false;
+  bar.hidden = false;
+
+  let current = -1;
+  const draw = () => {
+    const t = video.currentTime;
+    segs.forEach((s, i) => s.style.setProperty("--played", clamp(((t - starts[i]) / (end(i) - starts[i])) * 100, 0, 100) + "%"));
+    now.textContent = clock(t);
+    const on = chapterAt(t);
+    scrub.setAttribute("aria-valuenow", t.toFixed(1));
+    scrub.setAttribute("aria-valuetext", clock(t) + ", " + titles[on]);
+    if (on !== current) { items[current]?.removeAttribute("aria-current"); items[on]?.setAttribute("aria-current", "true"); current = on; }
+  };
+  const state = () => {
+    box.toggleAttribute("data-paused", video.paused);
+    box.toggleAttribute("data-muted", video.muted);
+    play.setAttribute("aria-label", video.paused ? "Play" : "Pause");
+    mute.setAttribute("aria-label", video.muted ? "Unmute" : "Mute");
+  };
+  let raf = 0;
+  const tick = () => { draw(); raf = video.paused ? 0 : requestAnimationFrame(tick); };
+  video.addEventListener("play", () => { state(); wake(); if (!raf) raf = requestAnimationFrame(tick); });
+  video.addEventListener("pause", () => { state(); wake(); });
+  video.addEventListener("volumechange", state);
+  for (const e of ["seeked", "timeupdate", "loadedmetadata"]) video.addEventListener(e, draw);
+  const toggle = () => (video.paused ? video.play().catch(() => {}) : video.pause());
+  const seekTo = (t) => { video.currentTime = clamp(t, 0, total() - 0.05); draw(); };
+
+  // A pointer's place on the scrubber, as a time: the segment under it (or the nearest), and how far into it.
+  const timeAt = (x) => {
+    let i = 0, best = Infinity, frac = 0;
+    segs.forEach((s, j) => {
+      const r = s.getBoundingClientRect();
+      const d = x < r.left ? r.left - x : x > r.right ? x - r.right : 0;
+      if (d < best) { best = d; i = j; frac = clamp((x - r.left) / r.width, 0, 1); }
+    });
+    return { i, t: starts[i] + frac * (end(i) - starts[i]) };
+  };
+  const showTip = (x) => {
+    const { i, t } = timeAt(x);
+    tip.replaceChildren(Object.assign(document.createElement("b"), { textContent: clock(t) }), titles[i]);
+    tip.hidden = false;
+    const r = scrub.getBoundingClientRect();
+    tip.style.left = clamp(x - r.left - tip.offsetWidth / 2, 0, r.width - tip.offsetWidth) + "px";
+    segs.forEach((s, j) => s.classList.toggle("sp-hover", j === i));
+  };
+  const hideTip = () => { tip.hidden = true; segs.forEach((s) => s.classList.remove("sp-hover")); };
+  let dragging = false;
+  let resume = false;
+  scrub.addEventListener("pointerdown", (e) => {
+    if (e.button) return;
+    dragging = true;
+    resume = !video.paused;
+    scrub.setPointerCapture(e.pointerId);
+    scrub.classList.add("sp-drag");
+    video.pause();
+    seekTo(timeAt(e.clientX).t);
+    showTip(e.clientX);
+  });
+  scrub.addEventListener("pointermove", (e) => {
+    if (dragging) seekTo(timeAt(e.clientX).t);
+    if (dragging || e.pointerType === "mouse") showTip(e.clientX);
+  });
+  const stop = (e) => {
+    if (!dragging) return;
+    dragging = false;
+    scrub.classList.remove("sp-drag");
+    if (resume) video.play().catch(() => {});
+    if (e.pointerType !== "mouse") hideTip();
+  };
+  scrub.addEventListener("pointerup", stop);
+  scrub.addEventListener("pointercancel", stop);
+  scrub.addEventListener("pointerleave", () => { if (!dragging) hideTip(); });
+  scrub.addEventListener("keydown", (e) => {
+    const t = video.currentTime;
+    const i = chapterAt(t);
+    const to = {
+      ArrowLeft: t - 5, ArrowDown: t - 5, ArrowRight: t + 5, ArrowUp: t + 5,
+      PageDown: t - starts[i] > 1 ? starts[i] : starts[Math.max(0, i - 1)],
+      PageUp: starts[Math.min(starts.length - 1, i + 1)],
+      Home: 0, End: starts.at(-1),
+    }[e.key];
+    if (to !== undefined) { e.preventDefault(); seekTo(to); }
+    else if (e.key === " " || e.key === "Enter") { e.preventDefault(); toggle(); }
+  });
+
+  play.addEventListener("click", toggle);
+  mute.addEventListener("click", () => { video.muted = !video.muted; });
+  const fullscreen = () => document.fullscreenElement || document.webkitFullscreenElement;
+  full.addEventListener("click", () => {
+    if (fullscreen()) (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+    else if (box.requestFullscreen) box.requestFullscreen().catch(() => video.webkitEnterFullscreen?.());
+    else if (box.webkitRequestFullscreen) box.webkitRequestFullscreen();
+    else video.webkitEnterFullscreen?.();
+  });
+  const onFull = () => { box.toggleAttribute("data-full", !!fullscreen()); full.setAttribute("aria-label", fullscreen() ? "Exit full screen" : "Full screen"); };
+  document.addEventListener("fullscreenchange", onFull);
+  document.addEventListener("webkitfullscreenchange", onFull);
+
+  // The controls fade after a moment of play with the pointer still, and come back on any move, tap or key.
+  // A tap on a faded video brings the controls back rather than pausing it.
+  let idle = 0;
+  let wasIdle = false;
+  function wake() {
+    box.classList.remove("sp-idle");
+    clearTimeout(idle);
+    idle = setTimeout(() => { if (!video.paused && !dragging && !bar.contains(document.activeElement)) box.classList.add("sp-idle"); }, 2500);
+  }
+  box.addEventListener("pointerdown", () => { wasIdle = box.classList.contains("sp-idle"); wake(); }, true);
+  box.addEventListener("pointermove", wake);
+  box.addEventListener("focusin", wake);
+  box.addEventListener("pointerleave", (e) => { if (e.pointerType === "mouse" && !video.paused && !dragging) box.classList.add("sp-idle"); });
+  video.addEventListener("click", (e) => { if (e.pointerType !== "mouse" && wasIdle) return; toggle(); });
+  video.addEventListener("dblclick", () => full.click());
+  box.addEventListener("keydown", (e) => {
+    if (e.target.closest("button, .site-scrub")) return;
+    if (e.key === "k" || e.key === " ") { e.preventDefault(); toggle(); }
+  });
+
+  for (const b of items) b.addEventListener("click", () => { seekTo(Number(b.dataset.at)); if (video.paused) video.play().catch(() => {}); });
+  state();
+  draw();
+  wake();
 })();
 </script>
 </body>
@@ -352,6 +575,20 @@ function examplesPage(homeHtml, url) {
   return page;
 }
 
+// The site's pages, as paths from its root: the folders end in a slash, as auto-trailing-slash serves them.
+export function sitePages() {
+  return ["", "examples/", ...EXAMPLES.flatMap((ex) => [`examples/${ex.slug}/`, ...(ex.deck ? [`examples/${ex.slug}/deck.html`] : [])])];
+}
+
+export function sitemap(url, pages) {
+  const loc = (p) => new URL(p, url).href.replace(/&/g, "&amp;").replace(/</g, "&lt;");
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${pages.map((p) => `  <url><loc>${loc(p)}</loc></url>`).join("\n")}
+</urlset>
+`;
+}
+
 // url: where site/dist will be served, e.g. https://example.com/buildnotes/ (a trailing slash is added).
 export function build({ out = join(here, "dist"), url } = {}) {
   if (url) {
@@ -394,6 +631,7 @@ export function build({ out = join(here, "dist"), url } = {}) {
   for (const ex of EXAMPLES) {
     files.set(`examples/${ex.slug}/index.html`, join(root, "examples", ex.slug, ex.file));
     files.set(`examples/${ex.slug}/motion.mp4`, join(root, "examples", ex.slug, "motion.mp4"));
+    if (videoChapters(ex.slug).length) files.set(`examples/${ex.slug}/motion.vtt`, join(root, "examples", ex.slug, "motion.vtt"));
     if (ex.deck) for (const f of ["deck.html", "deck.pdf"]) files.set(`examples/${ex.slug}/${f}`, join(root, "examples", ex.slug, f));
     files.set(exampleCard(ex), join(here, exampleCard(ex))); // its link-preview card
   }
@@ -412,6 +650,14 @@ export function build({ out = join(here, "dist"), url } = {}) {
   }
   writeFileSync(join(out, "examples/index.html"), siteFonts(examples, "../", "src/examples.html"));
   files.set("examples/index.html", null);
+  // With --url, a sitemap of every page (the home page, the examples page, each example and its slides) and a
+  // robots.txt that points to it. A sitemap needs absolute URLs, so a build without --url writes neither.
+  if (url) {
+    writeFileSync(join(out, "sitemap.xml"), sitemap(url, sitePages()));
+    writeFileSync(join(out, "robots.txt"), `User-agent: *\nAllow: /\n\nSitemap: ${new URL("sitemap.xml", url).href}\n`);
+    files.set("sitemap.xml", null);
+    files.set("robots.txt", null);
+  }
   return { html, examples, files: [...files.keys()], warnings, out };
 }
 

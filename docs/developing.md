@@ -30,7 +30,7 @@ To keep a public run as a committed example, check it, then copy its page, plan 
 
 ```bash
 node site/build.mjs                  # or: npm run site
-node site/build.mjs --url https://buildnotes.releases.sh   # canonical link, og:url, og:image there
+node site/build.mjs --url https://buildnotes.releases.sh   # canonical link, og:url, og:image there, sitemap.xml and robots.txt
 node site/card.mjs                   # re-render the link-preview images in site/assets (needs Chrome)
 open site/dist/index.html
 npm run site:dev                     # build, then serve it as the Worker does at http://localhost:8787
