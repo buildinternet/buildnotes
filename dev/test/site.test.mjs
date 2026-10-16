@@ -13,8 +13,9 @@ test("the site builds: markers filled, files copied, every command copyable", ()
     const { html, files } = build({ out });
     assert.doesNotMatch(html, /<!-- (figure|iso) |\/\* template: |\/\/ template: /);
     // the two live figures, with the template's CSS and script to drive them
-    assert.match(html, /class="keyed anatomy anatomy-screenshot"/);
-    assert.match(html, /class="keyed anatomy anatomy-iso"/);
+    assert.match(html, /class="keyed anatomy anatomy-screenshot anatomy-margin"/);
+    assert.match(html, /class="keyed anatomy anatomy-flat anatomy-margin"/);
+    assert.match(html, /@container \(max-width: 559px\)/, "the margin notes' narrow fallback");
     assert.match(html, /\.anatomy-iso:has\(\.apart:checked\)/);
     assert.match(html, /for \(const fig of document\.querySelectorAll\("\.keyed"\)\)/);
     assert.doesNotMatch(html, /zoom-open/, "the expand script stays out; the site has no CSS for it");

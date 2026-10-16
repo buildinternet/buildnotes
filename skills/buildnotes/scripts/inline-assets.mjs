@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// inline-assets.mjs — embed local images/video referenced by src, poster or srcset as data URIs.
+// inline-assets.mjs — embed local images/video referenced by src, poster, srcset or an SVG <image href> as data URIs.
 //
 // Usage: node inline-assets.mjs post.html [--standalone] > post.published.html
 //
@@ -46,6 +46,7 @@ const embed = (ref) => {
 const embedSrcset = (v) => v.split(/,\s+/).map((c) => { const [u, ...d] = c.trim().split(/\s+/); return [embed(u), ...d].join(" "); }).join(", ");
 const html = readFileSync(file, "utf8").split(/(<!--[\s\S]*?-->)/).map((part) => part.startsWith("<!--") ? (keepComments ? part : "") : part
   .replace(/\b(src|poster)="([^"]+)"/g, (_, attr, ref) => `${attr}="${embed(ref)}"`)
+  .replace(/(<image\b[^>]*?\s)href="([^"]+)"/g, (_, head, ref) => `${head}href="${embed(ref)}"`)
   .replace(/\bsrcset="([^"]+)"/g, (_, v) => `srcset="${embedSrcset(v)}"`)).join("");
 
 process.stdout.write(

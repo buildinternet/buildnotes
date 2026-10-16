@@ -49,7 +49,7 @@ The images on this page were exported with the skill's own [`scripts/export.mjs`
     <td colspan="2"><img src="../.github/assets/digest-apart.webp" alt="The 'week at a glance' card drawn at an angle in the field notes style, taken apart: the product tiles and the list of releases lifted off the base, with dashed outlines where they sat and five numbered keys."></td>
   </tr>
   <tr>
-    <td colspan="2"><sub><b>anatomy</b>: one parts list, measured on a capture, drawn flat, at an angle and taken apart, or as keys over the capture itself. This one is from <code>examples/releases-weekly-digests</code>.</sub></td>
+    <td colspan="2"><sub><b>anatomy</b>: one parts list, measured on a capture, drawn flat or shown as the capture itself with notes in the margin, or at an angle and taken apart. This one is from <code>examples/releases-weekly-digests</code>.</sub></td>
   </tr>
 </table>
 

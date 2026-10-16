@@ -36,7 +36,7 @@ const ABOUT = {
   code: "Real code from git at a given commit, cut to the lines that make the point. Renders the whole figure.",
   term: "One command and the output lines that matter. Renders the whole figure.",
   strip: "Before/after, or a progression of up to four rounds: images, code or terminal output.",
-  anatomy: "The parts of one thing, named: a keyed figure drawn from a parts list measured on a capture. Flat shows it straight on with its own labels, iso at an angle as structure only (it comes apart on request), screenshot puts the keys on the capture itself. Pointing at a part lifts it; pointing at a key fades the rest.",
+  anatomy: "The parts of one thing, named: a keyed figure drawn from a parts list measured on a capture. Flat redraws it straight on in grey and accent tones, and screenshot uses the capture itself; both put each key's text in the margin, joined to its part by a bracket or a dot. Iso draws it at an angle with numbered keys, and comes apart on request. Pointing at a note fades the other parts.",
   shader: "A WebGL figure drawn by a fragment shader, for what boxes and lines can't show: many things moving at once, a field or gradient, or pixels that are themselves the subject. Follows the theme, pauses off screen, holds a still frame for reduced motion.",
 };
 const ORDER = Object.keys(ABOUT);
@@ -61,8 +61,8 @@ const EXAMPLES = {
   "strip-rounds.json": "Three rounds of a design, as images.",
   "strip-filter.json": "Before and after, as terminal output.",
   "anatomy-card.json": "At an angle: structure only, with the object's title on its base. Assembled / Apart lifts the parts off, and the keys go with them.",
-  "anatomy-card-flat.json": "Straight on, with the object's own labels. The same spec, through \"from\".",
-  "anatomy-card-shot.json": "Keys over the capture itself. Expand opens it full size.",
+  "anatomy-card-flat.json": "Straight on, with the object's own labels and margin notes. The same spec, through \"from\".",
+  "anatomy-card-shot.json": "The capture itself, with margin notes. Narrow the page to see numbers and a legend instead.",
   "shader-jitter.json": "Many things at once: 80 clients retrying, and the load they put on the server. Loops every 5 s on u_phase; labels sit over the canvas.",
   "shader-rehash.json": "The mechanism behind a number: which keys move when a server joins, and why the ring moves so few. Loops every 5 s.",
   "shader-banding.json": "When the pixels are the subject: a rendering fix, shown on the reader's own screen. A still shader, with the level count as an extra uniform.",
@@ -85,7 +85,7 @@ for (const f of specs) {
   const kind = f.split("-")[0];
   const id = f.replace(/\.\w+$/, "");
   const text = readFileSync(join(specDir, f), "utf8");
-  const frag = renderKind(kind, text, { id, base: specDir, style }).replace(/src="img\//g, `src="${imgBase}/img/`);
+  const frag = renderKind(kind, text, { id, base: specDir, style }).replace(/(src|href)="img\//g, (_, a) => `${a}="${imgBase}/img/`);
   for (const w of takeWarnings()) { warned++; console.error(`! ${f}: ${w}`); }
   const name = id.slice(kind.length + 1);
   const whole = /^(code|term)$/.test(kind);

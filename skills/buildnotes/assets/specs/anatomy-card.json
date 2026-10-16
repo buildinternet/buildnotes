@@ -29,9 +29,9 @@
   ],
   "keys": [
     { "part": "codex", "marks": true, "at": [640, 217], "text": "**Flames.** Filled is a landmark release, outlined a major one." },
-    { "part": "codex", "at": [300, 560], "text": "**Tile size.** The product's impact for the week." },
+    { "part": "codex", "at": [300, 560], "span": true, "text": "**Tile size.** The product's impact for the week." },
     { "part": "claude-code", "at": [1080, 560], "text": "**Columns.** Features, enhancements and fixes, left to right." },
     { "part": "devin", "at": [1500, 430], "text": "**Click a tile** to filter the list." },
-    { "part": "list", "at": [1700, 1290], "text": "**Biggest releases.** Five rows, each linking into the digest." }
+    { "part": "list", "at": [1700, 1290], "span": true, "text": "**Biggest releases.** Five rows, each linking into the digest." }
   ]
 }
