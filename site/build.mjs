@@ -246,6 +246,28 @@ function shareTags({ url, type = "website", title, description, image, imageType
   return tags.filter(Boolean).join("\n");
 }
 
+// Google Fonts loads with display=swap, so a first visit painted the fallback fonts and then reflowed into
+// the real ones. Every page holds its body back until the fonts it lays out with have arrived, for at most
+// 1.2s, then fades it in. The script sits last in <head>, after the font stylesheet; without JavaScript
+// nothing is held.
+const FONT_HOLD = `<style>html.fonts-pending body { opacity: 0; } body { transition: opacity 0.2s ease; }
+@media (prefers-reduced-motion: reduce) { body { transition: none; } }</style>
+<script>
+(() => {
+  const d = document.documentElement;
+  if (!document.fonts) return;
+  d.classList.add("fonts-pending");
+  const show = () => d.classList.remove("fonts-pending");
+  setTimeout(show, 1200);
+  addEventListener("DOMContentLoaded", () => { void document.body.offsetWidth; document.fonts.ready.then(show); });
+})();
+</script>
+`;
+export function holdForFonts(page) {
+  if (page.split("</head>").length !== 2) throw new Error("a page needs exactly one </head> to hold for its fonts");
+  return page.replace("</head>", () => FONT_HOLD + "</head>");
+}
+
 // Fill a page's markers: template CSS and script, iso drawings, live figures, share tags.
 export function fill(html, { url, warnings = [] } = {}) {
   const { css, js } = templateParts();
@@ -362,7 +384,7 @@ export function build({ out = join(here, "dist"), url } = {}) {
 
   rmSync(out, { recursive: true, force: true });
   mkdirSync(out, { recursive: true });
-  writeFileSync(join(out, "index.html"), html);
+  writeFileSync(join(out, "index.html"), holdForFonts(html));
   // Every example is served as a folder, linked from the page or not, with its video next to its post.
   for (const ex of EXAMPLES) {
     files.set(`examples/${ex.slug}/index.html`, join(root, "examples", ex.slug, ex.file));
@@ -374,10 +396,10 @@ export function build({ out = join(here, "dist"), url } = {}) {
     if (!existsSync(from)) throw new Error(`missing ${from}${/^assets\/og[-.]/.test(to) ? " (make it with node site/card.mjs)" : ""}`);
     mkdirSync(dirname(join(out, to)), { recursive: true });
     const post = to.match(POST);
-    if (post) writeFileSync(join(out, to), wrapPost(post[1], readFileSync(from, "utf8"), url));
+    if (post) writeFileSync(join(out, to), holdForFonts(wrapPost(post[1], readFileSync(from, "utf8"), url)));
     else copyFileSync(from, join(out, to));
   }
-  writeFileSync(join(out, "examples/index.html"), examples);
+  writeFileSync(join(out, "examples/index.html"), holdForFonts(examples));
   files.set("examples/index.html", null);
   return { html, examples, files: [...files.keys()], warnings, out };
 }
