@@ -85,12 +85,12 @@ Three flavors. The skill picks one from the request and the size of the change, 
 | | **Release story** | **Build story** (default) | **Technical deep dive** |
 |---|---|---|---|
 | Reader | Users and prospective users | Developers who know the product | Engineers who want the mechanism |
-| Answers | What's new, why it matters, how to use it | What we built, how it works, what shaped it | How it works inside, the trade-offs, the edge cases |
+| Answers | What's new, why it matters, what changes for you | What we built, how it works, what shaped it | How it works inside, the trade-offs, the edge cases |
 | Visuals | Screenshots, before/after, one simple flow | Diagrams, motion, before/after | Diagrams, terminal runs, charts |
 | Code | A usage example at most | Only where the code is the idea | Where it helps |
 | Length | Up to 1,200 words | Up to 2,500 words | Usually under 3,000 words |
 
-Word counts are ceilings, not targets. A small change gets a **note** of a paragraph or three. A typo fix or a dependency bump gets an honest "not worth a post", and if it is one piece of a bigger idea, the skill names that idea and asks whether to write about it instead.
+Word counts are ceilings, not targets. A small change gets a **note** of a paragraph or three. A typo fix, a dependency bump, or standard practice done the usual way gets an honest "not worth a post", even when asked for a deep dive. If it is clearly one piece of a bigger story, the skill writes that story and says so; if the bigger idea would change the subject, it names it and asks first.
 
 ## Visuals
 
