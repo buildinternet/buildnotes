@@ -114,7 +114,7 @@ test("the hero's table: its scene, model, videos, cut images, posters and three.
     for (const cut of Object.keys(CUTS)) for (const src of drawnWidths().keys()) served(`assets/hero/${cut}/${src}`);
     // the chip starts on the first cluster's request, and the pager names every cluster in order
     assert.match(html, new RegExp(`<span class="typed">${CLUSTERS[0].brief}</span>`));
-    const stops = [...html.match(/<nav class="stops"[\s\S]*?<\/nav>/)[0].matchAll(/<button type="button"[^>]*>([^<]+)<\/button>/g)].map((m) => m[1]);
+    const stops = [...html.match(/<nav class="stops"[\s\S]*?<\/nav>/)[0].matchAll(/<button type="button" aria-label="([^"]+)"/g)].map((m) => m[1]);
     assert.deepEqual(stops, CLUSTERS.map((c) => c.name));
   } finally {
     rmSync(out, { recursive: true, force: true });

@@ -100,13 +100,15 @@ html { overflow-x: clip; }
 .req .ask { position: relative; min-width: 0; }
 .req .sizer { visibility: hidden; white-space: nowrap; }
 .req .typed { position: absolute; left: 0; top: 0; right: 0; white-space: nowrap; }
-.stops { position: relative; z-index: 3; display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 6px; padding-bottom: 40px; margin-top: -8px; }
-.stops button { font: 400 0.6875rem var(--font-mono); letter-spacing: .03em; color: var(--muted); background: none; border: 0; border-top: 2px solid var(--rule); padding: 8px 10px 0; cursor: pointer; min-width: 7rem; }
-.stops button[aria-current="true"] { color: var(--ink); border-top-color: var(--accent); }
+/* The pager: one bar per example, named for screen readers only; the chip above already says which it is. */
+.stops { position: relative; z-index: 3; display: flex; justify-content: center; gap: 6px; padding-bottom: 40px; margin-top: -8px; }
+.stops button { width: 40px; height: 22px; padding: 0; background: none; border: 0; cursor: pointer; }
+.stops button::before { content: ""; display: block; height: 2px; background: var(--rule); transition: background-color .3s; }
+.stops button:hover::before { background: var(--muted); }
+.stops button[aria-current="true"]::before { background: var(--accent); }
 @media (max-width: 640px) {
   .hero-table .stage { --s: .36; }
   .hero-table .poster { width: 640px; height: 380px; }
-  .stops button { min-width: 0; }
   .req { bottom: 12px; width: calc(100% - 32px); }
   .req .sizer, .req .typed { white-space: normal; }
 }
@@ -143,7 +145,10 @@ header.top nav { display: flex; flex-wrap: wrap; gap: 4px 20px; }
 /* The request's shape: the command, the output word (one of three) and the brief. A template, so no copy button. */
 .usage { display: grid; gap: 6px; justify-items: center; }
 .usage .label { font-family: var(--font-body); font-size: 0.8125rem; color: var(--muted); }
-.usage code { font-family: var(--font-mono); font-size: clamp(0.875rem, 0.8rem + 0.4vw, 1.0625rem); color: var(--ink); overflow-wrap: anywhere; }
+/* One command in a box, so it reads as one even where it has to wrap: the brief then hangs under the output word. */
+.usage code { max-width: 100%; box-sizing: border-box; font-family: var(--font-mono); font-size: clamp(0.75rem, 0.55rem + 1vw, 1.0625rem); line-height: 1.5; color: var(--ink); background: var(--card); border: 1px solid var(--rule); border-radius: 4px; padding: 10px 14px 10px calc(14px + 12ch); text-indent: -12ch; text-align: left; }
+.usage b, .usage i { white-space: nowrap; }
+@media (max-width: 340px) { .usage b { white-space: normal; } }
 .usage b { font-weight: inherit; color: var(--accent); }
 .usage i { font-style: normal; color: var(--muted); }
 
@@ -289,7 +294,7 @@ section > * { min-width: 0; }
       </div>
       <p class="req"><span class="pre">/buildnotes</span><span class="ask"><span class="sizer" aria-hidden="true">before and after screenshots, side by side</span><span class="typed">How we built room walkthrough videos</span></span></p>
     </div>
-    <nav class="stops" aria-label="Examples on the table"><button type="button" aria-current="true">Sunny</button><button type="button">Release Notes Index</button><button type="button">Uploads</button></nav>
+    <nav class="stops" aria-label="Examples on the table"><button type="button" aria-label="Sunny" aria-current="true"></button><button type="button" aria-label="Release Notes Index"></button><button type="button" aria-label="Uploads"></button></nav>
   </div>
 
   <section id="example" aria-labelledby="ex-h">
