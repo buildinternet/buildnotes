@@ -77,12 +77,6 @@ function record(dr, ox = 0, oy = 0) {
   rows(dr, ox + 8, oy + 18, 48, zt, 8, { widths: [1, 0.8, 0.9, 0.55] });
 }
 
-function dossier(dr, ox = 0, oy = 0) {
-  const zt = dr.slab(ox, oy, 64, 84, { t: 7 });
-  dr.bar(ox + 8, oy + 8, 30, 4, zt, "f3");
-  rows(dr, ox + 8, oy + 18, 48, zt, 9, { gap: 6.5, widths: [1, 0.7, 0.9, 0.8, 0.5] });
-}
-
 function plan(dr, ox = 0, oy = 0) {
   const zt = dr.slab(ox, oy, 64, 84);
   dr.bar(ox + 8, oy + 8, 24, 4, zt, "f3");
@@ -140,17 +134,17 @@ function deck(dr, ox = 0, oy = 0) {
   dr.slab(ox + 56, oy + 14, 32, 30, { z: zt, t: 3, ...LIT, shadow: false });
 }
 
-// The record becomes a dossier, a plan, then the post: four objects in a row, a dot travelling between them.
+// The record becomes a plan, then the post: three objects in a row, a dot travelling between them.
 function pipeline() {
   const dr = new Draw();
-  const step = 150;
-  const anchors = [record, dossier, plan, post].map((fn, i) => {
+  const step = 200;
+  const anchors = [record, plan, post].map((fn, i) => {
     const s = (i * step) / C / 2; // equal steps along +x and −y move straight right on screen
     fn(dr, s, -s);
     return P(s + 32, -s + 42);
   });
   const segs = [];
-  for (let i = 0; i < 3; i++) {
+  for (let i = 0; i < anchors.length - 1; i++) {
     const [u0, v0] = anchors[i], [u1] = anchors[i + 1];
     const a = u0 + 52, b = u1 - 50, y = v0 - 6;
     segs.push(`M${f(a)},${f(y)} C${f(a + 18)},${f(y - 12)} ${f(b - 18)},${f(y + 12)} ${f(b)},${f(y)}`);
@@ -158,11 +152,11 @@ function pipeline() {
   }
   const route = segs.map((s, i) => (i ? s.replace("M", "L") : s)).join(" ");
   dr.raw(`<circle class="dot" cx="0" cy="0" r="4"><animateMotion dur="6s" repeatCount="indefinite" path="${route}"/></circle>`);
-  [["the record", "issues · PRs · reviews"], ["dossier", "gather.mjs"], ["plan", "plan.md"], ["post, video", "post.html · motion.mp4"]].forEach(([name, file], i) => {
+  [["the record", "issues · PRs · reviews"], ["plan", "the few decisions"], ["post, video", "and slides"]].forEach(([name, file], i) => {
     const [u, v] = anchors[i];
     dr.raw(`<text class="name" x="${f(u)}" y="${f(v + 70)}" text-anchor="middle">${name}</text><text class="file" x="${f(u)}" y="${f(v + 86)}" text-anchor="middle">${file}</text>`, [[u - 60, v + 90], [u + 60, v + 90]]);
   });
-  return dr.svg('role="img" aria-label="The record of a feature becomes a dossier, the dossier a plan, and the plan a post and a video."');
+  return dr.svg('role="img" aria-label="The record of a feature becomes a plan, and the plan a post and a video."');
 }
 
 const OBJECTS = { post, video, deep, release, figures, deck };

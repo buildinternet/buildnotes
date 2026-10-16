@@ -84,12 +84,9 @@ const SHELL_CSS = `
 .site-bar a.site-accent { color: #3358d4; }
 .site-bar a.site-accent:hover { text-decoration: underline; }
 .site-bar .site-label { font-family: "Martian Mono", ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.6875rem; font-stretch: 87.5%; letter-spacing: 0.02em; }
-/* body already pads the sides and the top (3rem); the bars take the post's column width (--col, from its :root). */
-.site-top { display: flex; align-items: baseline; gap: 6px 20px; max-width: var(--col, 42rem); margin: -1rem auto 3rem; }
-.site-top .site-label { margin-left: auto; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* body already pads the sides and the top (3rem); the top bar takes the home page's 60rem, the video section the post's column (--col, from its :root). */
+.site-top { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 6px 20px; max-width: 60rem; margin: -1rem auto 3rem; }
 .site-top nav { display: flex; flex-wrap: wrap; gap: 4px 20px; }
-/* On a phone: the name and the label on one line (the label gives way), the links under them. */
-@media (max-width: 40rem) { .site-top { display: grid; grid-template-columns: auto minmax(0, 1fr); } .site-top .site-label { justify-self: end; max-width: 100%; } .site-top nav { grid-column: 1 / -1; } }
 .site-end { max-width: var(--col, 42rem); margin: 4rem auto 0; display: grid; gap: 14px; border-top: 1px solid #e3e3dd; padding-top: 2.5rem; }
 .site-end h2 { font: 600 1.0625rem/1.3 "Source Serif 4", Georgia, serif; color: #1f1f1d; margin: 0; }
 .site-end video { width: 100%; aspect-ratio: 16 / 9; background: #000; border-radius: 4px; border: 1px solid #e3e3dd; display: block; }
@@ -149,8 +146,7 @@ ${footerCss()}</style>
 <body>
 <header class="site-bar site-top">
   <a class="site-name" href="../../">buildnotes</a>
-  <span class="site-label">${esc(ex.product)}</span>
-  <nav aria-label="Site"><a href="#site-video">Video</a><a href="../">All examples</a><a href="${REPO}">GitHub</a></nav>
+  <nav aria-label="Site"><a href="../">Examples</a><a href="../../#how">How it works</a><a href="../../#makes">Outputs</a><a href="../../#install">Install</a><a href="${REPO}">GitHub</a></nav>
 </header>
 ${body}
 <section class="site-bar site-end" id="site-video" aria-label="About this example">
