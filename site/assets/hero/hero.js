@@ -276,22 +276,61 @@ async function start(stage) {
     });
     const r = rooms.find((m) => m.i === idx) || rooms[0]; if (sun.parent !== r.g) lightRoom(r);
   };
+  let dur = GLIDE;   // a glide's length: the full 2.8 s, or shorter when a swipe lets go
   const slideAt = (now) => {
     if (g0 < 0) return to;
-    const p = Math.min(1, (now - g0) / GLIDE);
+    const p = Math.min(1, (now - g0) / dur);
     if (p < 1) return from + (to - from) * glideEase(p);
     g0 = -1;
     if (idx === N) { idx = 0; to = 0; active(); }   // the copy is in view: snap back to the real first cluster
     return to;
   };
-  const go = (i) => { from = slideAt(performance.now()); to = i * PITCH; idx = i; g0 = performance.now(); active(); kick(); };
+  const go = (i, ms = GLIDE) => { from = slideAt(performance.now()); to = i * PITCH; idx = i; dur = ms; g0 = performance.now(); active(); kick(); };
   const schedule = () => { clearInterval(timer); if (live) timer = setInterval(() => go(idx + 1), DWELL); };
   stops.forEach((b, i) => b.addEventListener('click', () => { go(i); schedule(); }));
+
+  // ---- Swipe: drag the table sideways to the next or previous example. The stage keeps vertical page
+  // scrolling (touch-action: pan-y in the CSS); a drag that starts mostly sideways takes the table with the
+  // finger, and letting go glides on to the nearest example, or the next one if it was flicked.
+  let drag = null;
+  const along = (dx) => dx / (s * Math.cos(22 * R));   // screen px to table px along the table's length, near enough
+  stage.addEventListener('pointerdown', (e) => {
+    if (!e.isPrimary || e.button > 0 || !live) return;
+    drag = { id: e.pointerId, x: e.clientX, y: e.clientY, base: 0, on: false, lx: e.clientX, lt: e.timeStamp, v: 0 };
+  });
+  stage.addEventListener('pointermove', (e) => {
+    if (!drag || e.pointerId !== drag.id) return;
+    const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+    if (!drag.on) {
+      if (Math.abs(dx) < 8 || Math.abs(dx) < Math.abs(dy)) return;
+      drag.on = true; clearInterval(timer);
+      try { stage.setPointerCapture(drag.id); } catch {}   // keeps the drag when the finger leaves the stage
+      drag.base = slideAt(performance.now()); g0 = -1;
+      if (drag.base < PITCH / 2 && dx > 0) { drag.base += N * PITCH; idx = N; active(); }   // back from the first: use its copy at the end
+      ptrIn = false; ptrDirty = true;
+    }
+    to = Math.min(N * PITCH, Math.max(0, drag.base - along(dx)));
+    const dt = e.timeStamp - drag.lt;
+    if (dt > 0) { drag.v = .7 * drag.v + .3 * (e.clientX - drag.lx) / dt; drag.lx = e.clientX; drag.lt = e.timeStamp; }
+    kick();
+  });
+  const release = (e) => {
+    if (!drag || e.pointerId !== drag.id) return;
+    const d = drag; drag = null;
+    if (!d.on) return;
+    const at = to / PITCH, flick = Math.abs(d.v) > .3;
+    let i = flick ? (d.v < 0 ? Math.floor(at + .02) + 1 : Math.ceil(at - .02) - 1) : Math.round(at);
+    i = Math.min(N, Math.max(0, i));
+    go(i, 650 + 250 * Math.abs(i - at)); schedule();
+  };
+  stage.addEventListener('pointerup', release);
+  stage.addEventListener('pointercancel', release);
 
   // ---- Hover: a ray from the pointer picks the item under it, which lifts with E2's easing.
   const ray = new THREE.Raycaster(), ptr = new THREE.Vector2();
   let ptrIn = false, ptrDirty = false;
   stage.addEventListener('pointermove', (e) => {
+    if (e.pointerType === 'touch' || drag?.on) return;   // a finger drags the table; it doesn't hover
     const r = renderer.domElement.getBoundingClientRect();
     ptr.set((e.clientX - r.left) / r.width * 2 - 1, -(e.clientY - r.top) / r.height * 2 + 1); ptrIn = true; ptrDirty = true; kick();
   });
@@ -317,7 +356,7 @@ async function start(stage) {
     raf = 0;
     const dt = prev ? Math.min(100, now - prev) : 0; prev = now;
     if (ptrDirty) hover(now);
-    let moving = g0 >= 0;
+    let moving = g0 >= 0 || !!drag?.on;
     plane.position.x = -slideAt(now);
     for (const it of items) {
       if (it.t === it.to) continue;
