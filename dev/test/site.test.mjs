@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { build, SHARE, EXAMPLES, wrapPost, footer, exampleCard } from "../../site/build.mjs";
+import { build, SHARE, EXAMPLES, wrapPost, footer, exampleCard, siteFonts } from "../../site/build.mjs";
 import { drawing, NAMES } from "../../site/iso.mjs";
 
 test("the site builds: markers filled, files copied, every command copyable", () => {
@@ -84,6 +84,32 @@ test("the site builds: markers filled, files copied, every command copyable", ()
   } finally {
     rmSync(out, { recursive: true, force: true });
   }
+});
+
+test("fonts: every page uses the site's own, with a matched fallback after each family", () => {
+  const out = mkdtempSync(join(tmpdir(), "buildnotes-site-"));
+  try {
+    build({ out });
+    const pages = ["index.html", "examples/index.html", ...EXAMPLES.flatMap((ex) => [`examples/${ex.slug}/index.html`, ...(ex.deck ? [`examples/${ex.slug}/deck.html`] : [])])];
+    for (const page of pages) {
+      const html = readFileSync(join(out, page), "utf8");
+      assert.doesNotMatch(html, /fonts\.(googleapis|gstatic)\.com/, page);
+      assert.match(html, /<link rel="stylesheet" href="(\.\.\/)*assets\/fonts\.css">/, page);
+      assert.doesNotMatch(html, /"(Source Serif 4|Newsreader|Archivo|Martian Mono|IBM Plex Mono)",(?! "\1 Fallback")/, `${page}: a stack without its fallback`);
+    }
+    // the preloads name files that exist, and fonts.css only names files that exist
+    const home = readFileSync(join(out, "index.html"), "utf8");
+    for (const [, f] of home.matchAll(/<link rel="preload" href="([^"]+)" as="font"/g)) assert.ok(existsSync(join(out, f)), f);
+    const css = readFileSync(join(out, "assets/fonts.css"), "utf8");
+    for (const [, f] of css.matchAll(/url\(([^)]+)\)/g)) assert.ok(existsSync(join(out, "assets", f)), f);
+  } finally {
+    rmSync(out, { recursive: true, force: true });
+  }
+  // a family the site doesn't serve stops the build rather than losing its font
+  assert.throws(() => siteFonts('<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500&display=swap">', "", "x.html"), /Space Grotesk/);
+  // running it twice adds nothing
+  const once = siteFonts('<style>p { font-family: "Archivo", Arial; }</style>', "", "x.html");
+  assert.equal(siteFonts(once, "", "x.html"), once);
 });
 
 test("link previews: description, Open Graph and Twitter tags, favicon", () => {

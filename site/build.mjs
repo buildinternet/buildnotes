@@ -21,12 +21,13 @@
 // footer with the example's video, its plan, and the other examples. examples/index.html lists them all,
 // built from site/src/examples.html with the home page's stylesheet. Nothing to install; Node 22 or later.
 
-import { readFileSync, writeFileSync, mkdirSync, copyFileSync, rmSync, existsSync } from "node:fs";
+import { readFileSync, writeFileSync, mkdirSync, copyFileSync, rmSync, existsSync, readdirSync } from "node:fs";
 import { dirname, join, resolve, basename } from "node:path";
 import { fileURLToPath } from "node:url";
 import { renderKind } from "../skills/buildnotes/scripts/viz.mjs";
 import { takeWarnings } from "../skills/buildnotes/scripts/viz/util.mjs";
 import { drawing } from "./iso.mjs";
+import { FALLBACKS, familyNames } from "./fonts.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const root = resolve(here, "..");
@@ -76,6 +77,7 @@ const RAW = "https://raw.githubusercontent.com/buildinternet/buildnotes/main";
 export const exampleCard = (ex) => `assets/og-${ex.slug}.png`;
 
 const POST = /^examples\/([^/]+)\/index\.html$/;
+const DECK = /^examples\/[^/]+\/deck\.html$/;
 
 // The shell's own styles, prefixed so they can't collide with the post's. Colours are the site's light
 // palette, fixed: the shell forces the light theme on the post too (data-theme="light" on <html>).
@@ -246,26 +248,26 @@ function shareTags({ url, type = "website", title, description, image, imageType
   return tags.filter(Boolean).join("\n");
 }
 
-// Google Fonts loads with display=swap, so a first visit painted the fallback fonts and then reflowed into
-// the real ones. Every page holds its body back until the fonts it lays out with have arrived, for at most
-// 1.2s, then fades it in. The script sits last in <head>, after the font stylesheet; without JavaScript
-// nothing is held.
-const FONT_HOLD = `<style>html.fonts-pending body { opacity: 0; } body { transition: opacity 0.2s ease; }
-@media (prefers-reduced-motion: reduce) { body { transition: none; } }</style>
-<script>
-(() => {
-  const d = document.documentElement;
-  if (!document.fonts) return;
-  d.classList.add("fonts-pending");
-  const show = () => d.classList.remove("fonts-pending");
-  setTimeout(show, 1200);
-  addEventListener("DOMContentLoaded", () => { void document.body.offsetWidth; document.fonts.ready.then(show); });
-})();
-</script>
-`;
-export function holdForFonts(page) {
-  if (page.split("</head>").length !== 2) throw new Error("a page needs exactly one </head> to hold for its fonts");
-  return page.replace("</head>", () => FONT_HOLD + "</head>");
+// Every built page uses the site's own fonts (site/assets/fonts.css, written by site/fonts.mjs). The
+// example posts and decks link Google Fonts, as the Artifact viewer they're written for requires; here
+// that link becomes fonts.css, `up` being the way back to the site root. Every font stack then gets each
+// family's "<family> Fallback" face right after it: a local font sized to take the same space, so text
+// that paints before its web font has loaded doesn't move when the web font swaps in.
+const GOOGLE_PRECONNECT = /<link rel="preconnect" href="https:\/\/fonts\.(?:googleapis|gstatic)\.com"[^>]*>\n?/g;
+const GOOGLE_CSS = /<link rel="stylesheet" href="https:\/\/fonts\.googleapis\.com\/css2\?([^"]+)">/g;
+export function siteFonts(page, up, what) {
+  page = page.replace(GOOGLE_PRECONNECT, "").replace(GOOGLE_CSS, (all, query) => {
+    for (const [, f] of query.matchAll(/family=([^:&]+)/g)) {
+      const family = decodeURIComponent(f).replace(/\+/g, " ");
+      if (!familyNames.includes(family)) throw new Error(`${what}: uses ${family}, which site/fonts.mjs doesn't serve (add it to FAMILIES and run node site/fonts.mjs)`);
+    }
+    return `<link rel="stylesheet" href="${up}assets/fonts.css">`;
+  });
+  if (/fonts\.(googleapis|gstatic)\.com/.test(page)) throw new Error(`${what}: links Google Fonts in a way site/build.mjs doesn't replace`);
+  for (const family of Object.keys(FALLBACKS)) {
+    page = page.replace(new RegExp(`(["'])${family}\\1(?=\\s*,)(?!\\s*,\\s*["']${family} Fallback)`, "g"), `"${family}", "${family} Fallback"`);
+  }
+  return page;
 }
 
 // Fill a page's markers: template CSS and script, iso drawings, live figures, share tags.
@@ -384,7 +386,7 @@ export function build({ out = join(here, "dist"), url } = {}) {
 
   rmSync(out, { recursive: true, force: true });
   mkdirSync(out, { recursive: true });
-  writeFileSync(join(out, "index.html"), holdForFonts(html));
+  writeFileSync(join(out, "index.html"), siteFonts(html, "", "src/index.html"));
   // Every example is served as a folder, linked from the page or not, with its video next to its post.
   for (const ex of EXAMPLES) {
     files.set(`examples/${ex.slug}/index.html`, join(root, "examples", ex.slug, ex.file));
@@ -392,14 +394,17 @@ export function build({ out = join(here, "dist"), url } = {}) {
     if (ex.deck) for (const f of ["deck.html", "deck.pdf"]) files.set(`examples/${ex.slug}/${f}`, join(root, "examples", ex.slug, f));
     files.set(exampleCard(ex), join(here, exampleCard(ex))); // its link-preview card
   }
+  // The font files: fonts.css names them, and the pages preload a few.
+  for (const f of readdirSync(join(here, "assets/fonts"))) files.set(`assets/fonts/${f}`, join(here, "assets/fonts", f));
   for (const [to, from] of files) {
     if (!existsSync(from)) throw new Error(`missing ${from}${/^assets\/og[-.]/.test(to) ? " (make it with node site/card.mjs)" : ""}`);
     mkdirSync(dirname(join(out, to)), { recursive: true });
     const post = to.match(POST);
-    if (post) writeFileSync(join(out, to), holdForFonts(wrapPost(post[1], readFileSync(from, "utf8"), url)));
+    if (post) writeFileSync(join(out, to), siteFonts(wrapPost(post[1], readFileSync(from, "utf8"), url), "../../", to));
+    else if (DECK.test(to)) writeFileSync(join(out, to), siteFonts(readFileSync(from, "utf8"), "../../", to));
     else copyFileSync(from, join(out, to));
   }
-  writeFileSync(join(out, "examples/index.html"), holdForFonts(examples));
+  writeFileSync(join(out, "examples/index.html"), siteFonts(examples, "../", "src/examples.html"));
   files.set("examples/index.html", null);
   return { html, examples, files: [...files.keys()], warnings, out };
 }
