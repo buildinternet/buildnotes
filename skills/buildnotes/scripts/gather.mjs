@@ -58,7 +58,8 @@ const SUMMARY_BOTS = /^(coderabbitai|copilot-pull-request-reviewer|sourcery-ai|g
 const OTHER_BOTS = /^(cursor|cursoragent|chatgpt-codex-connector|codex|copilot|copilot-swe-agent|devin-ai-integration|claude|graphite-app|linear)$/i;
 const BADGE_HOSTS = /shields\.io|badge|coderabbit\.ai|vercel\.com\/button|codecov\.io|avatars\.githubusercontent|open-in-|deploy-button/i;
 // Release-automation PRs (version bumps) carry no story.
-const isBotPr = (p) => /^app\/|\[bot\]$/.test(p.author?.login ?? "") || /^chore(\(release\))?: (version packages|release)/i.test(p.title);
+const isReleasePr = (p) => /^chore(\(release\))?: (version packages|release)/i.test(p.title);
+const isBotPr = (p) => /^app\/|\[bot\]$/.test(p.author?.login ?? "") || isReleasePr(p);
 
 // Story-signal vocabularies.
 const FEEDBACK_RE = /\b(review(er)?|found|flagged|adversarial|caught|race|CSRF|vulnerab\w*|bug)\b/i;
@@ -113,7 +114,9 @@ async function addIssue(n, depth, { follow = true } = {}) {
   for (const p of mentioned) if (new RegExp(`#${n}\\b`).test(p.body ?? "")) addPr(p.number);
 }
 
-function addPr(n, r = repo) {
+// A PR named with --pr is kept even when a bot app opened it (some teams ship real work through
+// one); only release-automation PRs still drop. Bot PRs found by search or issue links drop.
+function addPr(n, r = repo, { named = false } = {}) {
   n = Number(n);
   const key = `${r}#${n}`;
   if (seenPr.has(key)) return;
@@ -128,7 +131,7 @@ function addPr(n, r = repo) {
     console.error(`pr ${key}: fetch failed, skipped`);
     return;
   }
-  if (isBotPr(p) && !args["keep-bot-prs"]) return;
+  if ((named ? isReleasePr(p) : isBotPr(p)) && !args["keep-bot-prs"]) return;
   const inline = ghJsonSafe(["api", `repos/${r}/pulls/${n}/comments`, "--paginate"]) ?? [];
   const threads = threadsOf(inline);
 
@@ -927,7 +930,7 @@ async function run(argv) {
   ({ renames, headFiles } = loadRenames());
 
   for (const n of list(args.issue)) await addIssue(n, 0);
-  for (const n of list(args.pr)) addPr(n);
+  for (const n of list(args.pr)) addPr(n, repo, { named: true });
   // Issues a selected PR closes, or says it is part of ("Part of #12", "Refs #12"), often hold the
   // plan, the problem statement and its numbers. Pull their bodies, without widening the search to
   // every PR that mentions them. A number that turns out to be a PR is skipped.
