@@ -1,0 +1,78 @@
+{
+  "skill_name": "buildnotes",
+  "note": "Run with the skill-creator skill: each case once with the current skill and once with a snapshot or no skill. Outputs and grading go to skills/buildnotes-workspace/ (ignored).",
+  "evals": [
+    {
+      "id": 1,
+      "name": "build-story-hono-error-middleware",
+      "repo": "hono",
+      "prompt": "Write up how we built routable error and not-found middleware in Hono (PR #5541) \u2014 why we went with routing-based onError()/notFound() over the alternatives.",
+      "expected_output": "Build story that shows the before (old error/notFound handling) then the after, names the decision and the alternative that lost, plain headings.",
+      "assertions": [
+        "Post HTML file exists in outputs",
+        "The old handling (before) appears earlier in the post than the new handling (after), and is labelled as the before",
+        "Names the chosen design and at least one alternative from #5229 that lost, with a reason taken from the record",
+        "Every chapter heading is a plain phrase readable on first pass (no imperative riddles or code names)",
+        "Title does not contain the product name 'Hono'",
+        "No clock times or PR-by-PR narration in the body",
+        "Any code block matches code in the repo at the merge commit and is <=15 lines",
+        "Hand-off lists at most three open questions"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "release-story-uv-publish-prompts",
+      "repo": "uv",
+      "prompt": "Short launch-style post for uv users about PR #22593: uv publish no longer prompts for credentials when env vars or keyring can already authenticate.",
+      "expected_output": "Short release story or note: leads with what users no longer have to do, no edge-case inventory, brief.",
+      "assertions": [
+        "Output exists (post HTML or a hand-off proposing a note/rollup)",
+        "Headline says what users get (no unnecessary prompt), not the internal mechanism",
+        "Title does not contain the product name 'uv'",
+        "Body (if a post) is under 600 words",
+        "Does not enumerate edge cases or every credential source beyond what a user needs",
+        "Considers nearby related work (other publish/auth changes) \u2014 either rolls it in or mentions it in the hand-off",
+        "No PR numbers, review quotes or clock times in the body"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "thin-subject-hono-gridgap",
+      "repo": "hono",
+      "prompt": "Write a blog post about the gridGap px fix we made in hono/jsx (PR #5487).",
+      "expected_output": "Declines a full post; says briefly why; proposes a bigger arc from nearby JSX/v5 work or a changelog line; asks before proceeding.",
+      "assertions": [
+        "Does not produce a full multi-section post about the gridGap fix alone",
+        "Hand-off says briefly why the fix alone is not worth a post",
+        "Hand-off names a bigger idea from nearby work, or offers a changelog line / short note",
+        "Hand-off asks the author whether to proceed with the alternative"
+      ]
+    },
+    {
+      "id": 4,
+      "name": "standard-practice-hono-serve-static",
+      "repo": "hono",
+      "prompt": "Technical deep dive on why Hono's serve-static middleware now only serves GET and HEAD requests (PR #5514).",
+      "expected_output": "Recognizes this is standard practice; declines the deep dive or offers a line in a larger release / a rollup, asks before proceeding.",
+      "assertions": [
+        "Does not produce a multi-chapter deep dive about serve-static method handling alone",
+        "Hand-off says this is standard/expected behaviour that readers already understand",
+        "Offers an alternative: a line in a larger release, a rollup of related v5 changes, or a short note",
+        "Hand-off asks the author before writing the alternative"
+      ]
+    },
+    {
+      "id": 5,
+      "name": "widen-scope-uv-safeurl",
+      "repo": "uv",
+      "prompt": "Write a post about uv PR #22619, which implements RemoteSource for SafeUrl.",
+      "expected_output": "Recognizes #22619 is one step in the SafeUrl series merged the same day and writes the series story without asking first, noting the widened scope in one sentence of the hand-off.",
+      "assertions": [
+        "Writes a post (post HTML exists) rather than stopping to ask",
+        "The post's subject is the SafeUrl / URL-safety series, not RemoteSource alone",
+        "Hand-off says in about a sentence that the scope was widened and why",
+        "Hand-off does not ask permission to widen the scope"
+      ]
+    }
+  ]
+}

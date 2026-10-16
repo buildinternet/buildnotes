@@ -37,6 +37,8 @@ The title says plainly what shipped, in the reader's words: "Release webhooks fo
 - **The reader test.** Someone who sees only the title should know what changed. "Various improvements" and a version number fail.
 - **The outcome, not a generic verb.** Lead with the specific thing and its new state. "Worktrees no longer drop unpushed commits" beats "Fixes worktree bug dropping unpushed commits". No filler ("a number of", "various").
 - **Headings make the argument.** A reader skimming only the headings should learn what shipped and why. "One call per release" passes; "A smarter approach", "Overview" and "Background" don't. A heading says what a thing does, not its code name or version; in a deep dive, or a post the author asked to be about the engineering, a heading may name the mechanism when the mechanism is the subject.
+- **Plain words, everyday order.** Write a heading as a phrase a person would say: "Labels sit next to the parts", not "Read the name where the part is". Aim for the reading level of a good product page; if a heading needs a second read, rewrite it.
+- **Name the feature, not the example.** A title tied to the one place it showed up ("Jump to any chapter of the example videos") reads narrower than the change. Name what the reader gets wherever they meet it.
 - **Short.** About eight words for the title, fewer for headings. Cut the subtitle-after-a-colon formula unless both halves earn their place.
 
 From real drafts:

@@ -8,6 +8,7 @@ Until the first release, changes are recorded under [Unreleased].
 
 ### Added
 
+- Skill evals in `dev/evals/evals.json`: five cases against public repos (a build story, a release story, a thin fix, standard practice asked for as a deep dive, and a small PR inside a larger stack that should be written as the stack), each with checks a grader can verify. The skill-creator workspace they run in (`skills/*-workspace/`) is ignored.
 - The website's build writes `sitemap.xml` (the home page, the examples page, each example and its slides) and a `robots.txt` that names it, when given `--url`, as the deploy is.
 - `.gitattributes`: shell scripts (`*.sh`) check out with LF line endings on every platform.
 - Video chapters: a whole-cut MP4 or WebM from `motion.mjs` carries one chapter per scene, named by its label (scenes in a row with the same label make one), and `<story>-motion.vtt` beside it holds the same chapters. `export.mjs` takes them as `--chapters <file>`. The example videos carry them, and the site's example pages play it in their own player: its scrubber has a segment per chapter (click, drag, arrow keys, Page Up and Page Down by chapter) with the chapter's name on hover, plus play, mute and full screen, and the chapters are listed under it. Without JavaScript the browser's own controls stay. Tests in `dev/test/motion.test.mjs` and `dev/test/site.test.mjs`.

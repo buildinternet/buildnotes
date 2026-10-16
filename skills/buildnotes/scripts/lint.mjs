@@ -72,7 +72,7 @@ const BANNED = [
   "comprehensive", "robust", "seamless", "seamlessly", "powerful", "blazing", "world-class", "game-changing",
   "cutting-edge", "leverage", "leverages", "leveraging", "supercharge", "elevate", "delve", "journey",
   "deep dive", "unlock", "unlocks", "it's worth noting", "worth noting", "let's take a look", "in this post",
-  "as mentioned above", "here's the thing", "it turns out", "enter:", "game changer", "best-in-class",
+  "as mentioned above", "here's the thing", "it turns out", "enter:", "game changer", "best-in-class", "earns its keep", "earns its place", "pulls its weight",
   // Grading the work instead of stating it, filler for what changed, and sign-offs.
   "doubling down", "double down", "leap forward", "transformative", "next-generation", "continues to evolve",
   "substantial improvements", "exciting new", "utilize", "utilizes", "utilizing", "facilitate", "facilitates",
