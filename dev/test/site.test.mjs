@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { build, SHARE, EXAMPLES, wrapPost, footer } from "../../site/build.mjs";
+import { build, SHARE, EXAMPLES, wrapPost, footer, exampleCard } from "../../site/build.mjs";
 import { drawing, NAMES } from "../../site/iso.mjs";
 
 test("the site builds: markers filled, files copied, every command copyable", () => {
@@ -115,7 +115,7 @@ test("link previews: description, Open Graph and Twitter tags, favicon", () => {
     const tags = (base) => {
       for (const ex of EXAMPLES) {
         const post = readFileSync(join(out, `examples/${ex.slug}/index.html`), "utf8");
-        const image = base ? `${base}assets/${ex.image.split("/").pop()}` : `https://raw.githubusercontent.com/buildinternet/buildnotes/main/${ex.image}`;
+        const image = base ? `${base}${exampleCard(ex)}` : `https://raw.githubusercontent.com/buildinternet/buildnotes/main/site/${exampleCard(ex)}`;
         assert.equal(meta(post, "name", "description"), ex.blurb, ex.slug);
         assert.equal(meta(post, "property", "og:type"), "article", ex.slug);
         assert.equal(meta(post, "property", "og:site_name"), "buildnotes", ex.slug);
@@ -130,7 +130,8 @@ test("link previews: description, Open Graph and Twitter tags, favicon", () => {
         if (base) {
           assert.match(post, new RegExp(`<link rel="canonical" href="${base}examples/${ex.slug}/">`), ex.slug);
           assert.equal(meta(post, "property", "og:url"), `${base}examples/${ex.slug}/`, ex.slug);
-          assert.ok(existsSync(join(out, `assets/${ex.image.split("/").pop()}`)), ex.slug);
+          assert.ok(existsSync(join(out, exampleCard(ex))), ex.slug);
+          assert.equal(meta(post, "property", "og:image:width"), "1200", ex.slug);
         } else assert.doesNotMatch(post, /rel="canonical"|og:url/, ex.slug);
       }
     };

@@ -72,6 +72,9 @@ export const EXAMPLES = [
 ];
 const REPO = "https://github.com/buildinternet/buildnotes";
 const RAW = "https://raw.githubusercontent.com/buildinternet/buildnotes/main";
+// An example's link-preview card, site/assets/og-<slug>.png, rendered by site/card.mjs.
+export const exampleCard = (ex) => `assets/og-${ex.slug}.png`;
+
 const POST = /^examples\/([^/]+)\/index\.html$/;
 
 // The shell's own styles, prefixed so they can't collide with the post's. Colours are the site's light
@@ -156,8 +159,8 @@ ${chapters.map(([id, name]) => `    <li><a href="#${id}">${name}</a></li>`).join
     type: "article",
     title: `${ex.product}: ${ex.name}`,
     description: ex.blurb,
-    image: absolute(url, locate(ex.image).to, ex.image),
-    imageAlt: `A figure from the ${ex.product} post, ${ex.name.toLowerCase()}.`,
+    image: absolute(url, exampleCard(ex), `site/${exampleCard(ex)}`), imageType: "image/png", width: 1200, height: 630,
+    imageAlt: `A buildnotes example: ${ex.product}, ${ex.name.toLowerCase()}. Beside it, a figure from the post.`,
   });
   return `<!doctype html>
 <html lang="en" data-theme="light">
@@ -365,11 +368,10 @@ export function build({ out = join(here, "dist"), url } = {}) {
     files.set(`examples/${ex.slug}/index.html`, join(root, "examples", ex.slug, ex.file));
     files.set(`examples/${ex.slug}/motion.mp4`, join(root, "examples", ex.slug, "motion.mp4"));
     if (ex.deck) for (const f of ["deck.html", "deck.pdf"]) files.set(`examples/${ex.slug}/${f}`, join(root, "examples", ex.slug, f));
-    const { from, to } = locate(ex.image); // its link-preview image, whether or not a page shows it
-    files.set(to, from);
+    files.set(exampleCard(ex), join(here, exampleCard(ex))); // its link-preview card
   }
   for (const [to, from] of files) {
-    if (!existsSync(from)) throw new Error(`missing ${from}${to === SHARE.image ? " (make it with node site/card.mjs)" : ""}`);
+    if (!existsSync(from)) throw new Error(`missing ${from}${/^assets\/og[-.]/.test(to) ? " (make it with node site/card.mjs)" : ""}`);
     mkdirSync(dirname(join(out, to)), { recursive: true });
     const post = to.match(POST);
     if (post) writeFileSync(join(out, to), wrapPost(post[1], readFileSync(from, "utf8"), url));
