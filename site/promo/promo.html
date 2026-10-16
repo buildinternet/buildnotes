@@ -9,7 +9,8 @@
 <style>
 /* The promo: a 1920 × 1080 stage that plays itself, in the skill's own output styles. It opens and closes on
    the motion cut's blue title card (assets/motion.html); in between is the field-notes page, light, marked up
-   in red pen: the one line you type, the site's "how it works" drawing, the post being read, and the cut.
+   in red pen: the one line you type, the site's "how it works" drawing, the post being read, and the cut. Each scene has
+   one line to read, its headline, always top left; the rest are short labels, and the post's own text is greeked.
    render(t) sets every element from the clock, so export.mjs can step it frame by frame: no CSS transitions. */
 :root {
   --paper: #fcfcfa; --ink: #1f1f1d; --muted: #64645f; --rule: #e3e3dd; --wash: #f1f1ec; --card: #f5f5f1;
@@ -59,12 +60,12 @@ body { width: 1920px; height: 1080px; overflow: hidden; color: var(--ink); -webk
 #cmd .v { color: var(--accent); }
 
 /* 2 · it does the rest: the site's "how it works" drawing */
-.copy { left: 120px; top: 230px; width: 1680px; }
+.copy { left: 120px; top: 190px; width: 1680px; }
 #flow { left: 120px; top: 500px; width: 1680px; overflow: visible; }
 
 /* 3 · the post, in the field-notes style */
 #post { left: 0; top: 0; width: 1920px; height: 1080px; overflow: hidden; -webkit-mask-image: linear-gradient(to bottom, transparent 110px, #000 200px); mask-image: linear-gradient(to bottom, transparent 110px, #000 200px); }
-.col { position: relative; margin-left: 520px; width: 880px; padding-top: 200px; padding-bottom: 600px; }
+.col { position: relative; margin-left: 780px; width: 880px; padding-top: 200px; padding-bottom: 600px; }
 .col > *, .col section > * { margin: 0; }
 .p-title { font: 600 68px/1.08 var(--font-body); letter-spacing: -0.015em; text-wrap: balance; }
 .p-title .w { display: inline-block; white-space: pre; }
@@ -85,16 +86,20 @@ body { width: 1920px; height: 1080px; overflow: hidden; color: var(--ink); -webk
 .cap b { font-style: normal; color: var(--ink); font-weight: 600; margin-right: 6px; }
 .shot { position: relative; }
 .shot img { display: block; width: 880px; height: 495px; border-radius: 6px; border: 1px solid var(--rule); }
-.key { position: absolute; width: 40px; height: 40px; margin: -20px 0 0 -20px; border-radius: 50%; background: var(--ink); color: var(--paper); box-shadow: 0 0 0 3px var(--paper); display: grid; place-items: center; font: 600 18px/1 var(--font-mono); }
-.key.hot { background: var(--mark); color: #fff; }
+/* Fig. 2's parts, named in the right margin with a leader line each, as the post's anatomy figure does */
+.leads { position: absolute; left: 0; top: 0; overflow: visible; pointer-events: none; }
+.leads path { fill: none; stroke: var(--ink); stroke-width: 1.5; }
+.leads circle { fill: var(--ink); stroke: var(--paper); stroke-width: 2; }
+.mnote { position: absolute; left: 912px; width: 128px; font: 400 23px/1.3 var(--font-body); color: var(--muted); }
+.mnote b { color: var(--ink); font-weight: 600; }
 .p-find { margin-top: 56px !important; }
 .p-find .label { font: 600 19px/1 var(--font-mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
 .p-find p { position: relative; margin: 16px 0 0; font: italic 400 36px/1.45 var(--font-body); color: var(--ink); }
-.margin-l { left: 120px; top: 220px; width: 300px; display: grid; gap: 14px; font: 400 21px/1.3 var(--font-mono); color: var(--muted); }
-.margin-l b { color: var(--ink); font-weight: 500; }
-.margin-l .ok::before { content: "✓"; color: #1a7f37; margin-right: 12px; }
-.note { position: absolute; left: 920px; width: 360px; }
-.note .hand { white-space: normal; font-size: 32px; line-height: 1.2; }
+/* The post's own words are greeked, as on the home page's canvas (site/hero/greek.js): each run of text a bar at
+   its real place, so the only words to read in this scene are the title and the narration on the left. */
+.gk { color: transparent !important; -webkit-text-fill-color: transparent !important; background: linear-gradient(transparent 30%, var(--gk) 30% 74%, transparent 74%); border-radius: 3px; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+/* the narration: fixed while the post scrolls behind it; the line under the heading changes with each beat */
+
 
 /* 4 · the cut */
 #player { left: 780px; top: 196px; width: 1020px; }
@@ -107,12 +112,11 @@ body { width: 1920px; height: 1080px; overflow: hidden; color: var(--ink); -webk
 .time { margin-top: 16px; display: flex; justify-content: space-between; font: 400 20px/1 var(--font-mono); color: var(--muted); }
 
 /* 5 · what it makes: the motion cut's list scene */
-#items { left: 120px; right: 120px; top: 500px; display: grid; grid-template-columns: repeat(5, 1fr); gap: 48px; }
-#items > div { border-top: 4px solid var(--ink); padding-top: 34px; display: grid; gap: 24px; align-content: start; }
+#items { left: 120px; right: 120px; top: 420px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 64px; }
+#items > div { padding-top: 34px; display: grid; gap: 24px; align-content: start; }
 #items .art { height: 170px; display: grid; place-items: center start; }
 #items .art svg { height: 160px; width: auto; max-width: 290px; }
-#items b { font: 700 46px/1.05 var(--font-display); font-stretch: 88%; }
-#items p { margin: 10px 0 0; font: 400 28px/1.3 var(--font-body); color: var(--muted); }
+#items .lab { font: 500 44px/1 var(--font-hand); color: var(--ink); }
 
 /* the site's isometric drawings (site/src/index.html), with lines heavy enough for 1080p */
 .iso { display: block; overflow: visible; }
@@ -150,7 +154,7 @@ body { width: 1920px; height: 1080px; overflow: hidden; color: var(--ink); -webk
   <svg class="pen" id="cmdArrow" width="90" height="100" viewBox="0 0 90 100"><path pathLength="1" d="M70 6 C 40 20, 22 44, 26 88 M 12 72 L 26 90 L 40 74"/></svg>
 
   <!-- 2 · it does the rest -->
-  <div class="copy" id="copyRest"><div class="k">Then</div><div class="hd">It does the rest.</div><p class="sub">Reads the pull requests, finds the story, writes it up and cuts the video.</p></div>
+  <div class="copy" id="copyRest"><div class="hd">It does the rest</div></div>
   <svg class="iso" id="flow"></svg>
 
   <!-- 3 · the post -->
@@ -167,61 +171,51 @@ body { width: 1920px; height: 1080px; overflow: hidden; color: var(--ink); -webk
       <p class="p-body">You don't set up any shots. <strong>The room decides them: its size, where the furniture sits, and which corner gives the best view at eye level.</strong></p>
       <figure class="p-fig" id="fig1"><div class="plate"><!-- svg examples/sunny-walkthrough-videos/viz/camera-path.svg --></div>
         <figcaption class="cap"><b>Fig. 1.</b>The camera's path through the Reception Lounge, seen from above. The path comes from the shot planner itself.</figcaption></figure>
-      <div class="note" id="note1" style="top:0"><div class="hand">drawn from the product's own shot planner</div></div>
     </section>
     <section class="p-ch" id="ch2"><span class="nr">02</span><h2>The plan in the corner goes where the clip goes</h2>
       <p class="p-body"><strong>The plan is drawn into the frames themselves, not over the video by the player.</strong></p>
       <figure class="p-fig" id="fig2"><div class="shot"><img src="examples/sunny-walkthrough-videos/viz/img/frame-boardroom.png" alt="">
-        <div class="key" style="left:296px;top:360px">1</div><div class="key" style="left:699px;top:153px">2</div><div class="key" style="left:866px;top:93px">3</div><div class="key" style="left:761px;top:12px">4</div><div class="key" style="left:201px;top:457px">5</div></div>
-        <figcaption class="cap"><b>Fig. 2.</b>One frame of a floor tour, at eye level in the Boardroom, with its parts named.</figcaption></figure>
-      <div class="note" id="note2" style="top:0"><div class="hand">a real frame, every part named</div></div>
+        <svg class="leads" width="920" height="495"><path pathLength="1" d="M800 50 L 905 18"/><path pathLength="1" d="M840 64 L 905 150"/><path pathLength="1" d="M852 122 L 905 282"/>
+          <circle r="6" cx="800" cy="50"/><circle r="6" cx="840" cy="64"/><circle r="6" cx="852" cy="122"/></svg>
+        <div class="mnote" style="top:2px"><b>The camera,</b> and what it sees.</div>
+        <div class="mnote" style="top:134px"><b>The room in shot,</b> tinted.</div>
+        <div class="mnote" style="top:266px"><b>The mini-map,</b> in the corner.</div></div>
+        <figcaption class="cap"><b>Fig. 2.</b>One frame of a floor tour, at eye level in the Boardroom, with its parts named in the margin.</figcaption></figure>
       <aside class="p-find" id="find"><div class="label">Finding</div><p id="findP">A plan in the player stays on the share page; a plan in the frames goes everywhere the file does.<svg class="pen" id="findPen" style="position:absolute;left:0;top:0" width="880" height="120"></svg></p></aside>
     </section>
   </div></div>
-  <div class="margin-l" id="marginL">
-    <div><b>post.html</b></div>
-    <div id="mWords"></div>
-    <div>5 chapters · 5 figures</div>
-    <div style="height:10px"></div>
-    <div class="ok" id="mc1">lint</div>
-    <div class="ok" id="mc2">links</div>
-    <div class="ok" id="mc3">render: desktop, phone,<br>light, dark</div>
-  </div>
+  <div class="copy" id="copyPost" style="width:560px"><div class="hd">And writes it up</div><div class="hand" id="postKind" style="margin-top:40px;color:var(--ink);font-size:40px;white-space:normal">a release story or a technical deep dive</div></div>
 
   <!-- 4 · the cut -->
-  <div class="copy" id="copyVideo" style="top:250px;width:640px"><div class="k">Video</div><div class="hd">And cuts the reel.</div><p class="sub">52 seconds, seven scenes. Every word and number on screen comes from the post.</p></div>
+  <div class="copy" id="copyVideo" style="width:600px"><div class="hd">And cuts the reel</div></div>
   <div id="player"><canvas width="1280" height="720"></canvas>
     <div class="strip"><!-- thumbs --></div>
     <div class="track"><div class="fill"></div></div>
-    <div class="time"><span>motion.mp4</span><span id="clock">0:00 / 0:52</span></div>
   </div>
 
   <!-- 5 · what it makes -->
-  <div class="copy" id="copyMakes" style="top:210px"><div class="k">One skill</div><div class="hd">Ask for a post, a video or a deep dive.</div></div>
+  <div class="copy" id="copyMakes"><div class="hd">Multiple formats</div></div>
   <div id="items">
-    <div><div class="art"><!-- iso post --></div><div><b>Post</b><p>Chapters, drawn figures and real code.</p></div></div>
-    <div><div class="art"><!-- iso video --></div><div><b>Video</b><p>The post as a reel, in under a minute.</p></div></div>
-    <div><div class="art"><!-- iso deep --></div><div><b>Deep dive</b><p>How it works inside, and the trade-offs.</p></div></div>
-    <div><div class="art"><!-- iso release --></div><div><b>Release story</b><p>What's new, and how to try it.</p></div></div>
-    <div><div class="art"><!-- iso figures --></div><div><b>Figures</b><p>Any figure as an image, GIF or video.</p></div></div>
+    <div><div class="art"><!-- iso post --></div><div class="lab">Post</div></div>
+    <div><div class="art"><!-- iso video --></div><div class="lab">Video</div></div>
+    <div><div class="art"><!-- iso deck --></div><div class="lab">Deck</div></div>
+    <div><div class="art"><!-- iso figures --></div><div class="lab">Figures</div></div>
   </div>
 
   <!-- 0 and 6 · the blue title cards -->
   <div class="slate" id="slateA">
-    <div class="meta"><span>buildnotes</span><span>A build story</span></div>
-    <div class="k" style="left:120px;top:250px">How it was built, and why</div>
+    <div class="meta"><span>buildnotes</span></div>
     <div class="hd" id="hA1" style="left:120px;top:300px;width:1680px;font-size:150px;line-height:0.95"></div>
     <div class="hd" id="hA2" style="left:120px;top:300px;width:1680px;font-size:150px;line-height:0.95"></div>
     <div class="ticks" id="ticks"><span>Issues</span><span>Pull requests</span><span>Commits</span><span>Reviews</span><i></i></div>
   </div>
   <div class="slate" id="slateB">
-    <div class="meta"><span>buildnotes</span><span>Try it</span></div>
+    <div class="meta"><span>buildnotes</span></div>
     <div class="hd" id="hB" style="left:120px;top:210px;width:1680px;font-size:118px;line-height:0.96"></div>
-    <p class="sub" id="hBsub" style="left:120px;top:500px;margin:0;font-size:52px;color:var(--hero-muted)">How it was built, and why.</p>
-    <div class="pill" id="pillB" style="left:120px;top:680px"></div>
+    <div class="pill" id="pillB" style="left:120px;top:620px"></div>
     <div class="hand" id="noteB" style="color:#fff">start here</div>
     <svg class="pen" id="arrowB" width="120" height="110" viewBox="0 0 120 110"><path pathLength="1" style="stroke:#fff" d="M100 10 C 70 14, 40 40, 34 96 M 20 80 L 34 98 L 48 82"/></svg>
-    <div style="left:120px;bottom:110px;font:500 24px/1 var(--font-mono);color:var(--hero-muted)" id="footB">For Claude Code, Codex and OpenCode · MIT</div>
+    <div style="left:120px;bottom:110px;font:500 24px/1 var(--font-mono);color:var(--hero-muted)" id="footB">For Claude Code, Codex and OpenCode</div>
   </div>
 </div>
 <div style="display:none" id="frames"><!-- frames --></div>
@@ -247,7 +241,7 @@ function kids(el) { return [...el.children]; }
 
 // The beats, in seconds. The cut ends at SECONDS (from build.mjs).
 const B = { open: 0, cmd: 5.0, rest: 8.4, write: 14.2, video: 23.5, play: 24.0, makes: 30.4, end: 34.6 };
-const LABELS = [[B.cmd, "01 · One line"], [B.rest, "02 · The rest"], [B.write, "03 · The post"], [B.video, "04 · The video"], [B.makes, "05 · What it makes"]];
+const LABELS = [];
 
 function underlinePath(x0, x1, y, seed) {
   const r = rng(seed); let d = `M${x0.toFixed(1)} ${y.toFixed(1)}`;
@@ -256,8 +250,8 @@ function underlinePath(x0, x1, y, seed) {
 }
 
 // ── 0 · opening card ──
-const hA1 = words($("#hA1"), "Every feature has a story.");
-$("#hA2").innerHTML = `<span class="w">It’s</span> <span class="w"><em>buried</em></span> <span class="w">in</span> <span class="w">the</span> <span class="w">pull</span> <span class="w">requests.</span>`;
+const hA1 = words($("#hA1"), "Every feature you’ve shipped has a story");
+$("#hA2").innerHTML = `<span class="w">It’s</span> <span class="w"><em>buried</em></span> <span class="w">in</span> <span class="w">pull</span> <span class="w">requests</span>`;
 const hA2 = [...$("#hA2").querySelectorAll(".w")];
 function renderOpen(t) {
   const wipe = eio(seg(t, 4.6, 5.1));
@@ -272,7 +266,7 @@ function renderOpen(t) {
 }
 
 // ── 1 · one line ──
-const PROMPT = [["/buildnotes", "b"], [" "], ["video", "v"], [" how we built walkthrough videos in Sunny"]];
+const PROMPT = [["/buildnotes", "b"], [" "], ["video", "v"], [" how we built room walkthroughs"]];
 const PROMPT_LEN = PROMPT.reduce((n, [s]) => n + s.length, 0);
 function promptHTML(n, cursor) {
   let left = n, html = `<span class="gt">›</span><span>`;
@@ -297,8 +291,8 @@ function renderCmd(t) {
 // ── 2 · it does the rest: the site's drawing (site/iso.mjs pipeline), built object by object ──
 const flow = $("#flow");
 const FLOW = (() => {
-  const step = 150, all = [], objs = [];
-  const anchors = [record, dossier, plan, post].map((fn, i) => {
+  const step = 200, all = [], objs = [];
+  const anchors = [record, plan, post].map((fn, i) => {
     const dr = new Draw(), s = (i * step) / C / 2;
     fn(dr, s, -s);
     objs.push(dr.parts.join(""));
@@ -306,11 +300,11 @@ const FLOW = (() => {
     return P(s + 32, -s + 42);
   });
   const segs = [];
-  for (let i = 0; i < 3; i++) {
+  for (let i = 0; i < anchors.length - 1; i++) {
     const [u0, v0] = anchors[i], [u1] = anchors[i + 1], a = u0 + 52, b = u1 - 50, y = v0 - 6;
     segs.push({ d: `M${a},${y} C${a + 18},${y - 12} ${b - 18},${y + 12} ${b},${y}`, tip: `M${b - 6},${y - 4} L${b},${y} L${b - 6},${y + 4}` });
   }
-  const NAMES = [["the record", "issues · PRs · reviews"], ["dossier", "dossier.md"], ["plan", "plan.md"], ["post, video", "post.html · motion.mp4"]];
+  const NAMES = [["the record", "issues · PRs · reviews"], ["plan", "the few decisions"], ["post, video, deck", "post.html · motion.mp4 · deck.pdf"]];
   const us = all.map((p) => p[0]), vs = all.map((p) => p[1]);
   const x0 = Math.min(...us) - 70, y0 = Math.min(...vs) - 8, x1 = Math.max(...us) + 70, y1 = Math.max(...anchors.map((a) => a[1])) + 92;
   flow.setAttribute("viewBox", `${x0} ${y0} ${x1 - x0} ${y1 - y0}`);
@@ -318,7 +312,7 @@ const FLOW = (() => {
   flow.innerHTML = `<g id="flowAll">` +
     objs.map((o, i) => `<g class="obj">${o}</g>`).join("") +
     segs.map((s) => `<g class="seg"><path class="route" d="${s.d}"/><path class="tip" d="${s.tip}"/></g>`).join("") +
-    anchors.map(([u, v], i) => `<g class="lbl"><text class="name" x="${u}" y="${v + 70}" text-anchor="middle">${NAMES[i][0]}</text><text class="file" x="${u}" y="${v + 85}" text-anchor="middle">${NAMES[i][1]}</text></g>`).join("") +
+    anchors.map(([u, v], i) => `<g class="lbl"><text class="name" x="${u}" y="${v + 70}" text-anchor="middle">${NAMES[i][0]}</text></g>`).join("") +
     `<path id="flowRoute" d="${segs.map((s, i) => (i ? s.d.replace("M", "L") : s.d)).join(" ")}" fill="none" stroke="none"/><circle class="dot" r="4.5"/></g>`;
   return { anchors };
 })();
@@ -332,16 +326,16 @@ function renderRest(t) {
   rest.forEach((e, j) => { const p = eo(seg(t, 8.5 + j * 0.15, 9.0 + j * 0.15)); css(e, { opacity: p, transform: `translateY(${(1 - p) * 24}px)` }); });
   show(flow, on * (1 - seg(t, 13.8, 14.3)));
   // each object drops in as the dot reaches it; the route ahead of the dot appears segment by segment
-  const ARRIVE = [9.1, 10.1, 11.1, 12.1];
+  const ARRIVE = [9.1, 10.4, 11.7];
   flowObjs.forEach((o, i) => { const p = eo(seg(t, ARRIVE[i] - 0.15, ARRIVE[i] + 0.35)); css(o, { opacity: p, transform: `translateY(${(1 - p) * -16}px)` }); });
   flowLbls.forEach((o, i) => css(o, { opacity: eo(seg(t, ARRIVE[i] + 0.1, ARRIVE[i] + 0.45)) }));
   flowSegs.forEach((s, i) => css(s, { opacity: eo(seg(t, ARRIVE[i] + 0.25, ARRIVE[i] + 0.55)) }));
-  const travel = seg(t, ARRIVE[0] + 0.35, ARRIVE[3] - 0.1);
+  const travel = seg(t, ARRIVE[0] + 0.35, ARRIVE[2] - 0.1);
   const pt = flowRoute.getPointAtLength(flowLen * eio(travel));
   flowDot.setAttribute("cx", pt.x); flowDot.setAttribute("cy", pt.y);
   css(flowDot, { opacity: travel > 0 && travel < 1 ? 1 : 0 });
   // then the camera goes into the post
-  const [u, v] = FLOW.anchors[3], vb = flow.viewBox.baseVal;
+  const [u, v] = FLOW.anchors[2], vb = flow.viewBox.baseVal;
   const cx = lerp(u, vb.x + vb.width / 2, zoom), cy = lerp(v - 20, vb.y + vb.height / 2, zoom);
   $("#flowAll").setAttribute("transform", `translate(${cx} ${cy}) scale(${1 + zoom * 2.6}) translate(${-u} ${-(v - 20)})`);
 }
@@ -350,13 +344,23 @@ function renderRest(t) {
 const pTitle = words($("#pTitle"), "Walk through any room, floor or project in a looping video");
 const route = $("#fig1 .route");
 const stations = [...document.querySelectorAll("#fig1 .stn")];
-const keys = [...document.querySelectorAll("#fig2 .key")];
+const postHd = words($("#copyPost .hd"), "And writes it up");
+const leads = [...document.querySelectorAll("#fig2 .leads path")], leadDots = [...document.querySelectorAll("#fig2 .leads circle")], mnotes = [...document.querySelectorAll("#fig2 .mnote")];
 let anchors = null;
+function greek() {
+  const walk = document.createTreeWalker($("#col"), NodeFilter.SHOW_TEXT), nodes = [];
+  while (walk.nextNode()) { const n = walk.currentNode, p = n.parentElement; if (n.nodeValue.trim() && !p.closest("h1, svg, .nr")) nodes.push(n); }
+  for (const n of nodes) {
+    const p = n.parentElement, sp = document.createElement("span");
+    sp.className = "gk";
+    sp.style.setProperty("--gk", p.closest("h2") ? "rgb(31 31 29 / 0.62)" : p.closest("strong, b") ? "rgb(31 31 29 / 0.34)" : p.closest(".p-find p") ? "rgb(31 31 29 / 0.4)" : "rgb(31 31 29 / 0.2)");
+    n.replaceWith(sp); sp.appendChild(n);
+  }
+}
+greek();
 function measurePost() {
   const top = (el) => { let y = 0; for (let e = el; e && e.id !== "col"; e = e.offsetParent) y += e.offsetTop; return y; };
   anchors = { ch1: top($("#ch1")), fig1: top($("#fig1")), ch2: top($("#ch2")), fig2: top($("#fig2")), find: top($("#find")) };
-  $("#note1").style.top = `${anchors.fig1 - anchors.ch1 + 70}px`;
-  $("#note2").style.top = `${anchors.fig2 - anchors.ch2 + 120}px`;
   const p = $("#findP"), r = document.createRange(); r.selectNodeContents(p.firstChild);
   const pb = p.getBoundingClientRect();
   const lines = [...r.getClientRects()].filter((l) => l.width > 4);
@@ -367,7 +371,9 @@ function renderPost(T) {
   const t = T - B.write + 21.0;
   const inP = eo(seg(t, 21.0, 21.5)), out = seg(t, 29.9, 30.25);
   show($("#post"), inP * (1 - out), { transform: `scale(${lerp(0.96, 1, inP)})` });
-  show($("#marginL"), inP * (1 - out));
+  show($("#copyPost"), inP * (1 - out));
+  rise(postHd, t, 21.2, 0.06);
+  const pk = eo(seg(t, 21.8, 22.2)); css($("#postKind"), { opacity: pk, transform: `translateY(${(1 - pk) * 12}px)` });
   if (t < 20.9 || t > 30.6) return;
   if (!anchors && document.fonts.status === "loaded") measurePost();
   if (!anchors) return;
@@ -390,18 +396,16 @@ function renderPost(T) {
   css($("#fig1"), { opacity: f1, transform: `translateY(${(1 - f1) * 20}px)` });
   if (route) { const L = route.getTotalLength(); css(route, { strokeDasharray: `${L}`, strokeDashoffset: `${L * (1 - eio(seg(t, 24.4, 25.9)))}` }); }
   stations.forEach((s, i) => css(s, { opacity: eo(seg(t, 24.6 + i * 0.25, 24.9 + i * 0.25)) }));
-  const n1 = eo(seg(t, 25.2, 25.6));
-  css($("#note1"), { opacity: n1, transform: `rotate(-3deg) translateY(${(1 - n1) * 10}px)` });
   const f2 = eo(seg(t, 26.6, 27.1));
   css($("#fig2"), { opacity: f2, transform: `translateY(${(1 - f2) * 20}px)` });
-  keys.forEach((k, i) => { const p = back(seg(t, 27.2 + i * 0.13, 27.55 + i * 0.13)); k.className = `key${i === 1 && t > 27.9 && t < 28.6 ? " hot" : ""}`; css(k, { transform: `scale(${p})`, opacity: Math.min(1, p * 2) }); });
-  const n2 = eo(seg(t, 27.6, 28.0));
-  css($("#note2"), { opacity: n2, transform: `rotate(-3deg) translateY(${(1 - n2) * 10}px)` });
+  leads.forEach((l, i) => {
+    const a = 27.2 + i * 0.22, d = back(seg(t, a, a + 0.3)), n = eo(seg(t, a + 0.25, a + 0.6));
+    css(leadDots[i], { transform: `scale(${d})`, transformBox: "fill-box", transformOrigin: "center", opacity: Math.min(1, d * 2) });
+    draw(l, seg(t, a + 0.1, a + 0.4));
+    css(mnotes[i], { opacity: n, transform: `translateX(${(1 - n) * -12}px)` });
+  });
   css($("#find"), { opacity: eo(seg(t, 28.5, 28.9)) });
   $("#findPen").querySelectorAll("path").forEach((p, i) => draw(p, seg(t, 29.0 + i * 0.35, 29.4 + i * 0.35)));
-  // the left margin: the page's numbers, then its checks
-  $("#mWords").textContent = `${Math.round(1191 * eo(seg(t, 21.2, 29.0))).toLocaleString("en-US")} words`;
-  ["#mc1", "#mc2", "#mc3"].forEach((s, i) => { const p = eo(seg(t, 29.2 + i * 0.25, 29.45 + i * 0.25)); css($(s), { opacity: p, transform: `translateX(${(1 - p) * -10}px)` }); });
 }
 
 // ── 4 · the cut ──
@@ -423,32 +427,27 @@ function renderVideo(t) {
   const scene = SCENES.findIndex((s, i) => at >= s && at < SCENES[i + 1]);
   THUMBS.forEach((th, i) => { th.className = i === scene ? "on" : ""; th.style.opacity = i === scene ? 1 : 0.5; });
   $("#player .fill").style.width = `${(at / 52) * 100}%`;
-  $("#clock").textContent = `scene ${scene + 1} of 7 · 0:${String(Math.floor(at)).padStart(2, "0")} / 0:52`;
 }
 
 // ── 5 · what it makes ──
 const items = [...$("#items").children];
-const makesK = $("#copyMakes .k");
-const makesHd = words($("#copyMakes .hd"), "Ask for a post, a video or a deep dive.");
+const makesHd = words($("#copyMakes .hd"), "Multiple formats");
 function renderMakes(t) {
   const on = t > B.makes - 0.1 ? 1 : 0, out = seg(t, B.end - 0.4, B.end);
   show($("#copyMakes"), on * (1 - out));
   show($("#items"), on * (1 - out));
-  css(makesK, { opacity: eo(seg(t, B.makes, B.makes + 0.4)) });
   rise(makesHd, t, B.makes + 0.1, 0.06);
   items.forEach((it, i) => { const p = eo(seg(t, B.makes + 0.6 + i * 0.16, B.makes + 1.2 + i * 0.16)); css(it, { opacity: p, transform: `translateY(${(1 - p) * 40}px)` }); });
 }
 
 // ── 6 · closing card ──
-const hB = words($("#hB"), "Turn pull requests into posts and videos worth sharing.");
+const hB = words($("#hB"), "Turn pull requests into posts and videos worth sharing");
 const CMD = "npx skills add buildinternet/buildnotes";
 function renderEnd(t) {
   const wipe = eio(seg(t, B.end - 0.2, B.end + 0.35));
   show($("#slateB"), t > B.end - 0.2 ? 1 : 0, { clipPath: `inset(0 0 ${(1 - wipe) * 100}% 0)` });
   if (t < B.end - 0.2) return;
   rise(hB, t, B.end + 0.3, 0.06);
-  const s = eo(seg(t, B.end + 1.1, B.end + 1.5));
-  css($("#hBsub"), { opacity: s, transform: `translateY(${(1 - s) * 16}px)` });
   const pp = eo(seg(t, B.end + 1.5, B.end + 1.9));
   const n = Math.round(CMD.length * seg(t, B.end + 1.8, B.end + 3.0));
   const blink = t < B.end + 1.8 || t > B.end + 3.0 ? Math.floor(t * 2.2) % 2 === 0 : true;
@@ -456,8 +455,8 @@ function renderEnd(t) {
   if ($("#pillB").dataset.h !== html) { $("#pillB").innerHTML = html; $("#pillB").dataset.h = html; }
   css($("#pillB"), { opacity: pp, transform: `scale(${lerp(0.92, 1, pp)})`, transformOrigin: "0 50%" });
   const nb = eo(seg(t, B.end + 3.1, B.end + 3.5));
-  show($("#noteB"), nb, { left: "1260px", top: "600px", transform: `rotate(-4deg) scale(${lerp(0.9, 1, nb)})` });
-  show($("#arrowB"), t > B.end + 3.2 ? 1 : 0, { left: "1150px", top: "632px", transform: "scaleX(-1) rotate(-30deg)" });
+  show($("#noteB"), nb, { left: "1260px", top: "540px", transform: `rotate(-4deg) scale(${lerp(0.9, 1, nb)})` });
+  show($("#arrowB"), t > B.end + 3.2 ? 1 : 0, { left: "1150px", top: "572px", transform: "scaleX(-1) rotate(-30deg)" });
   draw($("#arrowB path"), seg(t, B.end + 3.2, B.end + 3.7));
   css($("#footB"), { opacity: eo(seg(t, B.end + 3.4, B.end + 3.8)) });
 }
