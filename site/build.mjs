@@ -87,11 +87,22 @@ const SHELL_CSS = `
 /* body already pads the sides and the top (3rem); the top bar takes the home page's 60rem, the video section the post's column (--col, from its :root). */
 .site-top { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 6px 20px; max-width: 60rem; margin: -1rem auto 3rem; }
 .site-top nav { display: flex; flex-wrap: wrap; gap: 4px 20px; }
-.site-end { max-width: var(--col, 42rem); margin: 4rem auto 0; display: grid; gap: 14px; border-top: 1px solid #e3e3dd; padding-top: 2.5rem; }
-.site-end h2 { font: 600 1.0625rem/1.3 "Source Serif 4", Georgia, serif; color: #1f1f1d; margin: 0; }
-.site-end video { width: 100%; aspect-ratio: 16 / 9; background: #000; border-radius: 4px; border: 1px solid #e3e3dd; display: block; }
-.site-end .site-links { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 0.8125rem; }
-.site-end .site-links a { text-decoration: underline; text-decoration-color: #d3d3cc; text-underline-offset: 0.2em; }
+/* The video, in a box under the post's headline. */
+.site-watch { display: grid; gap: 0; border: 1px solid #e3e3dd; border-radius: 6px; background: #f5f5f1; padding: 6px; }
+.site-watch video { width: 100%; aspect-ratio: 16 / 9; background: #000; border-radius: 3px; display: block; }
+.site-watch .site-watch-bar { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 4px 16px; padding: 10px 6px 4px; }
+.site-watch b { color: #1f1f1d; font-weight: 600; }
+.site-watch .site-links { display: flex; flex-wrap: wrap; gap: 4px 16px; }
+.site-watch .site-links a { text-decoration: underline; text-decoration-color: #d3d3cc; text-underline-offset: 0.2em; }
+/* The rail: the examples, then this post's chapters. Only where it fits beside the post's widest figures (--wide). */
+.site-rail { display: none; }
+@media (min-width: 1320px) {
+  .site-rail { display: grid; gap: 28px; align-content: start; position: fixed; top: 7rem; left: calc(50vw - 40rem); width: 11rem; max-height: calc(100vh - 9rem); overflow-y: auto; }
+  .site-rail ol { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 7px; }
+  .site-rail a { display: block; line-height: 1.35; }
+  .site-rail a[aria-current] { color: #1f1f1d; font-weight: 600; }
+  .site-rail .site-label { display: block; }
+}
 `;
 
 // Wrap one example's committed post.html in a full document and the site shell. `url` is where the site
@@ -118,7 +129,27 @@ export function wrapPost(slug, post, url) {
   const at = post.indexOf("<style>");
   if (at < 0) throw new Error(`examples/${slug}/post.html: no <style>`);
   const head = post.slice(0, at).trim();
-  const body = post.slice(at);
+  let body = post.slice(at);
+  // The video goes in a box right under the post's headline.
+  const mast = body.indexOf("</header>");
+  if (mast < 0) throw new Error(`examples/${slug}: no </header> to put the video under`);
+  const watch = `
+  <aside class="site-bar site-watch" id="site-video" aria-label="The video">
+    <video src="motion.mp4" autoplay muted loop playsinline controls preload="metadata" aria-label="The video cut of this post."></video>
+    <div class="site-watch-bar"><b>The same story as a video</b><span class="site-links"><a href="motion.mp4" download>Download</a>${ex.deck ? `<a href="deck.html">Slides</a>` : ""}<a href="${REPO}/blob/main/examples/${ex.slug}/plan.md">The plan behind it</a></span></div>
+  </aside>`;
+  body = body.slice(0, mast + 9) + watch + body.slice(mast + 9);
+  // The rail lists the examples, then this post's chapters (<section class="ch" id="…"> with an <h2>).
+  const chapters = [...body.matchAll(/<section class="ch" id="([^"]+)">\s*<h2>(?:<span class="n">[^<]*<\/span>)?([^<]+)<\/h2>/g)].map(([, id, name]) => [id, name.trim()]);
+  const rail = `<nav class="site-bar site-rail" aria-label="Examples and chapters">
+  <div><span class="site-label">Examples</span><ol>
+${EXAMPLES.map((o) => `    <li><a href="../${o.slug}/"${o === ex ? ' aria-current="page"' : ""}>${esc(o.product)}</a></li>`).join("\n")}
+  </ol></div>
+  <div><span class="site-label">In this post</span><ol>
+    <li><a href="#site-video">The video</a></li>
+${chapters.map(([id, name]) => `    <li><a href="#${id}">${name}</a></li>`).join("\n")}
+  </ol></div>
+</nav>`;
   const title = head.match(/<title>([^<]*)<\/title>/)?.[1] ?? ex.name;
   const share = shareTags({
     url: url && new URL(`examples/${ex.slug}/`, url).href,
@@ -148,15 +179,25 @@ ${footerCss()}</style>
   <a class="site-name" href="../../">buildnotes</a>
   <nav aria-label="Site"><a href="../">Examples</a><a href="../../#how">How it works</a><a href="../../#makes">Outputs</a><a href="../../#install">Install</a><a href="${REPO}">GitHub</a></nav>
 </header>
+${rail}
 ${body}
-<section class="site-bar site-end" id="site-video" aria-label="About this example">
-  <h2>The same story as a video</h2>
-  <video src="motion.mp4" controls preload="metadata" playsinline aria-label="The video cut of this post."></video>
-  <div class="site-links"><a href="motion.mp4" download>Download</a>${ex.deck ? `<a href="deck.html">Slides</a>` : ""}<a href="${REPO}/blob/main/examples/${ex.slug}/plan.md">The plan behind it</a></div>
-</section>
 <div class="site-footer">
 ${footer("../../")}
 </div>
+<script>
+// The rail marks the chapter on screen; readers who ask for less motion get the video paused, with its controls.
+(() => {
+  const links = [...document.querySelectorAll('.site-rail a[href^="#"]')];
+  const seen = new Map();
+  const io = new IntersectionObserver((entries) => {
+    for (const e of entries) seen.set(e.target.id, e.isIntersecting);
+    const on = links.find((a) => seen.get(a.hash.slice(1)));
+    for (const a of links) a === on ? a.setAttribute("aria-current", "location") : a.removeAttribute("aria-current");
+  }, { rootMargin: "0px 0px -60% 0px" });
+  for (const a of links) { const t = document.getElementById(a.hash.slice(1)); if (t) io.observe(t); }
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) document.querySelector(".site-watch video")?.pause();
+})();
+</script>
 </body>
 </html>
 `;
@@ -166,11 +207,13 @@ ${footer("../../")}
 // points into the built site, without it at the committed image on GitHub (live once merged to main).
 export const SHARE = {
   title: "buildnotes: turn pull requests into posts and videos worth sharing",
-  description: "A skill for coding agents. It reads a feature's issues, PRs and reviews, finds the few decisions that shaped it, and writes them up as a post, a short video or a deep dive.",
+  description: "A skill for coding agents. It reads a feature's issues, PRs and reviews, finds the few decisions that shaped it, and writes them up as a post, a video or slides.",
   image: "assets/og.png",
   imageAlt: "buildnotes: Turn pull requests into posts and videos worth sharing. How it was built, and why. Beside it, an isometric drawing of a weekly digest card with numbered parts.",
   fallback: `${RAW}/site/assets/og.png`,
 };
+
+const EXAMPLES_DESCRIPTION = "Three real features, each made into a post, a video and slides: walkthrough videos in Sunny, before and after screenshots in Uploads, and weekly digests in Release Notes Index.";
 
 const esc = (t) => t.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
 
@@ -268,11 +311,14 @@ function examplesPage(homeHtml, url) {
         <div>
           <h2><a href="${ex.slug}/">${esc(ex.product)}</a></h2>
           <p>${esc(ex.blurb)}</p>
-          <p class="links"><a href="${ex.slug}/">Post</a><a href="${ex.slug}/motion.mp4">Video</a>${ex.deck ? `<a href="${ex.slug}/deck.html">Slides</a>` : ""}</p>
+          <p class="formats"><a href="${ex.slug}/">Post</a><a href="${ex.slug}/#site-video">Video</a>${ex.deck ? `<a href="${ex.slug}/deck.html">Slides</a>` : ""}</p>
         </div>
       </div>`).join("\n"));
   page = page.replace("<!-- footer -->", () => footer("../"));
-  page = page.replace("<!-- canonical -->", () => (url ? `<link rel="canonical" href="${esc(url)}examples/">` : ""));
+  page = page.replace("<!-- share -->", () => shareTags({
+    ...SHARE, title: "Examples · buildnotes", description: EXAMPLES_DESCRIPTION, url: url && new URL("examples/", url).href,
+    image: absolute(url, SHARE.image, `site/${SHARE.image}`), imageType: "image/png", width: 1200, height: 630,
+  }));
   return page;
 }
 
@@ -298,7 +344,7 @@ export function build({ out = join(here, "dist"), url } = {}) {
     if (/^(\.\.\/|\.\/)+(#.*)?$/.test(ref)) return all;
     const resolved = ref.startsWith("../") ? ref.slice(3) : base + ref;
     if (resolved === "examples/") return all; // the examples page, written below
-    const folder = resolved.match(/^examples\/([^/]+)\/$/);
+    const folder = resolved.match(/^examples\/([^/]+)\/(#.*)?$/);
     if (folder) {
       if (!EXAMPLES.some((e) => e.slug === folder[1])) throw new Error(`${attr}="${ref}": not in EXAMPLES`);
       return all;

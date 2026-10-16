@@ -4,11 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Examples · buildnotes</title>
-<meta name="description" content="Three posts and videos buildnotes wrote from real pull requests: a walkthrough-video export in Sunny, before and after screenshots in Uploads, and weekly digests on Release Notes Index.">
+<meta name="description" content="Three real features, each made into a post, a video and slides: walkthrough videos in Sunny, before and after screenshots in Uploads, and weekly digests in Release Notes Index.">
 <meta name="color-scheme" content="light">
 <meta name="theme-color" content="#fcfcfa">
 <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
-<!-- canonical -->
+<!-- share -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500&family=Martian+Mono:wdth,wght@75..112.5,300..500&family=Shantell+Sans:wght@400;500&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap">
@@ -26,7 +26,9 @@ section.list { border-top: 0; padding-block: 32px 64px; gap: 40px; }
 .examples h2 a { color: var(--ink); text-decoration: none; }
 .examples h2 a:hover { text-decoration: underline; }
 .examples p { font-family: var(--font-body); font-size: 1rem; color: var(--muted); line-height: 1.5; max-width: 38rem; }
-.examples p.links { font-family: inherit; }
+.examples p.formats { display: flex; flex-wrap: wrap; gap: 4px 14px; font-family: var(--font-label); font-size: 0.6875rem; font-stretch: var(--label-stretch); letter-spacing: 0.02em; margin-top: 4px; }
+.examples p.formats a { color: var(--muted); text-decoration: underline; text-decoration-color: var(--rule); text-underline-offset: 0.25em; }
+.examples p.formats a:hover { color: var(--ink); text-decoration-color: var(--ink); }
 @media (min-width: 720px) {
   .examples > div { grid-template-columns: 14rem minmax(0, 1fr); align-items: start; }
 }
@@ -47,9 +49,7 @@ section.list { border-top: 0; padding-block: 32px 64px; gap: 40px; }
 
   <section class="list" aria-labelledby="ex-h">
     <div class="show-head">
-      <p class="label">Examples</p>
-      <h1 id="ex-h">Three features, written up</h1>
-      <p class="sub">Three real features, each made into a post, a video and slides.</p>
+      <h1 id="ex-h">Examples</h1>
     </div>
     <div class="examples">
 <!-- examples -->

@@ -39,7 +39,10 @@ test("the site builds: markers filled, files copied, every command copyable", ()
       assert.match(post, /<title>[^<]+ · buildnotes example<\/title>/);
       assert.equal(post.match(/<title>/g).length, 1);
       assert.match(post, /<header class="site-bar site-top">/);
-      assert.match(post, /<video src="motion\.mp4" controls/);
+      // the video sits under the headline, and the rail lists the examples and every chapter
+      assert.match(post, /<\/header>\s*<aside class="site-bar site-watch" id="site-video"[^>]*>\s*<video src="motion\.mp4"/);
+      assert.match(post, new RegExp(`<a href="\\.\\./${ex.slug}/" aria-current="page">`), ex.slug);
+      assert.equal((post.match(/<nav class="site-bar site-rail"[\s\S]*?<\/nav>/)?.[0].match(/href="#c\d+"/g) ?? []).length, (post.match(/<section class="ch" id="c\d+">/g) ?? []).length, ex.slug);
       for (const o of EXAMPLES) assert.match(post, new RegExp(`href="\\.\\./\\.\\./examples/${o.slug}/"`), `${ex.slug} links ${o.slug}`);
     }
     // an example with a deck serves it, with a doctype, and links it from its footer and the examples page
@@ -60,11 +63,12 @@ test("the site builds: markers filled, files copied, every command copyable", ()
     const list = readFileSync(join(out, "examples/index.html"), "utf8");
     assert.ok(files.includes("examples/index.html"));
     assert.match(list, /<meta charset="utf-8">/);
-    assert.doesNotMatch(list, /\/\* site: css \*\/|<!-- examples -->|<!-- footer -->|<!-- canonical -->/);
+    assert.doesNotMatch(list, /\/\* site: css \*\/|<!-- examples -->|<!-- footer -->|<!-- canonical -->|<!-- share -->/);
+    assert.match(list, /<meta property="og:title" content="Examples · buildnotes">/);
     assert.match(list, /\.show-head \{/, "shares the home page's CSS");
     for (const ex of EXAMPLES) {
       assert.match(list, new RegExp(`<h2><a href="${ex.slug}/">`), ex.slug);
-      assert.match(list, new RegExp(`href="${ex.slug}/motion\\.mp4"`), ex.slug);
+      assert.match(list, new RegExp(`href="${ex.slug}/#site-video"`), ex.slug);
       if (ex.deck) assert.match(list, new RegExp(`href="${ex.slug}/deck\\.html"`), ex.slug);
     }
     assert.match(list, /src="\.\.\/assets\/digest-apart\.webp"/);
