@@ -4,7 +4,8 @@
 // Usage:
 //   node site/build.mjs                 build into site/dist
 //   node site/build.mjs --out <dir>     build somewhere else
-//   node site/build.mjs --url <url>     where it will be served: sets the canonical link, og:url and an og:image there
+//   node site/build.mjs --url <url>     where it will be served: sets the canonical link, og:url and an og:image there,
+//                                       and writes sitemap.xml and a robots.txt that names it
 //
 // site/src/index.html is the page. The build fills in its markers (<!-- share --> and <!-- description -->
 // become the link-preview tags, from SHARE below), including these:
@@ -574,6 +575,20 @@ function examplesPage(homeHtml, url) {
   return page;
 }
 
+// The site's pages, as paths from its root: the folders end in a slash, as auto-trailing-slash serves them.
+export function sitePages() {
+  return ["", "examples/", ...EXAMPLES.flatMap((ex) => [`examples/${ex.slug}/`, ...(ex.deck ? [`examples/${ex.slug}/deck.html`] : [])])];
+}
+
+export function sitemap(url, pages) {
+  const loc = (p) => new URL(p, url).href.replace(/&/g, "&amp;").replace(/</g, "&lt;");
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${pages.map((p) => `  <url><loc>${loc(p)}</loc></url>`).join("\n")}
+</urlset>
+`;
+}
+
 // url: where site/dist will be served, e.g. https://example.com/buildnotes/ (a trailing slash is added).
 export function build({ out = join(here, "dist"), url } = {}) {
   if (url) {
@@ -635,6 +650,14 @@ export function build({ out = join(here, "dist"), url } = {}) {
   }
   writeFileSync(join(out, "examples/index.html"), siteFonts(examples, "../", "src/examples.html"));
   files.set("examples/index.html", null);
+  // With --url, a sitemap of every page (the home page, the examples page, each example and its slides) and a
+  // robots.txt that points to it. A sitemap needs absolute URLs, so a build without --url writes neither.
+  if (url) {
+    writeFileSync(join(out, "sitemap.xml"), sitemap(url, sitePages()));
+    writeFileSync(join(out, "robots.txt"), `User-agent: *\nAllow: /\n\nSitemap: ${new URL("sitemap.xml", url).href}\n`);
+    files.set("sitemap.xml", null);
+    files.set("robots.txt", null);
+  }
   return { html, examples, files: [...files.keys()], warnings, out };
 }
 

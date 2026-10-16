@@ -146,8 +146,20 @@ test("link previews: description, Open Graph and Twitter tags, favicon", () => {
     assert.match(html, /<link rel="icon" href="assets\/favicon\.svg" type="image\/svg\+xml">/);
     assert.ok(files.includes("assets/og.png") && files.includes("assets/favicon.svg"));
     assert.ok(existsSync(join(out, "assets/og.png")));
+    assert.ok(!existsSync(join(out, "sitemap.xml")) && !existsSync(join(out, "robots.txt")), "no sitemap without --url");
     // with --url: canonical, og:url, and an absolute image inside the site
     ({ html } = build({ out, url: "https://example.com/buildnotes" }));
+    // with --url: a sitemap of every page, under that address, and a robots.txt naming it
+    const map = readFileSync(join(out, "sitemap.xml"), "utf8");
+    const locs = [...map.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
+    assert.equal(locs[0], "https://example.com/buildnotes/");
+    assert.ok(locs.includes("https://example.com/buildnotes/examples/"));
+    for (const ex of EXAMPLES) assert.ok(locs.includes(`https://example.com/buildnotes/examples/${ex.slug}/`), ex.slug);
+    for (const l of locs) {
+      const path = l.slice("https://example.com/buildnotes/".length);
+      assert.ok(existsSync(join(out, path.endsWith("/") || !path ? path + "index.html" : path)), `${l} is a built page`);
+    }
+    assert.match(readFileSync(join(out, "robots.txt"), "utf8"), /^Sitemap: https:\/\/example\.com\/buildnotes\/sitemap\.xml$/m);
     assert.match(html, /<link rel="canonical" href="https:\/\/example\.com\/buildnotes\/">/);
     assert.match(readFileSync(join(out, "examples/index.html"), "utf8"), /<link rel="canonical" href="https:\/\/example\.com\/buildnotes\/examples\/">/);
     assert.equal(meta(html, "property", "og:url"), "https://example.com/buildnotes/");
