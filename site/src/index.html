@@ -85,7 +85,7 @@ code { font-family: var(--font-code); font-size: 0.86em; }
 html { overflow-x: clip; }
 .hero-table { margin-inline: calc(50% - 50vw); }
 .hero-table .table { position: relative; }
-.hero-table .stage { position: relative; height: clamp(380px, 50vw, 600px); overflow: hidden; --s: .64; }
+.hero-table .stage { position: relative; height: clamp(380px, 50vw, 600px); overflow: hidden; --s: .64; touch-action: pan-y; }   /* sideways drags swipe the table (hero.js) */
 .hero-table .stage::after { content: ""; position: absolute; inset: 0; z-index: 2; pointer-events: none;
   background: linear-gradient(var(--paper), transparent 20%, transparent 66%, var(--paper) 96%), linear-gradient(90deg, var(--paper), transparent 14%, transparent 86%, var(--paper)); }
 .hero-table .stage canvas { position: absolute; inset: 0; z-index: 1; display: block; width: 100%; height: 100%; }
@@ -141,6 +141,11 @@ header.top nav { display: flex; flex-wrap: wrap; gap: 4px 20px; }
 .out, .outs > * { min-width: 0; }
 .out { grid-template-columns: minmax(0, 1fr); }
 .cmd.sm { width: 100%; }
+/* On a phone, commands wrap rather than scroll out of their box; the install one breaks after "buildinternet/". */
+@media (max-width: 640px) {
+  .cmd code { white-space: normal; overflow-wrap: break-word; line-height: 1.45; }
+  .cmd { align-items: flex-start; }
+}
 .hero .agents { font-size: 0.8125rem; color: var(--muted); }
 /* The request's shape: the command, the output word (one of three) and the brief. A template, so no copy button. */
 .usage { display: grid; gap: 6px; justify-items: center; }
@@ -165,6 +170,8 @@ section > h2 { font-family: var(--font-display); font-size: 1.5rem; }
 
 /* How it works */
 .drawing { overflow-x: auto; }
+/* Narrower than the drawing, it scrolls sideways: the right edge fades out until it has been scrolled to the end. */
+.drawing.more { -webkit-mask-image: linear-gradient(90deg, #000 82%, transparent); mask-image: linear-gradient(90deg, #000 82%, transparent); }
 .drawing svg { display: block; min-width: 560px; width: 100%; height: auto; }
 .steps3 { display: grid; gap: 16px; grid-template-columns: minmax(0, 1fr); }
 @media (min-width: 700px) { .steps3 { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
@@ -216,6 +223,11 @@ footer .by { padding-block: 20px 36px; border-top: 1px solid var(--rule); displa
 .scroller img { position: absolute; top: 0; left: 0; width: 100%; height: auto; transform: translateY(var(--rest)); transition: transform 0.8s cubic-bezier(.22,1,.36,1); }
 .scroller:hover img, .scroller:focus-visible img { transform: translateY(var(--end)); transition: transform 14s linear; }
 .scroller .hint { position: absolute; right: 8px; bottom: 8px; font: 400 0.625rem/1 var(--font-mono); color: #64645f; background: #fcfcfa; border: 1px solid #e3e3dd; border-radius: 3px; padding: 4px 6px; }
+/* Touch screens can't point, so there the post sits in a scroll box of its own (the script below moves the
+   image into .box): it opens at the first figure, drifts down once it's in view, and a finger takes over. */
+.scroller .box { position: absolute; inset: 0; overflow-y: auto; scrollbar-width: none; }
+.scroller .box::-webkit-scrollbar { display: none; }
+.scroller .box img { position: static; transform: none; transition: none; }
 .two { display: grid; gap: 20px; grid-template-columns: minmax(0, 1fr); }
 @media (min-width: 760px) { .two { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .two figure { display: grid; gap: 10px; align-content: start; }
@@ -282,7 +294,7 @@ section > * { min-width: 0; }
   <div class="hero">
     <h1>Turn pull requests into posts and videos worth sharing. <span>How it was built, and why.</span></h1>
     <p>A skill for coding agents. It reads a feature's issues, PRs and reviews, and finds the few decisions that shaped it.</p>
-    <div class="cmd"><code data-copy>npx skills add buildinternet/buildnotes</code><button class="copy" type="button">copy</button></div>
+    <div class="cmd"><code data-copy>npx skills add buildinternet/<wbr>buildnotes</code><button class="copy" type="button">copy</button></div>
     <p class="agents">For Claude Code, Codex and OpenCode</p>
     <div class="usage"><span class="label">Then, inside your repo:</span><code>/buildnotes <b>[post | video | deck]</b> <i>what to explain</i></code></div>
   </div>
@@ -387,7 +399,7 @@ section > * { min-width: 0; }
   <section id="install" aria-labelledby="in-h">
     <h2 id="in-h">Install</h2>
     <p class="sub">Needs Node 22, git and Chrome.</p>
-    <div class="cmd wide"><code data-copy>npx skills add buildinternet/buildnotes</code><button class="copy" type="button">copy</button></div>
+    <div class="cmd wide"><code data-copy>npx skills add buildinternet/<wbr>buildnotes</code><button class="copy" type="button">copy</button></div>
     <p class="sub">Then, inside your repo:</p>
     <div class="cmd wide"><code data-copy>/buildnotes write up how we built preview links, from PRs 120, 131 and 140</code><button class="copy" type="button">copy</button></div>
   </section>
@@ -407,9 +419,47 @@ document.querySelectorAll('.copy').forEach(function (btn) {
     } catch (e) { selectIt(); }
   });
 });
-if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
+var still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+if (still) {
   document.querySelectorAll('video[autoplay]').forEach(function (v) { v.removeAttribute('autoplay'); v.pause(); v.setAttribute('controls', ''); });
 }
+
+// Touch screens: nothing to point with, so the words say tap, and the post panel becomes a scroll box. It
+// opens at the post's first figure and, once it's well in view, drifts down the post (at the hover scroll's
+// pace) until a finger takes over. Scrolling inside it never opens the post; a tap still does.
+if (matchMedia('(hover: none)').matches) {
+  document.querySelectorAll('.cap-top').forEach(function (p) { p.textContent = p.textContent.replace('Point at a note', 'Tap a note'); });
+  document.querySelectorAll('.scroller').forEach(function (a) {
+    var img = a.querySelector('img'), box = document.createElement('div'), hint = a.querySelector('.hint');
+    box.className = 'box'; a.prepend(box); box.append(img);
+    if (hint) hint.textContent = 'swipe to scroll';
+    a.setAttribute('aria-label', a.getAttribute('aria-label').replace('Point at it to scroll through the whole post.', 'Swipe inside it to scroll through the whole post.'));
+    var pct = function (n) { return -parseFloat(a.style.getPropertyValue(n)) / 100; };
+    var drift = 0, held = false;
+    var start = function () { box.scrollTop = pct('--rest') * img.offsetHeight; };
+    if (img.complete) start(); else img.addEventListener('load', start);
+    ['pointerdown', 'wheel', 'touchstart'].forEach(function (t) { box.addEventListener(t, function () { held = true; cancelAnimationFrame(drift); }, { passive: true }); });
+    if (still) return;
+    new IntersectionObserver(function (es) {
+      cancelAnimationFrame(drift);
+      if (!es[0].isIntersecting || held) return;
+      var end = Math.min(pct('--end') * img.offsetHeight, box.scrollHeight - box.clientHeight);
+      var speed = (pct('--end') - pct('--rest')) * img.offsetHeight / 14000, y = box.scrollTop, t0 = 0;   // px per ms
+      var step = function (t) {
+        if (t0) y = Math.min(end, y + speed * (t - t0));
+        t0 = t; box.scrollTop = y;
+        if (y < end) drift = requestAnimationFrame(step);
+      };
+      drift = requestAnimationFrame(step);
+    }, { threshold: 0.6 }).observe(a);
+  });
+}
+
+// The pipeline drawing is wider than a phone: until it's scrolled to its end, its right edge fades out.
+document.querySelectorAll('.drawing').forEach(function (d) {
+  var check = function () { d.classList.toggle('more', d.scrollLeft + d.clientWidth < d.scrollWidth - 4); };
+  d.addEventListener('scroll', check, { passive: true }); addEventListener('resize', check); check();
+});
 </script>
 <script type="module" src="assets/hero/hero.js"></script>
 </body>

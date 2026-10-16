@@ -24,7 +24,7 @@ test("the site builds: markers filled, files copied, every command copyable", ()
     const rows = html.match(/<div class="cmd[^"]*"><code data-copy>/g) ?? [];
     assert.equal(rows.length, (html.match(/<button class="copy"/g) ?? []).length);
     assert.ok(rows.length >= 6);
-    assert.match(html, /<code data-copy>npx skills add buildinternet\/buildnotes<\/code>/);
+    assert.match(html, /<code data-copy>npx skills add buildinternet\/(<wbr>)?buildnotes<\/code>/);   // <wbr>: where it may wrap on a phone
     // local references point at copied files, and .github/assets is published as assets/
     for (const f of files) assert.ok(existsSync(join(out, f)), f);
     assert.ok(files.includes("assets/digest-card-hero.webp"));

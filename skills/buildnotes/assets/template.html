@@ -488,7 +488,7 @@ figcaption a { color: inherit; }
 /* A note shows only while its hotspot is pointed at or focused; hidden, it takes no room (so it never widens the page). */
 .hs .tip { display: none; position: absolute; top: 50%; left: calc(100% - 2px); width: max-content; max-width: 15rem; transform: translateY(-50%); padding: 0.55rem 0.75rem; background: var(--paper); border: 1px solid var(--rule); border-radius: 6px; box-shadow: 0 1px 0 var(--rule); font: 400 0.875rem/1.4 var(--font-body); color: var(--ink); text-align: left; pointer-events: none; z-index: 2; }
 .hs.left .tip { left: auto; right: calc(100% - 2px); }
-.hs:is(:hover, :focus-visible) .tip { display: block; animation: tip-in 0.16s ease-out; }
+.hs:is(:hover, :focus-visible, .tap) .tip { display: block; animation: tip-in 0.16s ease-out; }   /* .tap: tapped on a touch screen */
 .keyed:has(.hs:hover) .hs:not(:hover) .tip { display: none; }
 @keyframes tip-in { from { opacity: 0; } }
 /* In a narrow figure the note opens below its hotspot, shifted by the hotspot's own position so it stays inside. */
@@ -1085,7 +1085,19 @@ figcaption a { color: inherit; }
     }
     const light = (k) => fig.querySelectorAll("[data-k]").forEach((el) => el.classList.toggle("on", el.dataset.k === k));
     fig.addEventListener("pointerover", (e) => { const k = e.target.closest?.("[data-k]")?.dataset.k; light(k ?? null); });
-    fig.addEventListener("pointerleave", () => light(null));
+    fig.addEventListener("pointerleave", (e) => { if (e.pointerType !== "touch") light(null); });
+    // A touch screen has no hover to hold a note open: a tap lights it, and opens a hotspot's note, until the
+    // next tap, inside the figure or out of it.
+    let tapped = null;
+    const tap = (el) => {
+      tapped?.classList.remove("tap");
+      tapped = el?.classList.contains("hs") ? el : null;
+      tapped?.classList.add("tap");
+      light(el?.dataset.k ?? null);
+    };
+    document.addEventListener("pointerdown", (e) => {
+      if (e.pointerType === "touch") tap(fig.contains(e.target) ? e.target.closest?.("[data-k]") ?? null : null);
+    });
     fig.addEventListener("focusin", (e) => light(e.target.closest?.(".hs")?.dataset.k ?? null));
     fig.addEventListener("focusout", () => light(null));
   }
