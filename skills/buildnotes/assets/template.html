@@ -462,6 +462,8 @@ figcaption a { color: inherit; }
   :has(> .sidenote) { position: relative; }
   /* inline, so its top sits on the line it ends (an absolute box keeps an inline box's static position) */
   .sidenote { display: inline; position: absolute; right: -15rem; width: 12rem; margin: 0; padding: 0; border: 0; }
+  /* before a wide element, the margin is the element's: hang the note up from the paragraph's last line instead */
+  :has(> .sidenote):has(+ .wide) > .sidenote { top: auto; bottom: 0; }
 }
 
 /* finding: what the chapter found, in one sentence a reader would repeat. At most one per chapter. */
