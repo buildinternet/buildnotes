@@ -60,6 +60,19 @@
         "Offers an alternative: a line in a larger release, a rollup of related v5 changes, or a short note",
         "Hand-off asks the author before writing the alternative"
       ]
+    },
+    {
+      "id": 5,
+      "name": "widen-scope-uv-safeurl",
+      "repo": "uv",
+      "prompt": "Write a post about uv PR #22619, which implements RemoteSource for SafeUrl.",
+      "expected_output": "Recognizes #22619 is one step in the SafeUrl series merged the same day and writes the series story without asking first, noting the widened scope in one sentence of the hand-off.",
+      "assertions": [
+        "Writes a post (post HTML exists) rather than stopping to ask",
+        "The post's subject is the SafeUrl / URL-safety series, not RemoteSource alone",
+        "Hand-off says in about a sentence that the scope was widened and why",
+        "Hand-off does not ask permission to widen the scope"
+      ]
     }
   ]
 }
