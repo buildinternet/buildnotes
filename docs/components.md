@@ -46,10 +46,10 @@ The images on this page were exported with the skill's own [`scripts/export.mjs`
     <td colspan="2"><sub><b>shader</b>: a WebGL fragment shader, for posts where the pixels are the subject, shown on the reader's own screen.</sub></td>
   </tr>
   <tr>
-    <td colspan="2"><img src="../.github/assets/digest-apart.webp" alt="The 'week at a glance' card drawn at an angle in the field notes style, taken apart: the product tiles and the list of releases lifted off the base, with dashed outlines where they sat and five numbered keys."></td>
+    <td colspan="2"><img src="../.github/assets/digest-card-hero.webp" alt="The 'week at a glance' card drawn straight on in the field notes style: product tiles split into grey columns, the largest in blue, and five release rows, with notes in the margins joined to each part by a hairline."></td>
   </tr>
   <tr>
-    <td colspan="2"><sub><b>anatomy</b>: one parts list, measured on a capture, drawn flat, at an angle and taken apart, or as keys over the capture itself. This one is from <code>examples/releases-weekly-digests</code>.</sub></td>
+    <td colspan="2"><sub><b>anatomy</b>: one parts list, measured on a capture, drawn flat or shown as the capture itself with notes in the margin, or at an angle and taken apart. This one is from <code>examples/releases-weekly-digests</code>.</sub></td>
   </tr>
 </table>
 

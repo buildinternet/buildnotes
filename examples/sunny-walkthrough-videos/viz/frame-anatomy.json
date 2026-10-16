@@ -12,10 +12,10 @@
     { "id": "view", "box": [0, 0, 640, 360] }
   ],
   "keys": [
-    { "part": "view", "at": [215, 262], "text": "**The shot.** Drawn by the same 3D view you see on the page, at 1920 × 1080 and 30 frames a second." },
+    { "part": "view", "at": [215, 262], "span": true, "text": "**The shot.** Drawn by the same 3D view you see on the page, at 1920 × 1080 and 30 frames a second." },
     { "part": "card", "at": [508, 114], "text": "**The mini-map.** The floor's plan as a plain line drawing, in the corner away from the caption, at most a quarter of the frame's height." },
     { "part": "room", "at": [630, 66], "text": "**The room in shot** is tinted, so on a floor tour you can see which room you're in." },
     { "part": "camera", "at": [554, 9], "text": "**The camera.** A dot where it stands and a wedge for what it sees. Both move with every frame." },
-    { "part": "caption", "at": [146, 332], "text": "**The caption** names the room and its size." }
+    { "part": "caption", "at": [146, 332], "span": true, "text": "**The caption** names the room and its size." }
   ]
 }

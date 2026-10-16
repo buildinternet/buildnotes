@@ -500,8 +500,9 @@ figcaption a { color: inherit; }
 .keys li.on { background: color-mix(in oklab, var(--mark) 9%, var(--paper)); }
 
 /* ── component: anatomy (viz.mjs anatomy) ── a keyed figure drawn from a parts list: flat, at an angle (iso),
-   or keys over the capture. Pointing at a part lifts it; pointing at a key or legend entry fades the other
-   parts. The iso view comes apart on "Apart": each part lifts, staggered, and its key goes with it. */
+   or the capture itself. Flat and screenshot carry margin notes; iso carries numbered keys. Pointing at a
+   part lifts it; pointing at a note or legend entry fades the other parts. The iso view comes apart on
+   "Apart": each part lifts, staggered, and its key goes with it. */
 .anatomy { --t0: color-mix(in oklab, var(--ink) 5%, var(--paper)); --landmark-edge: color-mix(in oklab, var(--landmark) 60%, var(--ink)); }
 .anatomy .stage { container-type: inline-size; }
 .anatomy svg { display: block; width: 100%; height: auto; overflow: visible; }
@@ -524,7 +525,7 @@ figcaption a { color: inherit; }
 .anatomy-iso .pt:hover { transform: translateY(-10px); }
 .anatomy-flat .pt:hover { transform: translateY(-4px); filter: drop-shadow(0 4px 0 color-mix(in oklab, var(--ink) 14%, transparent)); }
 .anatomy .mk.on { transform: translateY(-6px); }
-.anatomy:has(.hs:is(:hover, :focus-visible), .keys li:hover) .pt:not(.on):not(:has(.on)) { opacity: 0.22; }
+.anatomy:has(.hs:is(:hover, :focus-visible), .keys li:hover, .nk:hover, .nn:hover) .pt:not(.on):not(:has(.on)) { opacity: 0.22; }
 .anatomy .lift { transition: transform 0.7s cubic-bezier(.22,1,.36,1); transition-delay: var(--dc); }
 .anatomy:has(.apart:checked) .lift { transform: translateY(var(--lift)); transition-delay: var(--do); }
 .anatomy-iso .hs { transition: translate 0.7s cubic-bezier(.22,1,.36,1); transition-delay: var(--dc, 0ms); }
@@ -539,6 +540,33 @@ figcaption a { color: inherit; }
 .parts-view label:has(input:focus-visible) { outline: 1px solid var(--muted); outline-offset: 1px; border-radius: 3px; }
 .parts-view input { position: absolute; opacity: 0; width: 1px; height: 1px; margin: 0; pointer-events: none; }
 .parts-view span { color: var(--rule); padding-top: 0.4rem; }
+/* margin notes (flat and screenshot): each key's text beside the figure, a hairline to its part, a
+   bracket for a region and a dot for a point. Below 560px the notes give way to small numbers on the
+   drawing and the legend under it; above, the legend stays for screen readers only. */
+.anatomy-margin { container-type: inline-size; }
+.anatomy-margin .stage svg.narrow { display: none; }
+.anatomy-margin .keys { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+@container (max-width: 559px) {
+  .anatomy-margin .stage svg.wide { display: none; }
+  .anatomy-margin .stage svg.narrow { display: block; }
+  .anatomy-margin .keys { position: static; width: auto; height: auto; overflow: visible; clip-path: none; white-space: normal; }
+}
+.anatomy .hair { fill: none; stroke: color-mix(in oklab, var(--ink) 55%, var(--paper)); stroke-width: 1; vector-effect: non-scaling-stroke; transition: stroke 0.15s; }
+.anatomy .nd { fill: var(--ink); transition: fill 0.15s; }
+.anatomy .nt { font-family: var(--font-body); fill: color-mix(in oklab, var(--ink) 80%, var(--paper)); }
+.anatomy .nt .lead { font-weight: 650; fill: var(--ink); }
+.anatomy .nk { transition: opacity 0.2s; }
+.anatomy .nk.on .hair { stroke: var(--accent); }
+.anatomy .nk.on .nd { fill: var(--accent); }
+.anatomy-margin:has(.nk:hover) .nk:not(.on) { opacity: 0.4; }
+.anatomy .nn circle { fill: var(--ink); stroke: var(--paper); stroke-width: 1.5; vector-effect: non-scaling-stroke; transition: fill 0.15s; }
+.anatomy .nn text { fill: var(--paper); font-family: var(--font-label); font-weight: 600; }
+.anatomy .nn.on circle { fill: var(--mark); }
+.anatomy .frame { fill: none; stroke: var(--rule); stroke-width: 1; vector-effect: non-scaling-stroke; }
+.anatomy .img-dark { display: none; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .anatomy .img-dark { display: inline; } :root:not([data-theme="light"]) .anatomy .img-light { display: none; } }
+:root[data-theme="dark"] .anatomy .img-dark { display: inline; }
+:root[data-theme="dark"] .anatomy .img-light { display: none; }
 
 /* expand: the page's script wraps .shot, .strip and .keyed images shown smaller than their real size */
 .zoom-open { display: block; position: relative; width: 100%; padding: 0; border: 0; background: none; cursor: zoom-in; }
@@ -579,7 +607,7 @@ figcaption a { color: inherit; }
 @media (prefers-reduced-motion: reduce) {
   .diagram .flow, .flow .route, .steps .box { animation: none !important; }
   .hs .tip { animation: none; }
-  .hs .dot, .keys li, .anatomy :is(.pt, .mk, .lift, .hs, .foot) { transition: none !important; }
+  .hs .dot, .keys li, .anatomy :is(.pt, .mk, .lift, .hs, .foot, .nk, .hair, .nd) { transition: none !important; }
   html { scroll-behavior: auto; }
 }
 @media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }

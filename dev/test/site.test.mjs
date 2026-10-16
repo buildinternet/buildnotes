@@ -13,8 +13,9 @@ test("the site builds: markers filled, files copied, every command copyable", ()
     const { html, files } = build({ out });
     assert.doesNotMatch(html, /<!-- (figure|iso) |\/\* template: |\/\/ template: /);
     // the two live figures, with the template's CSS and script to drive them
-    assert.match(html, /class="keyed anatomy anatomy-screenshot"/);
-    assert.match(html, /class="keyed anatomy anatomy-iso"/);
+    assert.match(html, /class="keyed anatomy anatomy-screenshot anatomy-margin"/);
+    assert.match(html, /class="keyed anatomy anatomy-flat anatomy-margin"/);
+    assert.match(html, /@container \(max-width: 559px\)/, "the margin notes' narrow fallback");
     assert.match(html, /\.anatomy-iso:has\(\.apart:checked\)/);
     assert.match(html, /for \(const fig of document\.querySelectorAll\("\.keyed"\)\)/);
     assert.doesNotMatch(html, /zoom-open/, "the expand script stays out; the site has no CSS for it");
@@ -25,7 +26,7 @@ test("the site builds: markers filled, files copied, every command copyable", ()
     assert.match(html, /<code data-copy>npx skills add buildinternet\/buildnotes<\/code>/);
     // local references point at copied files, and .github/assets is published as assets/
     for (const f of files) assert.ok(existsSync(join(out, f)), f);
-    assert.ok(files.includes("assets/digest-apart.webp"));
+    assert.ok(files.includes("assets/digest-card-hero.webp"));
     assert.doesNotMatch(html, /\.github\//);
     assert.match(html, /<html lang="en" data-theme="light">/);
     // every example is served as a folder with its video, its post wrapped in a document and the site shell
@@ -55,9 +56,9 @@ test("the site builds: markers filled, files copied, every command copyable", ()
       assert.match(deck, /"deck":true/);
       assert.match(readFileSync(join(out, `examples/${ex.slug}/index.html`), "utf8"), /href="deck\.html"/);
     }
-    // the weekly-digests example is the field-notes page, the one with the card taken apart
+    // the weekly-digests example is the field-notes page, the one with the card drawn flat
     const digests = readFileSync(join(out, "examples/releases-weekly-digests/index.html"), "utf8");
-    assert.match(digests, /class="keyed anatomy anatomy-iso"/);
+    assert.match(digests, /class="keyed anatomy anatomy-flat anatomy-margin"/);
     assert.throws(() => wrapPost("nope", "<style></style>"), /not in EXAMPLES/);
     // the examples page: one card per example, the home page's stylesheet, links one folder up
     const list = readFileSync(join(out, "examples/index.html"), "utf8");
@@ -71,7 +72,7 @@ test("the site builds: markers filled, files copied, every command copyable", ()
       assert.match(list, new RegExp(`href="${ex.slug}/#site-video"`), ex.slug);
       if (ex.deck) assert.match(list, new RegExp(`href="${ex.slug}/deck\\.html"`), ex.slug);
     }
-    assert.match(list, /src="\.\.\/assets\/digest-apart\.webp"/);
+    assert.match(list, /src="\.\.\/assets\/digest-card-hero\.webp"/);
     assert.match(list, /href="\.\.\/#install"/);
     // the footer, on both pages: columns and the maintained-by line
     for (const page of [html, list]) {

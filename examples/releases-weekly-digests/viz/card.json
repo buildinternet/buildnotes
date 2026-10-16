@@ -1,6 +1,6 @@
 {
   "title": "The week at a glance card for Coding Agents, week of 28 September: four product tiles, each split into features, enhancements and fixes, and the five biggest releases below.",
-  "view": "iso",
+  "view": "flat",
   "src": "img/digest-card.webp",
   "srcDark": "img/digest-card-dark.webp",
   "alt": "The week at a glance card for Coding Agents: tiles for Codex, Claude Code, Devin and Grok Build, and a list of the five biggest releases.",
@@ -164,7 +164,8 @@
         238,
         445
       ],
-      "text": "**Tile size.** How much the product shipped, measured as impact."
+      "text": "**Tile size.** How much the product shipped, measured as impact.",
+      "span": true
     },
     {
       "part": "claude-code",
@@ -188,7 +189,8 @@
         1351,
         1026
       ],
-      "text": "**The five biggest releases.** Each row links to the part of the digest about it."
+      "text": "**The five biggest releases.** Each row links to the part of the digest about it.",
+      "span": true
     }
   ]
 }

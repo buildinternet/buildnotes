@@ -332,9 +332,11 @@ for (const m of live.matchAll(/<div class="strip"[^>]*>([\s\S]*?)<\/div><\/div>/
   for (const l of labels) if (NAMES_COMMIT.test(l)) say(`! strip label "${l}" names a commit or PR; label the iteration ("Round two", "As it ships")`);
 }
 
-// Keyed figures: every hotspot has a legend entry and a place, every entry a hotspot, and few enough to read.
+// Keyed figures: every hotspot (or margin note) has a legend entry and a place, every entry a hotspot,
+// and few enough to read.
 for (const m of live.matchAll(/<(?:figure|div) class="[^"]*\bkeyed\b[^"]*"[^>]*>([\s\S]*?<ol class="keys">[\s\S]*?<\/ol>)/g)) {
-  const spots = [...m[1].matchAll(/<button\b[^>]*class="hs\b[^"]*"[^>]*>/g)].map((b) => b[0]);
+  const buttons = [...m[1].matchAll(/<button\b[^>]*class="hs\b[^"]*"[^>]*>/g)].map((b) => b[0]);
+  const spots = [...buttons, ...[...m[1].matchAll(/<g class="nk" data-k="[^"]+">/g)].map((b) => b[0])];
   const ks = spots.map((b) => b.match(/\bdata-k="([^"]+)"/)?.[1]);
   const keys = [...m[1].matchAll(/<li\b[^>]*\bdata-k="([^"]+)"/g)].map((x) => x[1]);
   const name = m[1].match(/\b(?:alt|aria-label)="([^"]{0,40})/)?.[1] ?? "keyed figure";
@@ -342,7 +344,7 @@ for (const m of live.matchAll(/<(?:figure|div) class="[^"]*\bkeyed\b[^"]*"[^>]*>
   if (lost.length) say(`! keyed "${name}": hotspot ${lost.join(", ")} has no legend entry (data-k)`);
   if (bare.length) say(`! keyed "${name}": legend entry ${bare.join(", ")} has no hotspot`);
   if (new Set(ks).size !== ks.length) say(`! keyed "${name}": two hotspots share a number`);
-  for (const b of spots) if (!/--x:\s*[\d.]+%/.test(b) || !/--y:\s*[\d.]+%/.test(b)) say(`! keyed "${name}": hotspot ${b.match(/\bdata-k="([^"]+)"/)?.[1] ?? "?"} needs --x and --y in percent`);
+  for (const b of buttons) if (!/--x:\s*[\d.]+%/.test(b) || !/--y:\s*[\d.]+%/.test(b)) say(`! keyed "${name}": hotspot ${b.match(/\bdata-k="([^"]+)"/)?.[1] ?? "?"} needs --x and --y in percent`);
   if (spots.length > 6) say(`! keyed "${name}": ${spots.length} hotspots; past about six the numbers stop helping (split the figure, or key only what the text needs)`);
 }
 // Findings and margin notes: one finding per chapter at most, and a margin note stays an aside.
