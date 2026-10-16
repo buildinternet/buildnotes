@@ -90,15 +90,11 @@ const SHELL_CSS = `
 .site-top nav { display: flex; flex-wrap: wrap; gap: 4px 20px; }
 /* On a phone: the name and the label on one line (the label gives way), the links under them. */
 @media (max-width: 40rem) { .site-top { display: grid; grid-template-columns: auto minmax(0, 1fr); } .site-top .site-label { justify-self: end; max-width: 100%; } .site-top nav { grid-column: 1 / -1; } }
-.site-end { max-width: var(--col, 42rem); margin: 4rem auto 0; display: grid; gap: 20px; }
-.site-end .site-rule { border-top: 1px solid #e3e3dd; }
+.site-end { max-width: var(--col, 42rem); margin: 4rem auto 0; display: grid; gap: 14px; border-top: 1px solid #e3e3dd; padding-top: 2.5rem; }
 .site-end h2 { font: 600 1.0625rem/1.3 "Source Serif 4", Georgia, serif; color: #1f1f1d; margin: 0; }
-.site-end p { margin: 0; max-width: 38rem; }
 .site-end video { width: 100%; aspect-ratio: 16 / 9; background: #000; border-radius: 4px; border: 1px solid #e3e3dd; display: block; }
-.site-end .site-links { display: flex; flex-wrap: wrap; gap: 4px 20px; }
-.site-end .site-others { display: grid; gap: 0; border-top: 1px solid #e3e3dd; }
-.site-end .site-others a { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 2px 16px; padding: 12px 0; border-bottom: 1px solid #e3e3dd; }
-.site-end .site-others a b { color: #1f1f1d; font-weight: 600; }
+.site-end .site-links { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 0.8125rem; }
+.site-end .site-links a { text-decoration: underline; text-decoration-color: #d3d3cc; text-underline-offset: 0.2em; }
 `;
 
 // Wrap one example's committed post.html in a full document and the site shell. `url` is where the site
@@ -121,7 +117,6 @@ export function wrapPost(slug, post, url) {
   const i = EXAMPLES.findIndex((e) => e.slug === slug);
   if (i < 0) throw new Error(`examples/${slug} is not in EXAMPLES (site/build.mjs)`);
   const ex = EXAMPLES[i];
-  const others = EXAMPLES.filter((e) => e !== ex);
   // The post starts with its <title> and font links, then its <style>; those first lines belong in <head>.
   const at = post.indexOf("<style>");
   if (at < 0) throw new Error(`examples/${slug}/post.html: no <style>`);
@@ -146,7 +141,7 @@ ${head.replace(/<title>[^<]*<\/title>/, `<title>${esc(title)} · buildnotes exam
 ${share}
 <link rel="icon" href="../../assets/favicon.svg" type="image/svg+xml">
 <style>${SHELL_CSS}
-.site-footer { font-family: "Archivo", "Helvetica Neue", Arial, sans-serif; max-width: var(--col, 42rem); margin: 3rem auto 0; -webkit-font-smoothing: antialiased; }
+.site-footer { font-family: "Archivo", "Helvetica Neue", Arial, sans-serif; max-width: 60rem; margin: 4rem auto 0; -webkit-font-smoothing: antialiased; }
 .site-footer footer ul { margin: 0; padding: 0; }
 .site-footer footer h4, .site-footer footer p { margin: 0; }
 ${footerCss()}</style>
@@ -159,14 +154,9 @@ ${footerCss()}</style>
 </header>
 ${body}
 <section class="site-bar site-end" id="site-video" aria-label="About this example">
-  <div class="site-rule"></div>
-  <p class="site-label">This post is a buildnotes example</p>
   <h2>The same story as a video</h2>
   <video src="motion.mp4" controls preload="metadata" playsinline aria-label="The video cut of this post."></video>
-  <div class="site-links"><a class="site-accent" href="motion.mp4" download>Download the video</a>${ex.deck ? `<a class="site-accent" href="deck.html">See the slides</a>` : ""}<a class="site-accent" href="${REPO}/blob/main/examples/${ex.slug}/plan.md">See the plan behind it</a></div>
-  <div class="site-others">
-${others.map((o) => `    <a href="../${o.slug}/"><b>${esc(o.product)}</b><span>${esc(o.name)}</span></a>`).join("\n")}
-  </div>
+  <div class="site-links"><a href="motion.mp4" download>Download</a>${ex.deck ? `<a href="deck.html">Slides</a>` : ""}<a href="${REPO}/blob/main/examples/${ex.slug}/plan.md">The plan behind it</a></div>
 </section>
 <div class="site-footer">
 ${footer("../../")}
@@ -258,11 +248,13 @@ ${docs.map(([name, path]) => `        <li><a href="${REPO}/blob/main/${path}">${
         <li><a href="${REPO}">GitHub</a></li>
         <li><a href="${REPO}/blob/main/CHANGELOG.md">Changelog</a></li>
         <li><a href="${REPO}/blob/main/LICENSE">License</a></li>
+      </ul><h4>Also by Build Internet</h4><ul>
+        <li><a href="https://releases.sh">Release Notes Index</a></li>
+        <li><a href="https://uploads.sh">Uploads</a></li>
       </ul></div>
     </div>
     <div class="by">
-      <span>Maintained by <a href="https://zachdunn.com">Zach Dunn</a> / <a href="https://buildinternet.com">Build Internet</a>.</span>
-      <span>Also from Build Internet: <a href="https://releases.sh">Release Notes Index →</a> <a href="https://uploads.sh">Uploads →</a></span>
+      <span>By <a href="https://zachdunn.com">Zach Dunn</a> / <a href="https://buildinternet.com">Build Internet</a></span>
     </div>
   </footer>`;
 }

@@ -40,8 +40,7 @@ test("the site builds: markers filled, files copied, every command copyable", ()
       assert.equal(post.match(/<title>/g).length, 1);
       assert.match(post, /<header class="site-bar site-top">/);
       assert.match(post, /<video src="motion\.mp4" controls/);
-      for (const o of EXAMPLES) if (o !== ex) assert.match(post, new RegExp(`href="\\.\\./${o.slug}/"`), `${ex.slug} links ${o.slug}`);
-      assert.doesNotMatch(post, new RegExp(`href="\\.\\./${ex.slug}/`));
+      for (const o of EXAMPLES) assert.match(post, new RegExp(`href="\\.\\./\\.\\./examples/${o.slug}/"`), `${ex.slug} links ${o.slug}`);
     }
     // an example with a deck serves it, with a doctype, and links it from its footer and the examples page
     const decks = EXAMPLES.filter((ex) => ex.deck);
@@ -73,7 +72,7 @@ test("the site builds: markers filled, files copied, every command copyable", ()
     // the footer, on both pages: columns and the maintained-by line
     for (const page of [html, list]) {
       assert.match(page, /<footer>\s*<div class="cols">/);
-      assert.match(page, /Maintained by <a href="https:\/\/zachdunn\.com">Zach Dunn<\/a>/);
+      assert.match(page, /By <a href="https:\/\/zachdunn\.com">Zach Dunn<\/a>/);
       assert.match(page, /href="https:\/\/releases\.sh"/);
       assert.match(page, /href="https:\/\/uploads\.sh"/);
     }
