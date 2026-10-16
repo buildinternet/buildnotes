@@ -110,6 +110,10 @@ test("fonts: every page uses the site's own, with a matched fallback after each 
   // running it twice adds nothing
   const once = siteFonts('<style>p { font-family: "Archivo", Arial; }</style>', "", "x.html");
   assert.equal(siteFonts(once, "", "x.html"), once);
+  // scripts are left alone: a family name and a comma there aren't a font stack
+  const script = '<script>const fonts = { body: "Newsreader", mono: "IBM Plex Mono" };</script>';
+  assert.equal(siteFonts(script, "", "x.html"), script);
+  assert.match(siteFonts('<p style="font-family: &quot;Archivo&quot;, Arial">', "", "x.html"), /&quot;Archivo&quot;, &quot;Archivo Fallback&quot;, Arial/);
 });
 
 test("link previews: description, Open Graph and Twitter tags, favicon", () => {

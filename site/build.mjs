@@ -264,10 +264,13 @@ export function siteFonts(page, up, what) {
     return `<link rel="stylesheet" href="${up}assets/fonts.css">`;
   });
   if (/fonts\.(googleapis|gstatic)\.com/.test(page)) throw new Error(`${what}: links Google Fonts in a way site/build.mjs doesn't replace`);
-  for (const family of Object.keys(FALLBACKS)) {
-    page = page.replace(new RegExp(`(["'])${family}\\1(?=\\s*,)(?!\\s*,\\s*["']${family} Fallback)`, "g"), `"${family}", "${family} Fallback"`);
-  }
-  return page;
+  // Only in CSS: <style> blocks and style attributes. A script can hold a family name too, and a comma
+  // after it there is not a font stack.
+  const stacks = (css) => Object.keys(FALLBACKS).reduce((t, family) =>
+    t.replace(new RegExp(`(["'])${family}\\1(?=\\s*,)(?!\\s*,\\s*["']${family} Fallback)`, "g"), `"${family}", "${family} Fallback"`), css);
+  return page
+    .replace(/(<style\b[^>]*>)([\s\S]*?)(<\/style>)/g, (all, open, css, close) => open + stacks(css) + close)
+    .replace(/\bstyle="([^"]*)"/g, (all, css) => `style="${stacks(css.replace(/&quot;/g, '"')).replace(/"/g, "&quot;")}"`);
 }
 
 // Fill a page's markers: template CSS and script, iso drawings, live figures, share tags.
@@ -396,6 +399,9 @@ export function build({ out = join(here, "dist"), url } = {}) {
   }
   // The font files: fonts.css names them, and the pages preload a few.
   for (const f of readdirSync(join(here, "assets/fonts"))) files.set(`assets/fonts/${f}`, join(here, "assets/fonts", f));
+  for (const [, f] of readFileSync(join(here, "assets/fonts.css"), "utf8").matchAll(/url\(([^)]+)\)/g)) {
+    if (!existsSync(join(here, "assets", f))) throw new Error(`assets/fonts.css names ${f}, which isn't there (run node site/fonts.mjs)`);
+  }
   for (const [to, from] of files) {
     if (!existsSync(from)) throw new Error(`missing ${from}${/^assets\/og[-.]/.test(to) ? " (make it with node site/card.mjs)" : ""}`);
     mkdirSync(dirname(join(out, to)), { recursive: true });

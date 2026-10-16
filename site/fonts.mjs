@@ -15,7 +15,7 @@
 // text doesn't move when it swaps in. A page lists that face right after the family (site/build.mjs does
 // this for the example posts and decks). Run this again after changing FAMILIES; commit what it writes.
 
-import { writeFileSync, mkdirSync, rmSync } from "node:fs";
+import { writeFileSync, mkdirSync, rmSync, renameSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -84,8 +84,11 @@ async function main() {
   // Google's stylesheet is a run of "/* <subset> */ @font-face { … }" blocks.
   const blocks = [...css.matchAll(/\/\* ([\w-]+) \*\/\s*@font-face \{([^}]+)\}/g)].filter(([, subset]) => SUBSETS.includes(subset));
   if (!blocks.length) throw new Error(`no ${SUBSETS.join(" or ")} faces in ${url}`);
-  rmSync(DIR, { recursive: true, force: true });
-  mkdirSync(DIR, { recursive: true });
+  // Download into a folder beside the real one, and swap it in only once every file and the stylesheet
+  // are written: a failed run leaves the fonts the site has working.
+  const stage = `${DIR}.new`;
+  rmSync(stage, { recursive: true, force: true });
+  mkdirSync(stage, { recursive: true });
   const files = new Map(); // Google's URL → our file name; a variable face serves several weights from one file
   const faces = [];
   for (const [, subset, body] of blocks) {
@@ -95,7 +98,7 @@ async function main() {
     if (!src) throw new Error(`${family} (${subset}): no woff2 url`);
     if (!files.has(src)) {
       const name = `${slug(family)}-${prop("font-style")}-${slug(prop("font-weight"))}-${subset}.woff2`;
-      writeFileSync(join(DIR, name), await get(src, "bytes"));
+      writeFileSync(join(stage, name), await get(src, "bytes"));
       files.set(src, name);
     }
     const lines = [
@@ -109,7 +112,11 @@ async function main() {
     ].filter(Boolean);
     faces.push(`/* ${family}, ${subset} */\n@font-face {\n${lines.join("\n")}\n}`);
   }
-  writeFileSync(CSS, `/* The site's web fonts, served from here. Written by site/fonts.mjs; don't edit by hand. */\n\n${faces.join("\n")}\n\n/* Local fonts resized to take the web fonts' space while those load. */\n${fallbackCss()}\n`);
+  const sheet = `/* The site's web fonts, served from here. Written by site/fonts.mjs; don't edit by hand. */\n\n${faces.join("\n")}\n\n/* Local fonts resized to take the web fonts' space while those load. */\n${fallbackCss()}\n`;
+  writeFileSync(`${CSS}.new`, sheet);
+  rmSync(DIR, { recursive: true, force: true });
+  renameSync(stage, DIR);
+  renameSync(`${CSS}.new`, CSS);
   console.log(`wrote ${CSS} and ${files.size} font files in ${DIR}`);
 }
 
