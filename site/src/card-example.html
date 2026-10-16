@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>buildnotes example card</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Martian+Mono:wdth,wght@75..112.5,300..500&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap">
+<style>
+/* The 1200 × 630 card an example page's link preview shows. site/card.mjs fills the {{…}} fields from
+   EXAMPLES and the post, and renders one site/assets/og-<slug>.png per example. Same faces as card.html. */
+:root {
+  --paper: #fcfcfa;
+  --ink: #1f1f1d;
+  --muted: #64645f;
+  --rule: #e3e3dd;
+  --dot: #d8d8d1;
+  --font-display: "Source Serif 4", Georgia, "Times New Roman", serif;
+  --font-mono: "Martian Mono", ui-monospace, Menlo, monospace;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; width: 1200px; height: 630px; overflow: hidden; background: var(--paper); color: var(--ink); -webkit-font-smoothing: antialiased; }
+.card { display: grid; grid-template-columns: 500px 1fr; width: 1200px; height: 630px; }
+.words { padding: 64px 32px 56px 72px; display: flex; flex-direction: column; }
+.name { font: 400 18px/1 var(--font-mono); font-stretch: 87.5%; color: var(--muted); }
+h1 { margin: 40px 0 0; font: 600 60px/1.05 var(--font-display); letter-spacing: -0.015em; }
+p { margin: 20px 0 0; font: 400 32px/1.2 var(--font-display); color: var(--muted); }
+.formats { margin-top: auto; font: 400 18px/1 var(--font-mono); font-stretch: 87.5%; color: var(--ink); }
+.figure {
+  margin: 28px 28px 28px 8px; border: 1px solid var(--rule); border-radius: 6px; overflow: hidden;
+  background: radial-gradient(circle, var(--dot) 1px, transparent 1.4px) 0 0 / 18px 18px, var(--paper);
+  display: grid; align-items: center;
+}
+.figure img { display: block; width: 100%; height: auto; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="words">
+    <div class="name">buildnotes · example</div>
+    <h1>{{product}}</h1>
+    <p>{{headline}}</p>
+    <div class="formats">{{formats}}</div>
+  </div>
+  <div class="figure"><img src="{{image}}" alt=""></div>
+</div>
+</body>
+</html>

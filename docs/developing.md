@@ -31,7 +31,7 @@ To keep a public run as a committed example, check it, then copy its page, plan 
 ```bash
 node site/build.mjs                  # or: npm run site
 node site/build.mjs --url https://buildnotes.releases.sh   # canonical link, og:url, og:image there
-node site/card.mjs                   # re-render the link-preview image, site/assets/og.png (needs Chrome)
+node site/card.mjs                   # re-render the link-preview images in site/assets (needs Chrome)
 open site/dist/index.html
 npm run site:dev                     # build, then serve it as the Worker does at http://localhost:8787
 # or, in Claude Code desktop, the "site" entry in .claude/launch.json does the same (autoPort: it moves if 8787 is taken)
@@ -59,7 +59,7 @@ The example pages share the home page's footer: `wrapPost` copies the footer CSS
 
 Then it copies every local file the page points at: `site/assets/` from there, `.github/assets/` as `assets/`, and everything else from the repo root. Every example in `EXAMPLES` is served whether the page links it or not, as a folder: `examples/<slug>/` (its `index.html` is the post named by `file`, so the digests example is the field-notes page) with `motion.mp4` beside it, and `examples/` lists them all, built from `site/src/examples.html` with the home page's stylesheet. A post is not copied as is: the committed posts are written for the Artifact viewer, which wraps them in a document, so `wrapPost` adds the doctype, charset and viewport, forces the light theme, and puts a site shell around the post: a bar naming the example with a way back, and a footer with the video, the plan and the other examples. `dev/test/site.test.mjs` builds it into a temp folder.
 
-Link previews: the page's description, Open Graph and Twitter tags come from `SHARE` in `build.mjs`. `og:image` must be an absolute URL, so without `--url` it points at `site/assets/og.png` on GitHub's `main` branch. That image is `site/src/card.html` rendered by `site/card.mjs`: render it again and commit it when the headline or the card figure changes. The favicon is `site/assets/favicon.svg`. Each example page gets its own tags from its `EXAMPLES` entry (an article titled by product and name, the blurb as description, its `image` as the picture), with a canonical link and `og:url` when built with `--url`.
+Link previews: the page's description, Open Graph and Twitter tags come from `SHARE` in `build.mjs`. `og:image` must be an absolute URL, so without `--url` it points at `site/assets/og.png` on GitHub's `main` branch. That image is `site/src/card.html` rendered by `site/card.mjs`, which also renders one `site/assets/og-<slug>.png` per example from `site/src/card-example.html` (the product, the post's headline and the example's `image`): render them again and commit them when a headline or a picture changes. The favicon is `site/assets/favicon.svg`. Each example page gets its own tags from its `EXAMPLES` entry (an article titled by product and name, the blurb as description, its card as the picture), with a canonical link and `og:url` when built with `--url`.
 
 `site/assets/sunny-post-full.webp` is the whole sunny-walkthrough-videos post, rendered by headless Chrome at 1100 px wide in light mode and trimmed to its column. Re-make it if that post changes.
 

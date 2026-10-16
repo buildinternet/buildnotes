@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { build, SHARE, EXAMPLES, wrapPost, footer } from "../../site/build.mjs";
+import { build, SHARE, EXAMPLES, wrapPost, footer, exampleCard } from "../../site/build.mjs";
 import { drawing, NAMES } from "../../site/iso.mjs";
 
 test("the site builds: markers filled, files copied, every command copyable", () => {
@@ -21,7 +21,7 @@ test("the site builds: markers filled, files copied, every command copyable", ()
     // every example command sits in a row with a copy button
     const rows = html.match(/<div class="cmd[^"]*"><code data-copy>/g) ?? [];
     assert.equal(rows.length, (html.match(/<button class="copy"/g) ?? []).length);
-    assert.ok(rows.length >= 8);
+    assert.ok(rows.length >= 6);
     assert.match(html, /<code data-copy>npx skills add buildinternet\/buildnotes<\/code>/);
     // local references point at copied files, and .github/assets is published as assets/
     for (const f of files) assert.ok(existsSync(join(out, f)), f);
@@ -39,9 +39,11 @@ test("the site builds: markers filled, files copied, every command copyable", ()
       assert.match(post, /<title>[^<]+ · buildnotes example<\/title>/);
       assert.equal(post.match(/<title>/g).length, 1);
       assert.match(post, /<header class="site-bar site-top">/);
-      assert.match(post, /<video src="motion\.mp4" controls/);
-      for (const o of EXAMPLES) if (o !== ex) assert.match(post, new RegExp(`href="\\.\\./${o.slug}/"`), `${ex.slug} links ${o.slug}`);
-      assert.doesNotMatch(post, new RegExp(`href="\\.\\./${ex.slug}/`));
+      // the video sits under the headline, and the rail lists the examples and every chapter
+      assert.match(post, /<\/header>\s*<aside class="site-bar site-watch" id="site-video"[^>]*>\s*<video src="motion\.mp4"/);
+      assert.match(post, new RegExp(`<a href="\\.\\./${ex.slug}/" aria-current="page">`), ex.slug);
+      assert.equal((post.match(/<nav class="site-bar site-rail"[\s\S]*?<\/nav>/)?.[0].match(/href="#c\d+"/g) ?? []).length, (post.match(/<section class="ch" id="c\d+">/g) ?? []).length, ex.slug);
+      for (const o of EXAMPLES) assert.match(post, new RegExp(`href="\\.\\./\\.\\./examples/${o.slug}/"`), `${ex.slug} links ${o.slug}`);
     }
     // an example with a deck serves it, with a doctype, and links it from its footer and the examples page
     const decks = EXAMPLES.filter((ex) => ex.deck);
@@ -61,11 +63,12 @@ test("the site builds: markers filled, files copied, every command copyable", ()
     const list = readFileSync(join(out, "examples/index.html"), "utf8");
     assert.ok(files.includes("examples/index.html"));
     assert.match(list, /<meta charset="utf-8">/);
-    assert.doesNotMatch(list, /\/\* site: css \*\/|<!-- examples -->|<!-- footer -->|<!-- canonical -->/);
+    assert.doesNotMatch(list, /\/\* site: css \*\/|<!-- examples -->|<!-- footer -->|<!-- canonical -->|<!-- share -->/);
+    assert.match(list, /<meta property="og:title" content="Examples · buildnotes">/);
     assert.match(list, /\.show-head \{/, "shares the home page's CSS");
     for (const ex of EXAMPLES) {
       assert.match(list, new RegExp(`<h2><a href="${ex.slug}/">`), ex.slug);
-      assert.match(list, new RegExp(`href="${ex.slug}/motion\\.mp4"`), ex.slug);
+      assert.match(list, new RegExp(`href="${ex.slug}/#site-video"`), ex.slug);
       if (ex.deck) assert.match(list, new RegExp(`href="${ex.slug}/deck\\.html"`), ex.slug);
     }
     assert.match(list, /src="\.\.\/assets\/digest-apart\.webp"/);
@@ -73,7 +76,7 @@ test("the site builds: markers filled, files copied, every command copyable", ()
     // the footer, on both pages: columns and the maintained-by line
     for (const page of [html, list]) {
       assert.match(page, /<footer>\s*<div class="cols">/);
-      assert.match(page, /Maintained by <a href="https:\/\/zachdunn\.com">Zach Dunn<\/a>/);
+      assert.match(page, /By <a href="https:\/\/zachdunn\.com">Zach Dunn<\/a>/);
       assert.match(page, /href="https:\/\/releases\.sh"/);
       assert.match(page, /href="https:\/\/uploads\.sh"/);
     }
@@ -112,7 +115,7 @@ test("link previews: description, Open Graph and Twitter tags, favicon", () => {
     const tags = (base) => {
       for (const ex of EXAMPLES) {
         const post = readFileSync(join(out, `examples/${ex.slug}/index.html`), "utf8");
-        const image = base ? `${base}assets/${ex.image.split("/").pop()}` : `https://raw.githubusercontent.com/buildinternet/buildnotes/main/${ex.image}`;
+        const image = base ? `${base}${exampleCard(ex)}` : `https://raw.githubusercontent.com/buildinternet/buildnotes/main/site/${exampleCard(ex)}`;
         assert.equal(meta(post, "name", "description"), ex.blurb, ex.slug);
         assert.equal(meta(post, "property", "og:type"), "article", ex.slug);
         assert.equal(meta(post, "property", "og:site_name"), "buildnotes", ex.slug);
@@ -127,7 +130,8 @@ test("link previews: description, Open Graph and Twitter tags, favicon", () => {
         if (base) {
           assert.match(post, new RegExp(`<link rel="canonical" href="${base}examples/${ex.slug}/">`), ex.slug);
           assert.equal(meta(post, "property", "og:url"), `${base}examples/${ex.slug}/`, ex.slug);
-          assert.ok(existsSync(join(out, `assets/${ex.image.split("/").pop()}`)), ex.slug);
+          assert.ok(existsSync(join(out, exampleCard(ex))), ex.slug);
+          assert.equal(meta(post, "property", "og:image:width"), "1200", ex.slug);
         } else assert.doesNotMatch(post, /rel="canonical"|og:url/, ex.slug);
       }
     };
