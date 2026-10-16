@@ -6,6 +6,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { build, SHARE, EXAMPLES, videoChapters, wrapPost, footer, exampleCard, siteFonts } from "../../site/build.mjs";
 import { drawing, NAMES } from "../../site/iso.mjs";
+import { CLUSTERS, CUTS, drawnWidths } from "../../site/assets/hero/layout.js";
 
 test("the site builds: markers filled, files copied, every command copyable", () => {
   const out = mkdtempSync(join(tmpdir(), "buildnotes-site-"));
@@ -93,6 +94,28 @@ test("the site builds: markers filled, files copied, every command copyable", ()
       assert.match(page, /href="https:\/\/uploads\.sh"/);
     }
     assert.match(footer("../"), /href="\.\.\/examples\/"/);
+  } finally {
+    rmSync(out, { recursive: true, force: true });
+  }
+});
+
+test("the hero's table: its scene, model, videos, cut images, posters and three.js are all served", () => {
+  const out = mkdtempSync(join(tmpdir(), "buildnotes-site-"));
+  try {
+    const { html } = build({ out });
+    const served = (p) => assert.ok(existsSync(join(out, p)), p);
+    // three.js is the site's own copy, named by an import map that hero.js's imports go through
+    const map = JSON.parse(html.match(/<script type="importmap">([^<]+)<\/script>/)[1]).imports;
+    served(map.three);
+    served(`${map["three/addons/"]}loaders/GLTFLoader.js`);
+    assert.match(html, /<script type="module" src="assets\/hero\/hero\.js"><\/script>/);
+    for (const f of ["hero.js", "layout.js", "room.glb", "poster.jpg", "poster-phone.jpg"]) served(`assets/hero/${f}`);
+    for (const c of CLUSTERS) served(`assets/hero/${c.video}`);
+    for (const cut of Object.keys(CUTS)) for (const src of drawnWidths().keys()) served(`assets/hero/${cut}/${src}`);
+    // the chip starts on the first cluster's request, and the pager names every cluster in order
+    assert.match(html, new RegExp(`<span class="typed">${CLUSTERS[0].brief}</span>`));
+    const stops = [...html.match(/<nav class="stops"[\s\S]*?<\/nav>/)[0].matchAll(/<button type="button" aria-label="([^"]+)"/g)].map((m) => m[1]);
+    assert.deepEqual(stops, CLUSTERS.map((c) => c.name));
   } finally {
     rmSync(out, { recursive: true, force: true });
   }

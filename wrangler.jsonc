@@ -1,7 +1,7 @@
 {
   "$schema": "https://unpkg.com/wrangler@4.151.0/config-schema.json",
   // The website: a Cloudflare Worker serving site/dist (built by site/build.mjs) at buildnotes.releases.sh.
-  // Static assets serve everything; site/worker.mjs runs first only for the example videos, to answer HTTP
+  // Static assets serve everything; site/worker.mjs runs first only for the videos, to answer HTTP
   // Range requests (the asset layer ignores them, so a browser cannot scrub a video). releases.sh is a zone
   // on the Build Internet account, so the custom domain creates its own DNS record and certificate.
   // Workers Builds deploys it on pushes to main; see docs/developing.md.
@@ -13,7 +13,7 @@
     "directory": "site/dist",
     "binding": "ASSETS",
     "html_handling": "auto-trailing-slash",
-    "run_worker_first": ["/examples/*/motion.mp4"]
+    "run_worker_first": ["/examples/*/motion.mp4", "/assets/hero/*.mp4"]
   },
   "routes": [{ "pattern": "buildnotes.releases.sh", "custom_domain": true }],
   "workers_dev": false,

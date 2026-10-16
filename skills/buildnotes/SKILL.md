@@ -1,7 +1,7 @@
 ---
 name: buildnotes
 description: Turn the real history of a feature (its issues, PRs, commits, reviews, design docs and screenshots) into a public-facing post about how it was built and why, with diagrams, simple motion, before/after visuals and code where it helps, published as a page, plus a short video cut or a deck of slides with a PDF on request. Three flavors, from a release-notes-style launch story to a technical deep dive. Use when asked to write up how a feature was built, the thinking or design behind a change, a technical blog post, devlog, case study, launch post or behind-the-scenes piece about work in a git repo, even when the request never says "blog".
-argument-hint: "[post|video|deck] [what to write about, e.g. a release story or a deep dive on X]"
+argument-hint: "[post|video|deck] [what to explain, e.g. a release story or a deep dive on X]"
 license: MIT
 compatibility: Written for Claude Code; also runs in OpenCode and Codex. Needs Node.js 22 or later, git, and Chrome or Chromium for the render pass. An authenticated gh is best for GitHub data; a GitHub MCP server or public GitHub pages also work.
 metadata:

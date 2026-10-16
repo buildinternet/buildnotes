@@ -1,8 +1,9 @@
 // worker.mjs — the website's Worker script. Static assets serve everything; this runs first only for the
-// example videos (assets.run_worker_first in wrangler.jsonc) to answer HTTP Range requests, which the
-// static asset layer ignores: it returns the whole file as 200 even on a cache hit, with no Accept-Ranges,
-// so a browser cannot scrub the video. The script fetches the asset, slices the requested bytes and
-// returns 206 with Content-Range; every video response carries Accept-Ranges: bytes.
+// videos, the examples' and the hero's (assets.run_worker_first in wrangler.jsonc), to answer HTTP Range
+// requests, which the static asset layer ignores: it returns the whole file as 200 even on a cache hit, with
+// no Accept-Ranges, so a browser cannot scrub the video (and Safari won't play it). The script fetches the
+// asset, slices the requested bytes and returns 206 with Content-Range; every video response carries
+// Accept-Ranges: bytes.
 
 export default {
   async fetch(request, env) {
