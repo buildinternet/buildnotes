@@ -383,6 +383,22 @@ test("a release PR stays when asked, a zero window skips nearby work, and a one-
   assert.match(md, /\| when \(UTC\) \| what \| ref \| title \|/);
 }));
 
+test("a PR named with --pr stays when a bot app opened it, and the same PR found by search drops", () => serial(async () => {
+  // astral-sh/uv ships stacked work from app/astral-automations-bot; --pr 22619 used to come back empty.
+  const botPr = { ...ghFx.prs["acme/app#120"], number: 140, title: "Implement RemoteSource for SafeUrl", author: { login: "app/acme-automations", is_bot: true } };
+  const base = fixtureCommand();
+  const command = (cmd, args) => {
+    if (cmd === "gh" && args[0] === "pr" && args[1] === "view" && args[2] === "140") return JSON.stringify(botPr);
+    if (cmd === "gh" && args[0] === "api" && args[1] === "repos/acme/app/pulls/140/comments") return "[]";
+    if (cmd === "gh" && args[0] === "pr" && args[1] === "list" && args.includes("safe url")) return JSON.stringify([{ number: 140 }]);
+    return base(cmd, args);
+  };
+  const named = await gather(["--out", mkdtempSync(join(tmpdir(), "gather-app-")), "--repo", "acme/app", "--pr", "140", "--window", "0"], { command });
+  assert.deepEqual(named.prs.map((p) => p.number), [140]);
+  const found = await gather(["--out", mkdtempSync(join(tmpdir(), "gather-app-")), "--repo", "acme/app", "--search", "safe url", "--window", "0"], { command });
+  assert.deepEqual(found.prs.map((p) => p.number), []);
+}));
+
 test("search syntax in --prior passes through, and a failed visibility lookup is unknown", () => serial(async () => {
   const calls = [];
   const dir = mkdtempSync(join(tmpdir(), "gather-prior-"));

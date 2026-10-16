@@ -73,6 +73,7 @@ Until the first release, changes are recorded under [Unreleased].
 
 ### Fixed
 
+- `gather.mjs --pr` keeps a PR that a bot app opened (such as `app/astral-automations-bot` on astral-sh/uv), instead of returning an empty dossier; only release-automation PRs still drop. PRs found by `--search` or issue links still drop bot authors. Test in `dev/test/gather.test.mjs`.
 - The motion page declares its charset, so arrows and dots no longer come out garbled when `motion.html` is opened from disk.
 - Margin notes: on a narrow screen a note is set off from the text by a rule, so it doesn't read as body text; on a wide one it sits level with its line without making the paragraph taller (it was floated, and a paragraph in the chapter grid grew to hold it, leaving a gap). `lint.mjs` flags a note placed mid-paragraph or mid-item, which splits the text on a phone; the example's one note moves to the end of its item.
 - The `delta` component's before and after values lost their layout when the margin note class was renamed; the template styles `.delta .side` again.
