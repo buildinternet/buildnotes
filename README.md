@@ -14,10 +14,10 @@
 </p>
 
 <p align="center">
-  <img src=".github/assets/digest-card-hero.webp" width="720" alt="An isometric line drawing of the 'week at a glance' card from a weekly digest: product tiles split into columns, the largest one in blue, flame marks on two tiles, and five release rows below. Five numbered keys name its parts: flames, tile size, columns, click a tile, and the five biggest releases. Above it, an Assembled / Apart toggle; below it, the post's figure caption.">
+  <img src=".github/assets/digest-card-hero.webp" width="720" alt="A hand-drawn, straight-on drawing of the 'week at a glance' card from a weekly digest: product tiles split into grey columns, the largest one in blue, flame marks on two tiles, and five release rows below. Notes in the margins name its parts, each joined to its part by a hairline: flames, tile size, columns, click a tile, and the five biggest releases. Below it, the post's figure caption.">
 </p>
 
-<p align="center"><sub><code>examples/releases-weekly-digests</code>: Fig. 1 of a build story the skill wrote from a public repo's PRs. Its parts are measured from the shipped card, and on the page they lift, come apart and explain themselves.</sub></p>
+<p align="center"><sub><code>examples/releases-weekly-digests</code>: Fig. 1 of a build story the skill wrote from a public repo's PRs. Its parts are measured from the shipped card and named in the margin, where pointing at a note picks out its part.</sub></p>
 
 ---
 
@@ -63,7 +63,7 @@ Three full runs are kept as committed examples. Each folder holds the finished p
 
 <table>
   <tr>
-    <td width="50%"><img src=".github/assets/walkthrough-keyed.webp" alt="One frame of a floor tour at eye level in the Boardroom, with five numbered keys: the shot, the mini-map in the top-right corner, the tinted room, the camera's dot and wedge, and the caption with the room's name and size."></td>
+    <td width="50%"><img src=".github/assets/walkthrough-keyed.webp" alt="One frame of a floor tour at eye level in the Boardroom, with five notes in the margins: the shot, the caption with the room's name and size, the camera's dot and wedge, the tinted room, and the mini-map in the top-right corner."></td>
     <td width="50%"><img src=".github/assets/before-after-compare.webp" alt="The uploads.sh file page in Compare mode: a REST API docs screenshot with a purple divider down the middle, Before on the left and After on the right."></td>
   </tr>
   <tr>
@@ -71,7 +71,7 @@ Three full runs are kept as committed examples. Each folder holds the finished p
     <td><sub><b><a href="examples/uploads-before-after">Before and after</a></b>: a build story about before/after comparison on <a href="https://uploads.sh">uploads.sh</a>, from the public <code>buildinternet/uploads</code> repo. Its figures are the product in use, captured live. Plain style. <a href="https://buildnotes.releases.sh/examples/uploads-before-after/">Read it on the site</a>, or watch its <a href="examples/uploads-before-after/motion.mp4">47-second cut</a>.</sub></td>
   </tr>
   <tr>
-    <td colspan="2"><img src=".github/assets/digest-keyed.webp" alt="The shipped 'week at a glance' card with five numbered keys on its parts, and a legend under it: flames, tile size, columns, click a tile, and the five biggest releases."></td>
+    <td colspan="2"><img src=".github/assets/digest-keyed.webp" alt="The shipped 'week at a glance' card with five notes in the margins, each joined to its part: flames, tile size, columns, click a tile, and the five biggest releases."></td>
   </tr>
   <tr>
     <td colspan="2"><sub><b><a href="examples/releases-weekly-digests">Weekly digests</a></b>: a build story about the weekly collection digests on Release Notes Index, from the public <code>buildinternet/releases</code> repo. <a href="https://buildnotes.releases.sh/examples/releases-weekly-digests/">Read it on the site</a> in field notes, with the card above as its first figure, or open <a href="examples/releases-weekly-digests/post.html"><code>post.html</code></a> for the same post in the Plain style. Its <a href="examples/releases-weekly-digests/motion.mp4">one-minute cut</a> plays in the <a href="#motion-cut">Motion cut</a> section below.</sub></td>

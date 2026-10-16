@@ -56,9 +56,9 @@ test("the site builds: markers filled, files copied, every command copyable", ()
       assert.match(deck, /"deck":true/);
       assert.match(readFileSync(join(out, `examples/${ex.slug}/index.html`), "utf8"), /href="deck\.html"/);
     }
-    // the weekly-digests example is the field-notes page, the one with the card taken apart
+    // the weekly-digests example is the field-notes page, the one with the card drawn flat
     const digests = readFileSync(join(out, "examples/releases-weekly-digests/index.html"), "utf8");
-    assert.match(digests, /class="keyed anatomy anatomy-iso"/);
+    assert.match(digests, /class="keyed anatomy anatomy-flat anatomy-margin"/);
     assert.throws(() => wrapPost("nope", "<style></style>"), /not in EXAMPLES/);
     // the examples page: one card per example, the home page's stylesheet, links one folder up
     const list = readFileSync(join(out, "examples/index.html"), "utf8");
