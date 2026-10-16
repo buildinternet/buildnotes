@@ -68,7 +68,7 @@ export const EXAMPLES = [
     blurb: "Walkthrough videos: one export turns a room, a floor or a project into a looping tour." },
   { slug: "uploads-before-after", name: "Before and after, side by side", product: "Uploads", deck: true, file: "post.html", image: ".github/assets/before-after-compare.webp",
     blurb: "Before and after screenshots: tag two, and the pull request comment shows them side by side." },
-  { slug: "releases-weekly-digests", name: "Weekly digests", product: "Release Notes Index", deck: true, file: "post-field-notes.html", image: ".github/assets/digest-apart.webp",
+  { slug: "releases-weekly-digests", name: "Weekly digests", product: "Release Notes Index", deck: true, file: "post-field-notes.html", image: ".github/assets/digest-card-hero.webp",
     blurb: "Weekly digests: a card, a replay of the week, and one email a week per reader." },
 ];
 const REPO = "https://github.com/buildinternet/buildnotes";

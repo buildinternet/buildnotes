@@ -26,7 +26,7 @@ test("the site builds: markers filled, files copied, every command copyable", ()
     assert.match(html, /<code data-copy>npx skills add buildinternet\/buildnotes<\/code>/);
     // local references point at copied files, and .github/assets is published as assets/
     for (const f of files) assert.ok(existsSync(join(out, f)), f);
-    assert.ok(files.includes("assets/digest-apart.webp"));
+    assert.ok(files.includes("assets/digest-card-hero.webp"));
     assert.doesNotMatch(html, /\.github\//);
     assert.match(html, /<html lang="en" data-theme="light">/);
     // every example is served as a folder with its video, its post wrapped in a document and the site shell
@@ -72,7 +72,7 @@ test("the site builds: markers filled, files copied, every command copyable", ()
       assert.match(list, new RegExp(`href="${ex.slug}/#site-video"`), ex.slug);
       if (ex.deck) assert.match(list, new RegExp(`href="${ex.slug}/deck\\.html"`), ex.slug);
     }
-    assert.match(list, /src="\.\.\/assets\/digest-apart\.webp"/);
+    assert.match(list, /src="\.\.\/assets\/digest-card-hero\.webp"/);
     assert.match(list, /href="\.\.\/#install"/);
     // the footer, on both pages: columns and the maintained-by line
     for (const page of [html, list]) {
