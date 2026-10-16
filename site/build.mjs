@@ -18,8 +18,9 @@
 // examples/<slug>/, with its video beside it. Its post is not copied as is: the committed posts are written
 // for the Artifact viewer, which wraps them in a document, so the build wraps each one itself (doctype,
 // charset, viewport) and adds a site shell around it: a bar naming the example with a way back, and a
-// footer with the example's video, its plan, and the other examples. examples/index.html lists them all,
-// built from site/src/examples.html with the home page's stylesheet. Nothing to install; Node 22 or later.
+// footer with the example's video, its plan, and the other examples. The video's chapters come from the
+// motion.vtt beside it, shown as a segmented bar and a list under the player. examples/index.html lists
+// them all, built from site/src/examples.html with the home page's stylesheet. Nothing to install; Node 22 or later.
 
 import { readFileSync, writeFileSync, mkdirSync, copyFileSync, rmSync, existsSync, readdirSync } from "node:fs";
 import { dirname, join, resolve, basename } from "node:path";
@@ -95,6 +96,19 @@ const SHELL_CSS = `
 /* The video, in a box under the post's headline. */
 .site-watch { display: grid; gap: 0; border: 1px solid #e3e3dd; border-radius: 6px; background: #f5f5f1; padding: 6px; }
 .site-watch video { width: 100%; aspect-ratio: 16 / 9; background: #000; border-radius: 3px; display: block; }
+/* The chapters: a bar of segments (one per chapter, the gaps are the chapter marks) and a list under it. */
+.site-chapters { padding: 10px 6px 2px; }
+.site-scrub { display: flex; gap: 3px; height: 14px; align-items: center; }
+.site-scrub button { flex: 1 1 0; min-width: 4px; height: 100%; padding: 0; border: 0; background: none; cursor: pointer; display: flex; align-items: center; }
+.site-scrub i { display: block; width: 100%; height: 4px; border-radius: 2px; background: linear-gradient(#1f1f1d, #1f1f1d) no-repeat 0 0 / var(--played, 0%) 100%, #dcdcd5; transition: height 120ms ease; }
+.site-scrub button:hover i { height: 8px; }
+.site-chapters ol { list-style: none; margin: 10px 0 0; padding: 0; columns: 2 15rem; column-gap: 16px; }
+.site-chapters li { break-inside: avoid; }
+.site-chapters ol button { all: unset; box-sizing: border-box; display: flex; gap: 10px; align-items: baseline; width: 100%; padding: 3px 0; cursor: pointer; color: #64645f; line-height: 1.35; }
+.site-chapters ol button:hover { color: #1f1f1d; }
+.site-chapters ol button:focus-visible { outline: 2px solid #3358d4; outline-offset: 2px; border-radius: 2px; }
+.site-chapters ol button[aria-current] { color: #1f1f1d; font-weight: 600; }
+.site-chapters .site-label { flex: none; min-width: 2.6em; font-weight: 400; font-variant-numeric: tabular-nums; }
 .site-watch .site-watch-bar { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 4px 16px; padding: 10px 6px 4px; }
 .site-watch b { color: #1f1f1d; font-weight: 600; }
 .site-watch .site-links { display: flex; flex-wrap: wrap; gap: 4px 16px; }
@@ -126,6 +140,27 @@ function footerCss() {
     .replace(/^(\s*)footer\b/gm, "$1.site-footer footer");
 }
 
+// The video's chapters, from the motion.vtt beside it (motion.mjs writes one with each export): [{ start, end, title }].
+export function videoChapters(slug) {
+  const file = join(root, "examples", slug, "motion.vtt");
+  if (!existsSync(file)) return [];
+  const secs = (t) => t.split(":").reduce((a, x) => a * 60 + Number(x), 0);
+  return [...readFileSync(file, "utf8").matchAll(/^([\d:.]+) --> ([\d:.]+)\n(.+)$/gm)].map(([, a, b, title]) => ({ start: secs(a), end: secs(b), title }));
+}
+
+// Under the video: a bar with one segment per chapter, filled as the video plays, and the chapters as a list.
+// Either one jumps the video there. The cue text is already escaped for HTML (WebVTT escapes the same way).
+function chapterNav(marks) {
+  if (!marks.length) return "";
+  const total = marks.at(-1).end;
+  const clock = (t) => `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, "0")}`;
+  return `
+    <nav class="site-chapters" aria-label="Chapters">
+      <div class="site-scrub" aria-hidden="true">${marks.map((c) => `<button type="button" tabindex="-1" data-at="${c.start}" style="flex-grow: ${(c.end - c.start).toFixed(2)}" title="${c.title}"><i></i></button>`).join("")}</div>
+      <ol>${marks.map((c) => `<li><button type="button" data-at="${c.start}"><span class="site-label">${clock(c.start)}</span>${c.title}</button></li>`).join("")}</ol>
+    </nav>`;
+}
+
 export function wrapPost(slug, post, url) {
   const i = EXAMPLES.findIndex((e) => e.slug === slug);
   if (i < 0) throw new Error(`examples/${slug} is not in EXAMPLES (site/build.mjs)`);
@@ -138,9 +173,10 @@ export function wrapPost(slug, post, url) {
   // The video goes in a box right under the post's headline.
   const mast = body.indexOf("</header>");
   if (mast < 0) throw new Error(`examples/${slug}: no </header> to put the video under`);
+  const marks = videoChapters(slug);
   const watch = `
   <aside class="site-bar site-watch" id="site-video" aria-label="The video">
-    <video src="motion.mp4" autoplay muted loop playsinline controls preload="metadata" aria-label="The video cut of this post."></video>
+    <video src="motion.mp4" autoplay muted loop playsinline controls preload="metadata" aria-label="The video cut of this post.">${marks.length ? `<track kind="chapters" src="motion.vtt" srclang="en" label="Chapters" default>` : ""}</video>${chapterNav(marks)}
     <div class="site-watch-bar"><b>The same story as a video</b><span class="site-links"><a href="motion.mp4" download>Download</a>${ex.deck ? `<a href="deck.html">Slides</a>` : ""}<a href="${REPO}/blob/main/examples/${ex.slug}/plan.md">The plan behind it</a></span></div>
   </aside>`;
   body = body.slice(0, mast + 9) + watch + body.slice(mast + 9);
@@ -201,6 +237,34 @@ ${footer("../../")}
   }, { rootMargin: "0px 0px -60% 0px" });
   for (const a of links) { const t = document.getElementById(a.hash.slice(1)); if (t) io.observe(t); }
   if (matchMedia("(prefers-reduced-motion: reduce)").matches) document.querySelector(".site-watch video")?.pause();
+})();
+// The video's chapters: fill each segment as far as the video has played, mark the chapter playing, and jump on a click.
+(() => {
+  const video = document.querySelector(".site-watch video");
+  const nav = document.querySelector(".site-chapters");
+  if (!video || !nav) return;
+  const segs = [...nav.querySelectorAll(".site-scrub button")];
+  const items = [...nav.querySelectorAll("ol button")];
+  const starts = items.map((b) => Number(b.dataset.at));
+  let current = -1;
+  const draw = () => {
+    const t = video.currentTime;
+    const end = (i) => starts[i + 1] ?? (video.duration || starts[i] + 1);
+    segs.forEach((s, i) => s.firstChild.style.setProperty("--played", Math.min(100, Math.max(0, ((t - starts[i]) / (end(i) - starts[i])) * 100)) + "%"));
+    const on = starts.findLastIndex((a) => a <= t + 0.05);
+    if (on !== current) { items[current]?.removeAttribute("aria-current"); items[on]?.setAttribute("aria-current", "true"); current = on; }
+  };
+  let raf = 0;
+  const tick = () => { draw(); raf = video.paused ? 0 : requestAnimationFrame(tick); };
+  video.addEventListener("play", () => { if (!raf) raf = requestAnimationFrame(tick); });
+  for (const e of ["seeked", "timeupdate", "loadedmetadata"]) video.addEventListener(e, draw);
+  nav.addEventListener("click", (e) => {
+    const b = e.target.closest("button[data-at]");
+    if (!b) return;
+    video.currentTime = Number(b.dataset.at);
+    if (video.paused) video.play().catch(() => {});
+  });
+  draw();
 })();
 </script>
 </body>
@@ -394,6 +458,7 @@ export function build({ out = join(here, "dist"), url } = {}) {
   for (const ex of EXAMPLES) {
     files.set(`examples/${ex.slug}/index.html`, join(root, "examples", ex.slug, ex.file));
     files.set(`examples/${ex.slug}/motion.mp4`, join(root, "examples", ex.slug, "motion.mp4"));
+    if (videoChapters(ex.slug).length) files.set(`examples/${ex.slug}/motion.vtt`, join(root, "examples", ex.slug, "motion.vtt"));
     if (ex.deck) for (const f of ["deck.html", "deck.pdf"]) files.set(`examples/${ex.slug}/${f}`, join(root, "examples", ex.slug, f));
     files.set(exampleCard(ex), join(here, exampleCard(ex))); // its link-preview card
   }

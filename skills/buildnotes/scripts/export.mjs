@@ -29,6 +29,8 @@
 //   --pad <px>          page background around the figure; default 16
 //   --transparent       for --svg: no background rectangle
 //   --frames            for GIF and video: keep the PNG frames next to the output
+//   --chapters <file>   for video: a JSON list of { "start": <s>, "title" } from the start of the loop, written into
+//                       the file as chapters (QuickTime, VLC and IINA list them; browsers' own controls don't)
 //
 // GIF and video need ffmpeg. Frames are stepped, not recorded: SVG and CSS motion is paused and moved
 // to each frame's time, and the page's scripts run on a virtual clock (requestAnimationFrame,
@@ -38,7 +40,7 @@
 // --seconds. Needs Chrome (set CHROME_PATH if it isn't found).
 
 import { spawnSync } from "node:child_process";
-import { copyFileSync, mkdirSync, writeFileSync, mkdtempSync, rmSync, existsSync, renameSync } from "node:fs";
+import { copyFileSync, mkdirSync, readFileSync, writeFileSync, mkdtempSync, rmSync, existsSync, renameSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { basename, dirname, join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
@@ -178,12 +180,25 @@ try {
     copyFileSync(name(cover), name(0));
   }
   const input = ["-framerate", String(fps), "-i", join(frames, "frame-%04d.png")];
-  const art = cover ? ["-i", join(frames, "cover.png"), "-map", "0", "-map", "1", "-c:v:1", "png", "-disposition:v:1", "attached_pic"] : [];
+  // Chapters go in as an ffmetadata file, each one ending where the next starts.
+  let marks = [];
+  let toc = [];
+  if (opt("chapters") && format !== "gif") {
+    const list = JSON.parse(readFileSync(opt("chapters"), "utf8")).filter((c) => c.start >= 0 && c.start < seconds).sort((a, b) => a.start - b.start);
+    const esc = (t) => String(t).replace(/[=;#\\\n]/g, (m) => `\\${m}`);
+    const meta = list.map((c, i) => `[CHAPTER]\nTIMEBASE=1/1000\nSTART=${Math.round(c.start * 1000)}\nEND=${Math.round((list[i + 1]?.start ?? seconds) * 1000)}\ntitle=${esc(c.title)}\n`).join("");
+    writeFileSync(join(frames, "chapters.txt"), `;FFMETADATA1\n${meta}`);
+    marks = ["-f", "ffmetadata", "-i", join(frames, "chapters.txt")];
+    toc = ["-map_chapters", "1"];
+  }
+  // The cover art is the next input after the frames and any chapters; inputs come before output options.
+  const pic = toc.length ? 2 : 1;
+  const art = cover ? ["-i", join(frames, "cover.png"), "-map", "0", "-map", String(pic), "-c:v:1", "png", "-disposition:v:1", "attached_pic"] : [];
   const even = "pad=ceil(iw/2)*2:ceil(ih/2)*2";
   const args = {
     gif: [...input, "-vf", "split[a][b];[a]palettegen=stats_mode=diff[p];[b][p]paletteuse=dither=bayer:bayer_scale=4:diff_mode=rectangle", "-loop", "0"],
-    mp4: [...input, ...art, "-filter:v:0", even, "-c:v:0", "libx264", "-pix_fmt:v:0", "yuv420p", "-crf", "18", "-movflags", "+faststart"],
-    webm: [...input, "-vf", even, "-c:v", "libvpx-vp9", "-b:v", "0", "-crf", "32", "-pix_fmt", "yuv420p"],
+    mp4: [...input, ...marks, ...art, ...toc, "-filter:v:0", even, "-c:v:0", "libx264", "-pix_fmt:v:0", "yuv420p", "-crf", "18", "-movflags", "+faststart"],
+    webm: [...input, ...marks, ...toc, "-vf", even, "-c:v", "libvpx-vp9", "-b:v", "0", "-crf", "32", "-pix_fmt", "yuv420p"],
   }[format];
   const run = spawnSync("ffmpeg", ["-y", "-loglevel", "error", ...args, out], { encoding: "utf8" });
   if (run.status !== 0) { rmSync(frames, { recursive: true, force: true }); await done(1, `ffmpeg failed: ${run.stderr.trim().split("\n").pop()}`); }

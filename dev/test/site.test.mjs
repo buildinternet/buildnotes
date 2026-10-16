@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { build, SHARE, EXAMPLES, wrapPost, footer, exampleCard, siteFonts } from "../../site/build.mjs";
+import { build, SHARE, EXAMPLES, videoChapters, wrapPost, footer, exampleCard, siteFonts } from "../../site/build.mjs";
 import { drawing, NAMES } from "../../site/iso.mjs";
 
 test("the site builds: markers filled, files copied, every command copyable", () => {
@@ -42,6 +42,13 @@ test("the site builds: markers filled, files copied, every command copyable", ()
       assert.match(post, /<header class="site-bar site-top">/);
       // the video sits under the headline, and the rail lists the examples and every chapter
       assert.match(post, /<\/header>\s*<aside class="site-bar site-watch" id="site-video"[^>]*>\s*<video src="motion\.mp4"/);
+      // its chapters: a track for the player, and a segment and a list entry per cue in motion.vtt
+      assert.ok(files.includes(`examples/${ex.slug}/motion.vtt`), ex.slug);
+      assert.match(post, /<track kind="chapters" src="motion\.vtt"/);
+      const cues = videoChapters(ex.slug).length;
+      assert.ok(cues >= 5, ex.slug);
+      assert.equal(post.match(/<div class="site-scrub"[\s\S]*?<\/div>/)[0].match(/data-at=/g).length, cues, ex.slug);
+      assert.equal(post.match(/<nav class="site-chapters"[\s\S]*?<\/nav>/)[0].match(/<li>/g).length, cues, ex.slug);
       assert.match(post, new RegExp(`<a href="\\.\\./${ex.slug}/" aria-current="page">`), ex.slug);
       assert.equal((post.match(/<nav class="site-bar site-rail"[\s\S]*?<\/nav>/)?.[0].match(/href="#c\d+"/g) ?? []).length, (post.match(/<section class="ch" id="c\d+">/g) ?? []).length, ex.slug);
       for (const o of EXAMPLES) assert.match(post, new RegExp(`href="\\.\\./\\.\\./examples/${o.slug}/"`), `${ex.slug} links ${o.slug}`);

@@ -32,7 +32,7 @@
 // in. Video is 1920×1080: export.mjs steps the stage frame by frame on a virtual clock, so it needs Chrome
 // and ffmpeg. Warnings go to stderr.
 
-import { existsSync, mkdtempSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { spawnSync } from "node:child_process";
 import { basename, dirname, extname, join, resolve } from "node:path";
@@ -258,18 +258,38 @@ export function build(cut, images, { brand = null, template = readFileSync(TEMPL
 }
 
 // What to export: the whole reel, or one scene as a clip; the clip's place on the timeline, and the scale
-// that gives the asked-for width. Scene numbers count from 1.
+// that gives the asked-for width. Scene numbers count from 1. The whole reel also gets chapters, one per
+// scene, named by its label (else its headline), which a video carries for the players that show them.
 export function exportPlan(cut, { scene, size, gif = false } = {}) {
   const width = Number(size ?? (gif ? 960 : 1920));
   if (!(width >= 160 && width <= 3840)) throw new Error(`--size ${size}: a width from 160 to 3840`);
   const plan = { scale: (EXPORT.scale * width) / 1920, from: 0, seconds: cut.total, at: round(cut.scenes[0].dur - 0.5), suffix: "" };
-  if (scene == null) return plan;
+  if (scene == null) return { ...plan, chapters: chapters(cut) };
   const n = Number(scene);
   if (!Number.isInteger(n) || n < 1 || n > cut.scenes.length) throw new Error(`--scene ${scene}: a scene from 1 to ${cut.scenes.length}`);
   const from = cut.scenes.slice(0, n - 1).reduce((a, d) => a + d.dur, 0);
   // A clip stops just before the scene's fade-out, so it loops on the scene and not on a blank frame.
   const seconds = round(cut.scenes[n - 1].dur - 0.35);
   return { ...plan, from: round(from), seconds, at: round(from + seconds - 0.1), suffix: `-scene-${n}` };
+}
+
+// Scenes in a row with the same label (a chapter told in two scenes) make one chapter.
+export function chapters(cut) {
+  const list = [];
+  let at = 0;
+  for (const d of cut.scenes) {
+    const title = String(d.label || d.headline || d.kind).replace(/\*/g, "").trim();
+    if (list.at(-1)?.title !== title) list.push({ start: round(at), title });
+    at += d.dur;
+  }
+  return list;
+}
+
+// The chapters as WebVTT, for a <track kind="chapters"> beside the video: each cue ends where the next starts.
+export function chaptersVtt(list, total) {
+  const ts = (t) => new Date(Math.round(t * 1000)).toISOString().slice(11, 23);
+  const text = (t) => t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  return `WEBVTT\n\n${list.map((c, i) => `${i + 1}\n${ts(c.start)} --> ${ts(list[i + 1]?.start ?? total)}\n${text(c.title)}\n`).join("\n")}`;
 }
 
 // A clip's footage as one sprite sheet: its frames from "from" to "to" at its own rate up to 15 a second, at most
@@ -350,8 +370,9 @@ async function main(argv) {
   let plan;
   try { plan = exportPlan(cut, { scene: opt("scene"), size: set("size"), gif: video === "gif" }); } catch (e) { console.error(`error: ${e.message}`); return 2; }
   const stem = exportStem({ name: set("name"), dir: base, title: cut.title });
+  const outFor = (fmt) => join(dirname(page), "export", exportName(stem, `motion${plan.suffix}`, fmt));
   const exportOne = (fmt, extra) => {
-    const out = join(dirname(page), "export", exportName(stem, `motion${plan.suffix}`, fmt));
+    const out = outFor(fmt);
     const args = [join(here, "export.mjs"), page, "--select", "#stage", `--${fmt}`, "--width", String(EXPORT.width), "--pad", "0", "--theme", theme, "--out", out, ...extra];
     const r = spawnSync(process.execPath, args, { stdio: ["ignore", "inherit", "inherit"] });
     return r.status ?? 1;
@@ -359,8 +380,13 @@ async function main(argv) {
   if (video) {
     // A video opens on the poster frame, since GitHub and most players show frame 0 before play.
     // A GIF at full size is tens of megabytes; half size at 15 fps keeps it shareable.
-    const status = exportOne(video, ["--scale", String(plan.scale), "--fps", String(set("fps") ?? (video === "gif" ? 15 : 30)), "--from", String(plan.from), "--seconds", String(plan.seconds), ...(video === "gif" ? [] : ["--cover", opt("at") ?? String(plan.at)])]);
+    const marks = plan.chapters && video !== "gif" ? join(mkdtempSync(join(tmpdir(), "buildnotes-chapters-")), "chapters.json") : null;
+    if (marks) writeFileSync(marks, JSON.stringify(plan.chapters));
+    const status = exportOne(video, ["--scale", String(plan.scale), "--fps", String(set("fps") ?? (video === "gif" ? 15 : 30)), "--from", String(plan.from), "--seconds", String(plan.seconds), ...(video === "gif" ? [] : ["--cover", opt("at") ?? String(plan.at)]), ...(marks ? ["--chapters", marks] : [])]);
+    if (marks) rmSync(dirname(marks), { recursive: true, force: true });
     if (status) return status;
+    // The same chapters as WebVTT next to the video, for a web player to list and jump between.
+    if (marks) { writeFileSync(outFor("vtt"), chaptersVtt(plan.chapters, plan.seconds)); console.log(`wrote ${outFor("vtt")} (${plan.chapters.length} chapters)`); }
   }
   if (has("poster")) {
     const status = exportOne("png", ["--scale", String(plan.scale), "--at", opt("at") ?? String(plan.at)]);

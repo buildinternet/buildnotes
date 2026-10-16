@@ -19,7 +19,7 @@ The skill's scripts live in [`scripts/`](../skills/buildnotes/scripts). Each one
 node skills/buildnotes/scripts/gather.mjs --out <work-dir>/evidence --pr 120,131,140 --download
 node skills/buildnotes/scripts/lint.mjs <work-dir>/post.html --flavor build --product "Release Notes Index,Releases" --avoid "codename"
 node skills/buildnotes/scripts/export.mjs <work-dir>/post.html --figure 4 --gif
-node skills/buildnotes/scripts/motion.mjs examples/releases-weekly-digests/motion.json --mp4                       # the whole cut → export/<story>-motion.mp4
+node skills/buildnotes/scripts/motion.mjs examples/releases-weekly-digests/motion.json --mp4                       # the whole cut → export/<story>-motion.mp4, with chapters, and <story>-motion.vtt
 node skills/buildnotes/scripts/motion.mjs examples/releases-weekly-digests/motion.json --gif --scene 5 --size 720  # one scene → export/<story>-motion-scene-5.gif
 node skills/buildnotes/scripts/deck.mjs examples/sunny-walkthrough-videos/motion.json --pdf                        # slides → deck.html, export/<story>-deck.pdf
 ```
