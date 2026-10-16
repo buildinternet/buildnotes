@@ -22,9 +22,10 @@
 // footer with the example's video, its plan, and the other examples. The video's chapters come from the
 // motion.vtt beside it: the player has its own controls, with a segment per chapter on its scrubber, and
 // lists them under it. examples/index.html lists them all, built from site/src/examples.html with the home
-// page's stylesheet. Nothing to install; Node 22 or later.
+// page's stylesheet. site/assets/hero/ (the hero's scene, see site/hero.mjs) is copied whole. Nothing to
+// install; Node 22 or later.
 
-import { readFileSync, writeFileSync, mkdirSync, copyFileSync, rmSync, existsSync, readdirSync } from "node:fs";
+import { readFileSync, writeFileSync, mkdirSync, copyFileSync, rmSync, existsSync, readdirSync, statSync } from "node:fs";
 import { dirname, join, resolve, basename } from "node:path";
 import { fileURLToPath } from "node:url";
 import { renderKind } from "../skills/buildnotes/scripts/viz.mjs";
@@ -637,11 +638,15 @@ export function build({ out = join(here, "dist"), url } = {}) {
   }
   // The font files: fonts.css names them, and the pages preload a few.
   for (const f of readdirSync(join(here, "assets/fonts"))) files.set(`assets/fonts/${f}`, join(here, "assets/fonts", f));
+  // The hero's table: hero.js loads its model, images, videos and three.js itself, so the whole folder goes.
+  for (const f of readdirSync(join(here, "assets/hero"), { recursive: true })) {
+    if (statSync(join(here, "assets/hero", f)).isFile()) files.set(`assets/hero/${f}`, join(here, "assets/hero", f));
+  }
   for (const [, f] of readFileSync(join(here, "assets/fonts.css"), "utf8").matchAll(/url\(([^)]+)\)/g)) {
     if (!existsSync(join(here, "assets", f))) throw new Error(`assets/fonts.css names ${f}, which isn't there (run node site/fonts.mjs)`);
   }
   for (const [to, from] of files) {
-    if (!existsSync(from)) throw new Error(`missing ${from}${/^assets\/og[-.]/.test(to) ? " (make it with node site/card.mjs)" : ""}`);
+    if (!existsSync(from)) throw new Error(`missing ${from}${/^assets\/og[-.]/.test(to) ? " (make it with node site/card.mjs)" : /^assets\/hero\//.test(to) ? " (make it with node site/hero.mjs)" : ""}`);
     mkdirSync(dirname(join(out, to)), { recursive: true });
     const post = to.match(POST);
     if (post) writeFileSync(join(out, to), siteFonts(wrapPost(post[1], readFileSync(from, "utf8"), url), "../../", to));

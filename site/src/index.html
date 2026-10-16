@@ -13,6 +13,7 @@
 <link rel="preload" href="assets/fonts/archivo-normal-400-800-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/ibm-plex-mono-normal-400-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="assets/fonts.css">
+<script type="importmap">{ "imports": { "three": "./assets/hero/three/build/three.module.min.js", "three/addons/": "./assets/hero/three/examples/jsm/" } }</script>
 <style>
 /* Layout: one page, one column of sections. A centred headline, the Sunny example (post, video, a live
    figure), then what it makes and draws. Field notes palette; drawings in the anatomy component's iso style. */
@@ -76,13 +77,48 @@ code { font-family: var(--font-code); font-size: 0.86em; }
   border: 1px solid var(--rule); border-radius: 4px; padding: 20px;
 }
 
+/* The hero's table: one cluster per example on a tilted canvas, drawn as one three.js scene by
+   assets/hero/hero.js (the layout is in assets/hero/layout.js). The stage runs the window's full width, with
+   paper fades over its edges. Until the scene is ready, and for good under reduced motion or without WebGL, it
+   shows a baked poster of the Sunny view (site/hero.mjs makes it). The request behind the cluster in view sits
+   in a chip over the stage, its brief typing in as the camera moves; a pager under it picks a cluster. */
+html { overflow-x: clip; }
+.hero-table { margin-inline: calc(50% - 50vw); }
+.hero-table .table { position: relative; }
+.hero-table .stage { position: relative; height: clamp(380px, 50vw, 600px); overflow: hidden; --s: .64; }
+.hero-table .stage::after { content: ""; position: absolute; inset: 0; z-index: 2; pointer-events: none;
+  background: linear-gradient(var(--paper), transparent 20%, transparent 66%, var(--paper) 96%), linear-gradient(90deg, var(--paper), transparent 14%, transparent 86%, var(--paper)); }
+.hero-table .stage canvas { position: absolute; inset: 0; z-index: 1; display: block; width: 100%; height: 100%; }
+.hero-table .poster { position: absolute; left: 50%; top: 50%; z-index: 0; width: 1920px; height: 600px; max-width: none; transform: translate(-50%, -50%); transition: opacity .5s; }
+.hero-table .poster img { width: 100%; height: 100%; max-width: none; }
+.hero-table.ready .poster { opacity: 0; }
+.hero-table.static .stops { visibility: hidden; }
+.req { position: absolute; z-index: 3; left: 50%; transform: translateX(-50%); bottom: 22px; width: max-content; max-width: calc(100% - 32px); padding: 9px 14px;
+  background: color-mix(in oklab, var(--paper) 92%, transparent); border: 1px solid var(--rule); border-radius: 6px; box-shadow: 0 1px 2px rgba(0,0,0,.04), 0 12px 28px -14px rgba(31,31,29,.28); backdrop-filter: blur(6px);
+  font: 400 0.8125rem/1.45 var(--font-code); color: var(--ink); display: flex; align-items: baseline; gap: 0.6em; text-align: left; }
+.req .pre { flex: none; font-weight: 500; }
+.req .ask { position: relative; min-width: 0; }
+.req .sizer { visibility: hidden; white-space: nowrap; }
+.req .typed { position: absolute; left: 0; top: 0; right: 0; white-space: nowrap; }
+.stops { position: relative; z-index: 3; display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 6px; padding-bottom: 40px; margin-top: -8px; }
+.stops button { font: 400 0.6875rem var(--font-mono); letter-spacing: .03em; color: var(--muted); background: none; border: 0; border-top: 2px solid var(--rule); padding: 8px 10px 0; cursor: pointer; min-width: 7rem; }
+.stops button[aria-current="true"] { color: var(--ink); border-top-color: var(--accent); }
+@media (max-width: 640px) {
+  .hero-table .stage { --s: .36; }
+  .hero-table .poster { width: 640px; height: 380px; }
+  .stops button { min-width: 0; }
+  .req { bottom: 12px; width: calc(100% - 32px); }
+  .req .sizer, .req .typed { white-space: normal; }
+}
+@media (prefers-reduced-motion: reduce) { .hero-table .poster { transition: none; } }
+
 header.top { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 20px; padding-block: 22px; font-size: 0.875rem; }
 header.top a { text-decoration: none; color: var(--muted); }
 header.top a:hover { color: var(--ink); }
 header.top a.name { color: var(--ink); font-weight: 600; }
 header.top nav { display: flex; flex-wrap: wrap; gap: 4px 20px; }
 
-.hero { text-align: center; padding-block: 64px 48px; display: grid; gap: 22px; justify-items: center; grid-template-columns: minmax(0, 1fr); }
+.hero { text-align: center; padding-block: 64px 0; display: grid; gap: 22px; justify-items: center; grid-template-columns: minmax(0, 1fr); }
 .hero > * { min-width: 0; max-width: 100%; }
 .hero h1 { font-family: var(--font-display); font-size: clamp(2.125rem, 1.4rem + 3.2vw, 3.5rem); line-height: 1.05; letter-spacing: -0.015em; }
 .hero h1 span { display: block; color: var(--muted); }
@@ -246,6 +282,16 @@ section > * { min-width: 0; }
     <div class="usage"><span class="label">Then, inside your repo:</span><code>/buildnotes <b>[post | video | deck]</b> <i>what to write about</i></code></div>
   </div>
 
+  <div class="hero-table" data-hero>
+    <div class="table">
+      <div class="stage" aria-hidden="true">
+        <picture class="poster"><source media="(max-width: 640px)" srcset="assets/hero/poster-phone.jpg"><img src="assets/hero/poster.jpg" alt="" fetchpriority="high"></picture>
+      </div>
+      <p class="req"><span class="pre">/buildnotes</span><span class="ask"><span class="sizer" aria-hidden="true">before and after screenshots, side by side</span><span class="typed">How we built room walkthrough videos</span></span></p>
+    </div>
+    <nav class="stops" aria-label="Examples on the table"><button type="button" aria-current="true">Sunny</button><button type="button">Release Notes Index</button><button type="button">Uploads</button></nav>
+  </div>
+
   <section id="example" aria-labelledby="ex-h">
     <div class="show-head">
       <p class="label">Example</p>
@@ -360,5 +406,6 @@ if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
   document.querySelectorAll('video[autoplay]').forEach(function (v) { v.removeAttribute('autoplay'); v.pause(); v.setAttribute('controls', ''); });
 }
 </script>
+<script type="module" src="assets/hero/hero.js"></script>
 </body>
 </html>
