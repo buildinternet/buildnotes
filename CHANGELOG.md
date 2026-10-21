@@ -89,3 +89,7 @@ Until the first release, changes are recorded under [Unreleased].
 - Headless Chrome gets 45 s to start instead of 20, since a busy CI runner starting several at once can take longer.
 - `references/visuals.md`: how to hide sticky headers before a capture, and a crop command that honours its offset (`sips -c` crops around the centre).
 - Plain replaces the template's previous look: Archivo, Newsreader and IBM Plex Mono on a white page, and figures (flows, steps, diagrams) on plain ground between two rules instead of a bordered dot grid.
+
+### Security
+
+- GitHub Actions pins Node.js to 22.23.4, the first 22.x release that distrusts the compromised eMudhra intermediate certificates ([CVE-2026-111943](https://www.cve.org/CVERecord?id=CVE-2026-111943), [Cloudflare](https://blog.cloudflare.com/emudhra-certificate-compromise/)). `actions/setup-node` with `node-version: 22` and no `check-latest` can keep an older cached 22.x. The minimum stays Node.js 22 (`package.json` engines `>=22`).
