@@ -87,6 +87,7 @@ Until the first release, changes are recorded under [Unreleased].
 - A hand-drawn SVG in `figure.diagram` fits the column instead of being held at 30rem and scrolling on a phone; `figure.diagram.wide` keeps the 30rem minimum.
 - `lint.mjs`'s moving-dot warning says why the dot goes under the boxes in a flow, and that a route over a plan can ignore it.
 - Headless Chrome gets 45 s to start instead of 20, since a busy CI runner starting several at once can take longer.
+- CI's syntax check covers `site/promo/build.mjs`; it only globbed the top of `site/`.
 - `references/visuals.md`: how to hide sticky headers before a capture, and a crop command that honours its offset (`sips -c` crops around the centre).
 - Plain replaces the template's previous look: Archivo, Newsreader and IBM Plex Mono on a white page, and figures (flows, steps, diagrams) on plain ground between two rules instead of a bordered dot grid.
 
