@@ -29,7 +29,7 @@ jobs:
       - name: Syntax
         run: |
           shopt -s globstar
-          for f in skills/buildnotes/scripts/**/*.mjs dev/**/*.mjs site/*.mjs; do
+          for f in skills/buildnotes/scripts/**/*.mjs dev/**/*.mjs site/**/*.mjs; do
             node --check "$f"
           done
 
@@ -121,6 +121,6 @@ jobs:
           echo "CHROME_PATH=$bin" >> "$GITHUB_ENV"
           "$bin" --version
 
-      # Node 22 treats a directory argument as a test file. The glob is the same suite Node 20 runs for dev/test/.
+      # Node 22 treats a directory argument as a test file, so pass the test files by glob.
       - name: Tests
         run: node --test dev/test/*.test.mjs
