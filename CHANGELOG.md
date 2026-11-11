@@ -93,4 +93,5 @@ Until the first release, changes are recorded under [Unreleased].
 
 ### Security
 
+- GitHub Actions pins Node.js to 22.23.5, the 22.x release that fixes the November 11, 2026 high-severity HTTP/2 and TLS server vulnerabilities ([Node.js blog](https://nodejs.org/en/blog/vulnerability/november-2026-security-releases)). `actions/setup-node` with `node-version: 22` and no `check-latest` can keep an older cached 22.x. The minimum stays Node.js 22 (`package.json` engines `>=22`).
 - GitHub Actions pins Node.js to 22.23.4, the first 22.x release that distrusts the compromised eMudhra intermediate certificates ([CVE-2026-111943](https://www.cve.org/CVERecord?id=CVE-2026-111943), [Cloudflare](https://blog.cloudflare.com/emudhra-certificate-compromise/)). `actions/setup-node` with `node-version: 22` and no `check-latest` can keep an older cached 22.x. The minimum stays Node.js 22 (`package.json` engines `>=22`).
